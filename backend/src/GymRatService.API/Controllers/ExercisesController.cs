@@ -17,7 +17,7 @@ public class ExercisesController(IExercisesService exercisesService) : Controlle
         return Ok(response);
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetExerciseAsync(Guid id, CancellationToken cancellationToken)
     {
         var response = await exercisesService.GetExerciseAsync(id, cancellationToken);
