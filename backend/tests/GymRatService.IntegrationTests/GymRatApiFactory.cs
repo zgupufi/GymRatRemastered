@@ -1,4 +1,7 @@
+using System.Net.Http.Headers;
+using GymRatService.IntegrationTests.Authentication;
 using GymRatService.Repository;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
@@ -9,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace GymRatService.IntegrationTests;
 
-/// <summary>Hosts the real API in memory, with PostgreSQL swapped for a private in-memory SQLite database.</summary>
 public sealed class GymRatApiFactory : WebApplicationFactory<Program>
 {
     private readonly SqliteConnection _connection = new("DataSource=:memory:");
@@ -23,13 +25,23 @@ public sealed class GymRatApiFactory : WebApplicationFactory<Program>
             services.RemoveAll<DbContextOptions<GymRatDbContext>>();
             services.RemoveAll<IDbContextOptionsConfiguration<GymRatDbContext>>();
 
-            // The in-memory database lives only as long as this connection stays open.
             _connection.Open();
             services.AddDbContext<GymRatDbContext>(options => options.UseSqlite(_connection));
+
+            services
+                .AddAuthentication(TestAuthHandler.SchemeName)
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
         });
     }
 
-    /// <summary>Creates the schema and lets the test arrange its data.</summary>
+    public HttpClient CreateAuthenticatedClient()
+    {
+        var client = CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TestAuthHandler.SchemeName);
+
+        return client;
+    }
+
     public async Task SeedAsync(Action<GymRatDbContext> seed)
     {
         using var scope = Services.CreateScope();

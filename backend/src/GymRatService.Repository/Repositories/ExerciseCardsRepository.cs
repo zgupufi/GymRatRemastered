@@ -14,7 +14,7 @@ public class ExerciseCardsRepository(GymRatDbContext context) : IExerciseCardsRe
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<ExerciseCard?> GetByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<ExerciseCard?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await context.Exercises
             .AsNoTracking()

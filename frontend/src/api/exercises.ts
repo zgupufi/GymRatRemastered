@@ -1,7 +1,7 @@
 import { apiClient } from './client'
 
 export interface Exercise {
-  id: number
+  id: string
   name: string
   mainMuscle: string
   subMuscles: string | null

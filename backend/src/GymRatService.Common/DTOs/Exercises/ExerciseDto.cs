@@ -1,7 +1,7 @@
 namespace GymRatService.Common.DTOs.Exercises;
 
 public sealed record ExerciseDto(
-    int Id,
+    Guid Id,
     string Name,
     string MainMuscle,
     string? SubMuscles,

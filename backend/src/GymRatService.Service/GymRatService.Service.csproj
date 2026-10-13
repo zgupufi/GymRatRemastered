@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Localization" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\GymRatService.Common\GymRatService.Common.csproj" />
     <ProjectReference Include="..\GymRatService.Repository\GymRatService.Repository.csproj" />
   </ItemGroup>

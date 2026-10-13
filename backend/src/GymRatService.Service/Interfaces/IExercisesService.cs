@@ -6,5 +6,5 @@ public interface IExercisesService
 {
     Task<IReadOnlyList<ExerciseDto>> GetExercisesAsync(CancellationToken cancellationToken);
 
-    Task<ExerciseDto> GetExerciseAsync(int id, CancellationToken cancellationToken);
+    Task<ExerciseDto> GetExerciseAsync(Guid id, CancellationToken cancellationToken);
 }

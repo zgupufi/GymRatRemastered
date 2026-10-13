@@ -6,7 +6,7 @@ import { ExerciseList } from './ExerciseList'
 vi.mock('../../api/exercises')
 
 const benchPress: Exercise = {
-  id: 1,
+  id: '0199e0a1-7c3e-7b5a-9d2f-3f6f0c1a2b3c',
   name: 'Bench Press',
   mainMuscle: 'Chest',
   subMuscles: 'Triceps',

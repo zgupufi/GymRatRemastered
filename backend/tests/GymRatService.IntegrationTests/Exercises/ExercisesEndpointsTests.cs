@@ -13,13 +13,27 @@ public sealed class ExercisesEndpointsTests : IDisposable
     public void Dispose() => _factory.Dispose();
 
     [Fact]
+    public async Task GetExercises_ReturnsUnauthorized_WhenTheCallerIsNotAuthenticated()
+    {
+        // Arrange
+        await _factory.SeedAsync(_ => { });
+        var client = _factory.CreateClient();
+
+        // Act
+        var response = await client.GetAsync("/api/exercises");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetExercises_ReturnsEveryExerciseOrderedByName()
     {
         // Arrange
         await _factory.SeedAsync(context => context.Exercises.AddRange(
             new ExerciseCard { Name = "Squat", MainMuscle = "Legs", Equipment = "Barbell" },
             new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest", Difficulty = "Intermediate" }));
-        var client = _factory.CreateClient();
+        var client = _factory.CreateAuthenticatedClient();
 
         // Act
         var response = await client.GetAsync("/api/exercises");
@@ -50,7 +64,7 @@ public sealed class ExercisesEndpointsTests : IDisposable
         // Arrange
         var deadlift = new ExerciseCard { Name = "Deadlift", MainMuscle = "Back", SubMuscles = "Hamstrings" };
         await _factory.SeedAsync(context => context.Exercises.Add(deadlift));
-        var client = _factory.CreateClient();
+        var client = _factory.CreateAuthenticatedClient();
 
         // Act
         var response = await client.GetAsync($"/api/exercises/{deadlift.Id}");
@@ -63,19 +77,27 @@ public sealed class ExercisesEndpointsTests : IDisposable
             exercise);
     }
 
-    [Fact]
-    public async Task GetExercise_ReturnsBadRequestNamingTheError_WhenItDoesNotExist()
+    [Theory]
+    [InlineData("en", "Exercise {0} does not exist.")]
+    [InlineData("ro", "Exercițiul {0} nu există.")]
+    public async Task GetExercise_ReturnsBadRequestWithALocalizedError_WhenItDoesNotExist(
+        string language,
+        string expectedMessageFormat)
     {
         // Arrange
+        var missingId = Guid.CreateVersion7();
         await _factory.SeedAsync(_ => { });
-        var client = _factory.CreateClient();
+        var client = _factory.CreateAuthenticatedClient();
+        client.DefaultRequestHeaders.AcceptLanguage.ParseAdd(language);
 
         // Act
-        var response = await client.GetAsync("/api/exercises/999");
+        var response = await client.GetAsync($"/api/exercises/{missingId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-        Assert.Equal(ErrorCodes.ExerciseNotFound, error?.Code);
+        Assert.Equal(
+            new ErrorResponse(ErrorCodes.ExerciseNotFound, string.Format(expectedMessageFormat, missingId)),
+            error);
     }
 }

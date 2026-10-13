@@ -1,9 +1,13 @@
+using System.Globalization;
 using GymRatService.Common.DTOs.Exercises;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
+using GymRatService.Service;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using NSubstitute;
 
 namespace GymRatService.BLL.Tests.Services;
@@ -15,18 +19,22 @@ public class ExercisesServiceTests
 
     public ExercisesServiceTests()
     {
-        _service = new ExercisesService(_repository);
+        var localizer = new ServiceCollection()
+            .AddLogging()
+            .AddServiceLayer(connectionString: null)
+            .BuildServiceProvider()
+            .GetRequiredService<IStringLocalizer<ExercisesService>>();
+
+        _service = new ExercisesService(_repository, localizer);
     }
 
     [Fact]
     public async Task GetExercisesAsync_MapsEveryEntityToADto()
     {
         // Arrange
-        _repository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(
-        [
-            new ExerciseCard { Id = 1, Name = "Bench Press", MainMuscle = "Chest", Equipment = "Barbell" },
-            new ExerciseCard { Id = 2, Name = "Squat", MainMuscle = "Legs", Difficulty = "Intermediate" },
-        ]);
+        var benchPress = new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest", Equipment = "Barbell" };
+        var squat = new ExerciseCard { Name = "Squat", MainMuscle = "Legs", Difficulty = "Intermediate" };
+        _repository.GetAllAsync(Arg.Any<CancellationToken>()).Returns([benchPress, squat]);
 
         // Act
         var exercises = await _service.GetExercisesAsync(CancellationToken.None);
@@ -34,8 +42,8 @@ public class ExercisesServiceTests
         // Assert
         Assert.Equal(
         [
-            new ExerciseDto(1, "Bench Press", "Chest", null, "Barbell", null, null, null),
-            new ExerciseDto(2, "Squat", "Legs", null, null, "Intermediate", null, null),
+            new ExerciseDto(benchPress.Id, "Bench Press", "Chest", null, "Barbell", null, null, null),
+            new ExerciseDto(squat.Id, "Squat", "Legs", null, null, "Intermediate", null, null),
         ], exercises);
     }
 
@@ -43,35 +51,52 @@ public class ExercisesServiceTests
     public async Task GetExerciseAsync_ReturnsTheDto_WhenTheExerciseExists()
     {
         // Arrange
-        _repository.GetByIdAsync(7, Arg.Any<CancellationToken>()).Returns(new ExerciseCard
+        var deadlift = new ExerciseCard
         {
-            Id = 7,
             Name = "Deadlift",
             MainMuscle = "Back",
             SubMuscles = "Hamstrings",
             YoutubeLink = "https://youtu.be/deadlift",
-        });
+        };
+        _repository.GetByIdAsync(deadlift.Id, Arg.Any<CancellationToken>()).Returns(deadlift);
 
         // Act
-        var exercise = await _service.GetExerciseAsync(7, CancellationToken.None);
+        var exercise = await _service.GetExerciseAsync(deadlift.Id, CancellationToken.None);
 
         // Assert
         Assert.Equal(
-            new ExerciseDto(7, "Deadlift", "Back", "Hamstrings", null, null, null, "https://youtu.be/deadlift"),
+            new ExerciseDto(deadlift.Id, "Deadlift", "Back", "Hamstrings", null, null, null, "https://youtu.be/deadlift"),
             exercise);
     }
 
-    [Fact]
-    public async Task GetExerciseAsync_ThrowsExerciseNotFound_WhenTheExerciseIsMissing()
+    [Theory]
+    [InlineData("en", "Exercise {0} does not exist.")]
+    [InlineData("ro", "Exercițiul {0} nu există.")]
+    public async Task GetExerciseAsync_ThrowsLocalizedExerciseNotFound_WhenTheExerciseIsMissing(
+        string culture,
+        string expectedMessageFormat)
     {
         // Arrange
-        _repository.GetByIdAsync(99, Arg.Any<CancellationToken>()).Returns((ExerciseCard?)null);
+        var id = Guid.CreateVersion7();
+        CultureInfo.CurrentUICulture = new CultureInfo(culture);
+        _repository.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns((ExerciseCard?)null);
 
         // Act
         var exception = await Assert.ThrowsAsync<ServiceException>(
-            () => _service.GetExerciseAsync(99, CancellationToken.None));
+            () => _service.GetExerciseAsync(id, CancellationToken.None));
 
         // Assert
         Assert.Equal(ErrorCodes.ExerciseNotFound, exception.Code);
+        Assert.Equal(string.Format(expectedMessageFormat, id), exception.Message);
+    }
+
+    [Fact]
+    public void NewExerciseCard_GetsAVersion7Guid()
+    {
+        // Act
+        var exercise = new ExerciseCard();
+
+        // Assert
+        Assert.Equal(7, exercise.Id.Version);
     }
 }

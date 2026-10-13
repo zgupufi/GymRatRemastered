@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, apiClient } from './client'
+import { ApiError, apiClient, setAccessToken } from './client'
 
 function mockFetch(response: Response) {
   const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(response)
@@ -10,6 +10,7 @@ function mockFetch(response: Response) {
 describe('apiClient', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
+    setAccessToken(null)
   })
 
   it('returns the parsed body of a successful GET', async () => {
@@ -19,6 +20,23 @@ describe('apiClient', () => {
 
     expect(result).toEqual([{ id: 1 }])
     expect(fetchMock.mock.calls[0][0]).toBe('/api/things')
+  })
+
+  it('sends the access token as a bearer header once it is set', async () => {
+    const fetchMock = mockFetch(Response.json([]))
+    setAccessToken('abc123')
+
+    await apiClient.get('/api/things')
+
+    expect(fetchMock.mock.calls[0][1]?.headers).toMatchObject({ Authorization: 'Bearer abc123' })
+  })
+
+  it('sends no authorization header without an access token', async () => {
+    const fetchMock = mockFetch(Response.json([]))
+
+    await apiClient.get('/api/things')
+
+    expect(fetchMock.mock.calls[0][1]?.headers).not.toHaveProperty('Authorization')
   })
 
   it('resolves to undefined on 204 No Content', async () => {

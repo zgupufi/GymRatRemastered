@@ -6,5 +6,5 @@ public interface IExerciseCardsRepository
 {
     Task<IReadOnlyList<ExerciseCard>> GetAllAsync(CancellationToken cancellationToken);
 
-    Task<ExerciseCard?> GetByIdAsync(int id, CancellationToken cancellationToken);
+    Task<ExerciseCard?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 }
