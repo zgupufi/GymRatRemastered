@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\GymRatService.Common\GymRatService.Common.csproj" />
+    <ProjectReference Include="..\GymRatService.Repository\GymRatService.Repository.csproj" />
+  </ItemGroup>
+
+</Project>
