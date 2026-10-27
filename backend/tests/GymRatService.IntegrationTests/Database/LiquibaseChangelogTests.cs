@@ -1,0 +1,84 @@
+using System.Text.RegularExpressions;
+using GymRatService.Repository;
+using GymRatService.Repository.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace GymRatService.IntegrationTests.Database;
+
+public sealed partial class LiquibaseChangelogTests
+{
+    private const int CatalogSize = 89;
+
+    private static readonly string ChangelogDirectory = Path.Combine(FindRepositoryRoot(), "database", "changelog");
+
+    [Fact]
+    public void MasterChangelog_IncludesEveryChangeFileInOrder()
+    {
+        // Act
+        var master = File.ReadAllText(Path.Combine(ChangelogDirectory, "db.changelog-master.yaml"));
+
+        // Assert
+        var included = IncludedFileRegex().Matches(master).Select(match => match.Groups[1].Value).ToList();
+        var onDisk = Directory.GetFiles(Path.Combine(ChangelogDirectory, "changes"))
+            .Select(path => $"changes/{Path.GetFileName(path)}")
+            .Order()
+            .ToList();
+        Assert.Equal(onDisk, included);
+    }
+
+    [Fact]
+    public void InitialSchema_DefinesEveryColumnOfTheExerciseEntity()
+    {
+        // Arrange
+        var schema = File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "001-initial-schema.sql"));
+        var options = new DbContextOptionsBuilder<GymRatDbContext>()
+            .UseNpgsql("Host=localhost;Database=gymrat_model_check")
+            .Options;
+        using var context = new GymRatDbContext(options);
+        var entityType = context.Model.FindEntityType(typeof(ExerciseCard))!;
+
+        // Act
+        var columns = entityType.GetProperties().Select(property => property.GetColumnName()).ToList();
+
+        // Assert
+        Assert.Equal("Exercises", entityType.GetTableName());
+        Assert.Equal(8, columns.Count);
+        Assert.All(columns, column => Assert.Contains($"\"{column}\"", schema));
+    }
+
+    [Fact]
+    public void SeedChangelog_HasEveryExerciseWithUniqueGuidV7IdsAndNames()
+    {
+        // Arrange
+        var seed = File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "002-seed-exercise-catalog.sql"));
+
+        // Act
+        var rows = SeedRowRegex().Matches(seed).Select(match => (Id: Guid.Parse(match.Groups[1].Value), Name: match.Groups[2].Value)).ToList();
+
+        // Assert
+        Assert.Equal(CatalogSize, rows.Count);
+        Assert.All(rows, row => Assert.Equal(7, row.Id.Version));
+        Assert.Equal(CatalogSize, rows.Select(row => row.Id).Distinct().Count());
+        Assert.Equal(CatalogSize, rows.Select(row => row.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Contains(rows, row => row.Name == "Bench Press");
+        Assert.Contains("ON CONFLICT DO NOTHING", seed);
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "docker-compose.yml")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName ?? throw new InvalidOperationException("docker-compose.yml was not found above the test output directory.");
+    }
+
+    [GeneratedRegex(@"file:\s*(\S+)")]
+    private static partial Regex IncludedFileRegex();
+
+    [GeneratedRegex(@"^\s*\('([0-9a-f-]{36})'::uuid, '((?:[^']|'')*)'", RegexOptions.Multiline)]
+    private static partial Regex SeedRowRegex();
+}

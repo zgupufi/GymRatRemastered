@@ -17,9 +17,4 @@ public static class ServiceLayerExtensions
 
         return services;
     }
-
-    public static Task InitializeDatabaseAsync(this IServiceProvider serviceProvider, CancellationToken cancellationToken)
-    {
-        return RepositoryLayerExtensions.InitializeDatabaseAsync(serviceProvider, cancellationToken);
-    }
 }

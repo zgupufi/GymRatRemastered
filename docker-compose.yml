@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: gymrat
+      POSTGRES_USER: gymrat
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gymrat -d gymrat"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  liquibase:
+    image: liquibase/liquibase:4.32
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./database/changelog:/liquibase/changelog:ro
+    command:
+      - --changelog-file=changelog/db.changelog-master.yaml
+      - --url=jdbc:postgresql://db:5432/gymrat
+      - --username=gymrat
+      - --password=${POSTGRES_PASSWORD}
+      - update
+
+  api:
+    build: ./backend
+    depends_on:
+      liquibase:
+        condition: service_completed_successfully
+    environment:
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=gymrat;Username=gymrat;Password=${POSTGRES_PASSWORD}
+      JwtSettings__Key: ${JWT_KEY:?Set JWT_KEY in .env (at least 32 characters)}
+    ports:
+      - "${API_PORT:-8080}:8080"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+
+volumes:
+  db-data:
