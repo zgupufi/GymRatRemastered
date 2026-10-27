@@ -1,0 +1,892 @@
+[
+  {
+    "id": "01a17eb2-f7ef-71aa-bfae-2e6bebdf12fa",
+    "name": "Bench Press",
+    "mainMuscle": "Chest",
+    "subMuscles": "Shoulders, Triceps",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "The fundamental exercise for upper body strength, focused on developing the pectorals and triceps. Ensure you maintain a slight arch in your back and keep your feet firmly on the ground.",
+    "youtubeLink": "https://www.youtube.com/watch?v=vcBig73ojpE"
+  },
+  {
+    "id": "01a17eb2-f7f0-7b3d-a822-557ea47b6d7b",
+    "name": "Incline Dumbbell Press",
+    "mainMuscle": "Chest",
+    "subMuscles": "Front Deltoids, Triceps",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Targets the upper chest (clavicular pectoral). Adjust the bench to a 30-45 degree angle and control the weight on the descent.",
+    "youtubeLink": "https://www.youtube.com/watch?v=8iPEnn-ltC8"
+  },
+  {
+    "id": "01a17eb2-f7f1-7986-9121-d6bfd31ede4e",
+    "name": "Cable Crossovers",
+    "mainMuscle": "Chest",
+    "subMuscles": "Anterior Deltoid",
+    "equipment": "Cable",
+    "difficulty": "Advanced",
+    "description": "Excellent isolation movement for finishing the workout, providing constant tension throughout the pectorals' full range of motion.",
+    "youtubeLink": "https://www.youtube.com/watch?v=taI4XduLpTk"
+  },
+  {
+    "id": "01a17eb2-f7f2-7967-810d-0b20ccbe96d7",
+    "name": "Deadlift",
+    "mainMuscle": "Back",
+    "subMuscles": "Hamstrings, Glutes, Forearms",
+    "equipment": "Barbell",
+    "difficulty": "Advanced",
+    "description": "An essential compound exercise for the entire posterior chain. Keep the bar close to your shins and lift by pushing the floor away with your legs.",
+    "youtubeLink": "https://www.youtube.com/watch?v=ytGaGIn3SjE"
+  },
+  {
+    "id": "01a17eb2-f7f3-7599-bfe3-0a39fe070152",
+    "name": "Pull-ups",
+    "mainMuscle": "Back",
+    "subMuscles": "Biceps, Shoulders",
+    "equipment": "Bodyweight",
+    "difficulty": "Beginner",
+    "description": "The most effective method to build back width (latissimus dorsi) using only body weight.",
+    "youtubeLink": "https://www.youtube.com/watch?v=eGo4IYlbE5g"
+  },
+  {
+    "id": "01a17eb2-f7f4-7a57-a80d-1a57a59f3d81",
+    "name": "Barbell Rows",
+    "mainMuscle": "Back",
+    "subMuscles": "Biceps, Rear Deltoids",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "Basic exercise for back depth and density. Keep your back straight at a 45-90 degree angle to the ground.",
+    "youtubeLink": "https://www.youtube.com/watch?v=G8l_8chR5BE"
+  },
+  {
+    "id": "01a17eb2-f7f5-788f-92ed-4046bbf62c03",
+    "name": "Squats",
+    "mainMuscle": "Legs",
+    "subMuscles": "Glutes, Lower Back, Hamstrings",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "The king of leg exercises. Develops muscle mass in the quadriceps and glutes, and improves core stability.",
+    "youtubeLink": "https://www.youtube.com/watch?v=gcNh17Ckjgg"
+  },
+  {
+    "id": "01a17eb2-f7f6-761a-a1f5-a5de5ecc980d",
+    "name": "Leg Press",
+    "mainMuscle": "Legs",
+    "subMuscles": "Glutes, Calves",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "A safe alternative to squats that allows for overloading the legs without stressing the lower back.",
+    "youtubeLink": "https://www.youtube.com/watch?v=IZxyjW7OSvc"
+  },
+  {
+    "id": "01a17eb2-f7f7-74d9-ba1d-b42cb790cdb0",
+    "name": "Romanian Deadlift (RDL)",
+    "mainMuscle": "Legs",
+    "subMuscles": "Hamstrings, Glutes, Lower Back",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "Focus on pushing the hips back (hip hinge) to stretch and intensely work the hamstrings.",
+    "youtubeLink": "https://www.youtube.com/watch?v=_oyxCn2iSjU"
+  },
+  {
+    "id": "01a17eb2-f7f8-7d73-affd-297bc60038df",
+    "name": "Overhead Press",
+    "mainMuscle": "Shoulders",
+    "subMuscles": "Triceps, Upper Chest",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "The best exercise for front deltoid strength and shoulder mass development. Keep your core tight.",
+    "youtubeLink": "https://www.youtube.com/watch?v=QAQ64hK4Xxs"
+  },
+  {
+    "id": "01a17eb2-f7f9-7e99-94ed-645341796af5",
+    "name": "Lateral Raises",
+    "mainMuscle": "Shoulders",
+    "subMuscles": "Traps",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "description": "Isolates the medial deltoids. Use light weights and control the descent to avoid swinging.",
+    "youtubeLink": "https://www.youtube.com/watch?v=3VcKaXpzqRo"
+  },
+  {
+    "id": "01a17eb2-f7fa-77fe-ada6-dacfc551a908",
+    "name": "Barbell Bicep Curl",
+    "mainMuscle": "Biceps",
+    "subMuscles": "Forearms",
+    "equipment": "Barbell",
+    "difficulty": "Beginner",
+    "description": "The most effective mass builder for biceps. Keep your elbows fixed close to your body during the curl.",
+    "youtubeLink": "https://www.youtube.com/watch?v=ykJmrZ5v0Oo"
+  },
+  {
+    "id": "01a17eb2-f7fb-72e4-ac3a-f9ef33bd40ca",
+    "name": "Tricep Pushdown",
+    "mainMuscle": "Triceps",
+    "subMuscles": "Forearms",
+    "equipment": "Cable",
+    "difficulty": "Beginner",
+    "description": "Optimally isolates the short and long heads of the triceps. Press toward the floor while keeping your chest up and shoulders down.",
+    "youtubeLink": "https://www.youtube.com/watch?v=2-LAMcpzODU"
+  },
+  {
+    "id": "01a17eb2-f7fc-7ba6-8168-c0341518d737",
+    "name": "Cable Crunches",
+    "mainMuscle": "Core",
+    "subMuscles": "Obliques",
+    "equipment": "Cable",
+    "difficulty": "Intermediate",
+    "description": "Allows for abdominal training with added weight. Think about bringing your chest toward your pelvis, rounding your spine.",
+    "youtubeLink": "https://www.youtube.com/watch?v=7h7K_P2JqKk"
+  },
+  {
+    "id": "01a17eb2-f7fd-7129-80d7-e170a61b5a22",
+    "name": "Plank",
+    "mainMuscle": "Core",
+    "subMuscles": "Shoulders, Lower Back",
+    "equipment": "Bodyweight",
+    "difficulty": "Beginner",
+    "description": "Fundamental isometric exercise for the endurance of the transverse abdominal wall and spinal stabilization.",
+    "youtubeLink": "https://www.youtube.com/watch?v=pSHjTRCQxIw"
+  },
+  {
+    "id": "01a17eb2-f7fe-7724-96d1-8332b5e9ec2b",
+    "name": "Chest Press Machine",
+    "mainMuscle": "Chest",
+    "subMuscles": "Triceps, Front Deltoids",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Isolation exercise that targets the inner chest fibers. Squeeze at the peak contraction and control the eccentric.",
+    "youtubeLink": "https://www.youtube.com/watch?v=xUm0BiZCWlQ"
+  },
+  {
+    "id": "01a17eb2-f7ff-7820-8a56-d33b94590b1c",
+    "name": "Pec Deck / Butterfly",
+    "mainMuscle": "Chest",
+    "subMuscles": "Front Deltoids",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Similar to bench press but allows a greater range of motion and independent arm movement for balanced development.",
+    "youtubeLink": "https://www.youtube.com/watch?v=eGjt4lk6g34"
+  },
+  {
+    "id": "01a17eb2-f800-765c-a16f-33318d0dea45",
+    "name": "Flat Dumbbell Press",
+    "mainMuscle": "Chest",
+    "subMuscles": "Triceps, Front Deltoids",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Targets the lower chest (sternal head). Set the bench at a slight decline and press the dumbbells upward.",
+    "youtubeLink": "https://www.youtube.com/watch?v=1V3vpcaxRYQ"
+  },
+  {
+    "id": "01a17eb2-f801-7622-b141-b966ea0eade2",
+    "name": "Decline Dumbbell Press",
+    "mainMuscle": "Chest",
+    "subMuscles": "Triceps, Front Deltoids",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Stretching isolation movement for the chest. Keep a slight bend in the elbows and control the descent.",
+    "youtubeLink": "https://www.youtube.com/watch?v=WbCEvFA0NJs"
+  },
+  {
+    "id": "01a17eb2-f802-7ea5-b20d-9e218bb1707f",
+    "name": "Flat Dumbbell Flyes",
+    "mainMuscle": "Chest",
+    "subMuscles": "Front Deltoids",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Targets the upper chest with a fly motion on an incline bench. Focus on the stretch at the bottom.",
+    "youtubeLink": "https://www.youtube.com/watch?v=eozdVDA78K0"
+  },
+  {
+    "id": "01a17eb2-f803-75f4-abbc-860a219c784a",
+    "name": "Incline Dumbbell Flyes",
+    "mainMuscle": "Chest",
+    "subMuscles": "Upper Chest, Front Deltoids",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Barbell press on an incline bench targeting the upper pectorals. Use a 30-45 degree angle for best results.",
+    "youtubeLink": "https://www.youtube.com/watch?v=ozAhti8BK6s"
+  },
+  {
+    "id": "01a17eb2-f804-7ff3-b4ed-ea179663ae64",
+    "name": "Incline Bench Press",
+    "mainMuscle": "Chest",
+    "subMuscles": "Upper Chest, Triceps, Front Deltoids",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "Barbell press on a decline bench emphasizing the lower chest fibers. Use a spotter for safety.",
+    "youtubeLink": "https://www.youtube.com/watch?v=DbFgADa2PL8"
+  },
+  {
+    "id": "01a17eb2-f805-70b4-9322-b52c81675434",
+    "name": "Decline Bench Press",
+    "mainMuscle": "Chest",
+    "subMuscles": "Lower Chest, Triceps",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "Machine-based rowing movement for mid-back thickness. Keep chest pressed against the pad and squeeze shoulder blades together.",
+    "youtubeLink": "https://www.youtube.com/watch?v=hWbUlkb5Ms4"
+  },
+  {
+    "id": "01a17eb2-f806-724c-abad-34711804b016",
+    "name": "Seated Machine Row",
+    "mainMuscle": "Back",
+    "subMuscles": "Biceps, Rear Deltoids",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Machine-assisted version of pull-ups. Great for building up to bodyweight pull-ups by gradually reducing assistance.",
+    "youtubeLink": "https://www.youtube.com/watch?v=GZbfZ033f74"
+  },
+  {
+    "id": "01a17eb2-f807-7e3c-a4ac-1c1dacfa3216",
+    "name": "Assisted Pull-ups",
+    "mainMuscle": "Back",
+    "subMuscles": "Biceps, Rear Deltoids",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Powerful compound movement for back thickness. Keep your torso at 45 degrees and pull the weight into your lower chest.",
+    "youtubeLink": "https://www.youtube.com/watch?v=CdO5BvP6Ti8"
+  },
+  {
+    "id": "01a17eb2-f808-719f-8d97-1ce79ab5e79b",
+    "name": "T-Bar Row",
+    "mainMuscle": "Back",
+    "subMuscles": "Biceps, Rear Deltoids, Traps",
+    "equipment": "Machine",
+    "difficulty": "Intermediate",
+    "description": "Wide grip pulldown targeting the lats for width. Pull the bar to your upper chest while keeping your torso upright.",
+    "youtubeLink": "https://www.youtube.com/watch?v=TyLoy3n_a10"
+  },
+  {
+    "id": "01a17eb2-f809-787f-a465-62a7977b970c",
+    "name": "Lat Pulldown (Wide Grip)",
+    "mainMuscle": "Back",
+    "subMuscles": "Biceps, Rear Deltoids",
+    "equipment": "Cable",
+    "difficulty": "Beginner",
+    "description": "Close grip variation emphasizing the lower lats and biceps. Use a V-bar or close grip handle.",
+    "youtubeLink": "https://www.youtube.com/watch?v=CAwf7n6Luuc"
+  },
+  {
+    "id": "01a17eb2-f80a-7509-84b3-1bb1ad04cc18",
+    "name": "Lat Pulldown (Close Grip)",
+    "mainMuscle": "Back",
+    "subMuscles": "Biceps, Lower Lats",
+    "equipment": "Cable",
+    "difficulty": "Beginner",
+    "description": "Underhand grip pulldown that increases bicep involvement and targets the lower lats effectively.",
+    "youtubeLink": "https://www.youtube.com/watch?v=e3S820r53uk"
+  },
+  {
+    "id": "01a17eb2-f80b-7426-b77d-518991b6c9a1",
+    "name": "Lat Pulldown (Reverse Grip)",
+    "mainMuscle": "Back",
+    "subMuscles": "Biceps, Lower Lats",
+    "equipment": "Cable",
+    "difficulty": "Intermediate",
+    "description": "Seated row using a cable machine. Maintain a neutral spine and squeeze your shoulder blades at the end of each rep.",
+    "youtubeLink": "https://www.youtube.com/watch?v=5YC67yVpBGE"
+  },
+  {
+    "id": "01a17eb2-f80c-7bb1-a5d4-30f49f906373",
+    "name": "Seated Cable Row",
+    "mainMuscle": "Back",
+    "subMuscles": "Biceps, Rear Deltoids, Traps",
+    "equipment": "Cable",
+    "difficulty": "Beginner",
+    "description": "Isolation exercise for the lats. Keep arms straight and pull the bar down in an arc toward your thighs.",
+    "youtubeLink": "https://www.youtube.com/watch?v=vwHG9Jfu4sw"
+  },
+  {
+    "id": "01a17eb2-f80d-73a0-ba89-2545306ecbd1",
+    "name": "Straight-Arm Cable Pullover",
+    "mainMuscle": "Back",
+    "subMuscles": "Lats, Teres Major",
+    "equipment": "Cable",
+    "difficulty": "Intermediate",
+    "description": "Stretching movement that targets both the lats and chest. Lie across a bench and lower the dumbbell behind your head.",
+    "youtubeLink": "https://www.youtube.com/watch?v=32auHIqgEoM"
+  },
+  {
+    "id": "01a17eb2-f80e-7b11-9561-05cb55a09d07",
+    "name": "One-Arm Dumbbell Row",
+    "mainMuscle": "Back",
+    "subMuscles": "Biceps, Rear Deltoids",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Bilateral rowing with dumbbells. Hinge at the hips and row both dumbbells toward your waist simultaneously.",
+    "youtubeLink": "https://www.youtube.com/watch?v=pYcpY20QaE8"
+  },
+  {
+    "id": "01a17eb2-f80f-71c7-8911-2f3a271c309f",
+    "name": "Dumbbell Pullover",
+    "mainMuscle": "Back",
+    "subMuscles": "Chest, Lats, Triceps",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Isolation exercise for the quadriceps. Extend the legs fully and squeeze at the top, then lower with control.",
+    "youtubeLink": "https://www.youtube.com/watch?v=Datv2L6t3-4"
+  },
+  {
+    "id": "01a17eb2-f810-7148-9092-0c72f97d056a",
+    "name": "Bent-Over Dumbbell Row",
+    "mainMuscle": "Back",
+    "subMuscles": "Biceps, Rear Deltoids",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Targets the hamstrings in a seated position. Control the weight on both the concentric and eccentric portions.",
+    "youtubeLink": "https://www.youtube.com/watch?v=dD-jK2l_zQE"
+  },
+  {
+    "id": "01a17eb2-f811-7f01-80d3-9ab14c9e42d4",
+    "name": "Leg Extensions",
+    "mainMuscle": "Legs",
+    "subMuscles": "Quadriceps",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Prone hamstring curl that effectively isolates the hamstrings. Avoid lifting your hips off the pad.",
+    "youtubeLink": "https://www.youtube.com/watch?v=YyvSfVjQeL0"
+  },
+  {
+    "id": "01a17eb2-f812-7fa5-8b91-e109d2f24723",
+    "name": "Seated Leg Curls",
+    "mainMuscle": "Legs",
+    "subMuscles": "Hamstrings",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Targets the outer (abductor) or inner (adductor) thigh muscles depending on the setting.",
+    "youtubeLink": "https://www.youtube.com/watch?v=aakNLjjm4Qo"
+  },
+  {
+    "id": "01a17eb2-f813-7532-97c4-b796b828c943",
+    "name": "Lying Leg Curls",
+    "mainMuscle": "Legs",
+    "subMuscles": "Hamstrings",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Standing or seated calf raises on a machine. Full range of motion with a pause at the top contraction.",
+    "youtubeLink": "https://www.youtube.com/watch?v=FRy58-v0YII"
+  },
+  {
+    "id": "01a17eb2-f814-707a-880a-962efc2aa1fe",
+    "name": "Hip Abductor / Adductor Machine",
+    "mainMuscle": "Legs",
+    "subMuscles": "Glutes, Inner Thighs",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Glute isolation exercise using a cable machine. Attach an ankle strap and kick your leg straight back.",
+    "youtubeLink": "https://www.youtube.com/watch?v=6tJjQFK_Q9U"
+  },
+  {
+    "id": "01a17eb2-f815-7c2c-8f98-cd5540c4d453",
+    "name": "Machine Calf Raises",
+    "mainMuscle": "Legs",
+    "subMuscles": "Calves",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Targets the outer glutes and hip abductors. Stand sideways to the machine and raise your leg laterally.",
+    "youtubeLink": "https://www.youtube.com/watch?v=-M4-G8p8fmc"
+  },
+  {
+    "id": "01a17eb2-f816-795c-b64d-0fc42e6438f3",
+    "name": "Cable Kickbacks",
+    "mainMuscle": "Legs",
+    "subMuscles": "Glutes, Hamstrings",
+    "equipment": "Cable",
+    "difficulty": "Intermediate",
+    "description": "Single-leg hamstring curl using a cable. Attach an ankle strap and curl your heel toward your glute.",
+    "youtubeLink": "https://www.youtube.com/watch?v=n-cgsNePyFo"
+  },
+  {
+    "id": "01a17eb2-f817-78ec-8f27-bce5e3357e78",
+    "name": "Cable Lateral Leg Raises",
+    "mainMuscle": "Legs",
+    "subMuscles": "Glutes, Hip Abductors",
+    "equipment": "Cable",
+    "difficulty": "Intermediate",
+    "description": "Hold a dumbbell at chest height and squash. Great for learning proper squat form and depth.",
+    "youtubeLink": "https://www.youtube.com/watch?v=lMJUXEvcMkQ"
+  },
+  {
+    "id": "01a17eb2-f818-7575-bcb9-b552aff9f951",
+    "name": "Standing Cable Leg Curls",
+    "mainMuscle": "Legs",
+    "subMuscles": "Hamstrings",
+    "equipment": "Cable",
+    "difficulty": "Intermediate",
+    "description": "Step forward or walk while lunging for unilateral leg development. Keep your torso upright throughout.",
+    "youtubeLink": "https://www.youtube.com/watch?v=bkwW1flKchc"
+  },
+  {
+    "id": "01a17eb2-f819-7632-9e05-b93dd9ad516e",
+    "name": "Goblet Squats",
+    "mainMuscle": "Legs",
+    "subMuscles": "Glutes, Core",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "description": "Romanian deadlift variation with dumbbells. Focus on the hip hinge while keeping the weights close to your legs.",
+    "youtubeLink": "https://www.youtube.com/watch?v=lRYBbchqxtI"
+  },
+  {
+    "id": "01a17eb2-f81a-715e-b1eb-4bbf5471d1b7",
+    "name": "Lunges",
+    "mainMuscle": "Legs",
+    "subMuscles": "Glutes, Hamstrings, Quadriceps",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Step onto a box or bench holding dumbbells. Focuses on single-leg strength and glute activation.",
+    "youtubeLink": "https://www.youtube.com/watch?v=D7KaRcUTQeE"
+  },
+  {
+    "id": "01a17eb2-f81b-73f7-b28a-01afddff05d3",
+    "name": "Dumbbell RDL",
+    "mainMuscle": "Legs",
+    "subMuscles": "Hamstrings, Glutes, Lower Back",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Rear foot elevated split squat. Excellent for unilateral leg strength and balance. Keep your front knee tracking over your toes.",
+    "youtubeLink": "https://www.youtube.com/watch?v=JCXUYuzwNrM"
+  },
+  {
+    "id": "01a17eb2-f81c-73c8-a989-4bc1a99f42dc",
+    "name": "Step-ups",
+    "mainMuscle": "Legs",
+    "subMuscles": "Glutes, Quadriceps",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Barbell squat with the bar resting on the front deltoids. Emphasizes the quads more than back squats.",
+    "youtubeLink": "https://www.youtube.com/watch?v=8q9LVgN2RD4"
+  },
+  {
+    "id": "01a17eb2-f81d-7e57-80cd-90c5bb9d4769",
+    "name": "Bulgarian Split Squats",
+    "mainMuscle": "Legs",
+    "subMuscles": "Glutes, Quadriceps, Hamstrings",
+    "equipment": "Dumbbells",
+    "difficulty": "Advanced",
+    "description": "The best exercise for glute activation and development. Rest upper back on a bench and drive hips upward with a barbell on your lap.",
+    "youtubeLink": "https://www.youtube.com/watch?v=2C-uNgKwPLE"
+  },
+  {
+    "id": "01a17eb2-f81e-7b34-9c9a-2676ce794cf5",
+    "name": "Front Squats",
+    "mainMuscle": "Legs",
+    "subMuscles": "Quadriceps, Core, Glutes",
+    "equipment": "Barbell",
+    "difficulty": "Advanced",
+    "description": "Walking or stationary lunges with a barbell on your back. Challenges balance and builds leg endurance.",
+    "youtubeLink": "https://www.youtube.com/watch?v=uYumuL_G_V0"
+  },
+  {
+    "id": "01a17eb2-f81f-7c6e-8f35-5598b1b7c547",
+    "name": "Hip Thrust",
+    "mainMuscle": "Legs",
+    "subMuscles": "Glutes, Hamstrings",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "Standing calf raises with a barbell on your back. Rise onto your toes and squeeze at the top.",
+    "youtubeLink": "https://www.youtube.com/watch?v=W86oVlnLqY4"
+  },
+  {
+    "id": "01a17eb2-f820-7b7c-b130-acab294ec7ce",
+    "name": "Barbell Lunges",
+    "mainMuscle": "Legs",
+    "subMuscles": "Glutes, Quadriceps, Hamstrings",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "Machine-based overhead pressing for the deltoids. Provides a fixed path of motion for safe pressing.",
+    "youtubeLink": "https://www.youtube.com/watch?v=QOVaHwm-Q6U"
+  },
+  {
+    "id": "01a17eb2-f821-7b6e-95ee-2e006185c19d",
+    "name": "Barbell Calf Raises",
+    "mainMuscle": "Legs",
+    "subMuscles": "Calves",
+    "equipment": "Barbell",
+    "difficulty": "Beginner",
+    "description": "Targets the posterior deltoid by performing reverse flyes on the pec deck machine. Squeeze shoulder blades together.",
+    "youtubeLink": "https://www.youtube.com/watch?v=3UWi44yN-wM"
+  },
+  {
+    "id": "01a17eb2-f822-7352-a4c6-0b6537ae7c5d",
+    "name": "Shoulder Press Machine",
+    "mainMuscle": "Shoulders",
+    "subMuscles": "Triceps, Upper Chest",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Lateral raise performed on a machine. Provides consistent resistance throughout the range of motion.",
+    "youtubeLink": "https://www.youtube.com/watch?v=6v4nrRVySj0"
+  },
+  {
+    "id": "01a17eb2-f823-74e3-9fe7-d434a467bf81",
+    "name": "Reverse Pec Deck",
+    "mainMuscle": "Shoulders",
+    "subMuscles": "Rear Deltoids, Rhomboids",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Single-arm lateral raises with a cable. Stand sideways and raise the handle to shoulder height with control.",
+    "youtubeLink": "https://www.youtube.com/watch?v=-TKqxK7-ehc"
+  },
+  {
+    "id": "01a17eb2-f824-7f3e-bcc7-d0bd16b8480a",
+    "name": "Machine Lateral Raises",
+    "mainMuscle": "Shoulders",
+    "subMuscles": "Medial Deltoids",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Essential exercise for rear deltoid and rotator cuff health. Pull the rope attachment toward your face, externally rotating at the top.",
+    "youtubeLink": "https://www.youtube.com/watch?v=NNAs8jx_zJI"
+  },
+  {
+    "id": "01a17eb2-f825-7f91-b215-031733a61e1a",
+    "name": "Cable Lateral Raises",
+    "mainMuscle": "Shoulders",
+    "subMuscles": "Medial Deltoids, Traps",
+    "equipment": "Cable",
+    "difficulty": "Intermediate",
+    "description": "Front deltoid isolation using a cable. Raise the handle in front of you to shoulder height with a straight arm.",
+    "youtubeLink": "https://www.youtube.com/watch?v=PPrzBWZDOhA"
+  },
+  {
+    "id": "01a17eb2-f826-7417-94a6-671343f8e065",
+    "name": "Face Pulls",
+    "mainMuscle": "Shoulders",
+    "subMuscles": "Rear Deltoids, Rotator Cuff, Traps",
+    "equipment": "Cable",
+    "difficulty": "Beginner",
+    "description": "Seated or standing overhead press with dumbbells. Allows a more natural path of motion than barbell pressing.",
+    "youtubeLink": "https://www.youtube.com/watch?v=V8dZ3pyiCBo"
+  },
+  {
+    "id": "01a17eb2-f827-768a-98ca-45f9bc7aa755",
+    "name": "Cable Front Raises",
+    "mainMuscle": "Shoulders",
+    "subMuscles": "Front Deltoids",
+    "equipment": "Cable",
+    "difficulty": "Intermediate",
+    "description": "Isolation exercise for the front deltoids. Raise dumbbells in front of you to shoulder height, alternating or together.",
+    "youtubeLink": "https://www.youtube.com/watch?v=hRJ6tR5-if0"
+  },
+  {
+    "id": "01a17eb2-f828-7762-929a-07ca5b95b3f6",
+    "name": "Dumbbell Shoulder Press",
+    "mainMuscle": "Shoulders",
+    "subMuscles": "Triceps, Traps",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Bent-over fly movement targeting the posterior deltoid. Maintain a slight bend in the elbows throughout.",
+    "youtubeLink": "https://www.youtube.com/watch?v=qEwKCR5JCog"
+  },
+  {
+    "id": "01a17eb2-f829-73f7-9ed5-6c14b39778f2",
+    "name": "Dumbbell Front Raises",
+    "mainMuscle": "Shoulders",
+    "subMuscles": "Front Deltoids",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "description": "Compound movement for delts and traps. Pull the bar up along your body to chin level, leading with elbows.",
+    "youtubeLink": "https://www.youtube.com/watch?v=-t7fuZ0KhDA"
+  },
+  {
+    "id": "01a17eb2-f82a-75b7-acdf-477624807a95",
+    "name": "Rear Delt Flyes",
+    "mainMuscle": "Shoulders",
+    "subMuscles": "Rear Deltoids, Rhomboids",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "description": "Machine-based preacher curl that isolates the biceps by eliminating momentum. Focus on the eccentric phase.",
+    "youtubeLink": "https://www.youtube.com/watch?v=LsT-bR_zxLo"
+  },
+  {
+    "id": "01a17eb2-f82b-7e7f-b6fa-d220f4267db9",
+    "name": "Upright Row",
+    "mainMuscle": "Shoulders",
+    "subMuscles": "Traps, Medial Deltoids",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "Seated biceps curl machine. Provides a fixed range of motion for consistent biceps isolation.",
+    "youtubeLink": "https://www.youtube.com/watch?v=amCU-ziHITM"
+  },
+  {
+    "id": "01a17eb2-f82c-7f19-bed2-bc0c7facd298",
+    "name": "Preacher Curl Machine",
+    "mainMuscle": "Biceps",
+    "subMuscles": "Forearms",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "A machine-based pressing movement that isolates the chest. Great for beginners or finishing sets safely without a spotter.",
+    "youtubeLink": "https://www.youtube.com/watch?v=Htw-s61mOw0"
+  },
+  {
+    "id": "01a17eb2-f82d-7ac2-9b3a-d2d9caaffd56",
+    "name": "Biceps Curl Machine",
+    "mainMuscle": "Biceps",
+    "subMuscles": "Forearms",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Unilateral rowing movement for balanced back development. Support yourself on a bench and pull the weight to your hip.",
+    "youtubeLink": "https://www.youtube.com/watch?v=Htw-s61mOw0"
+  },
+  {
+    "id": "01a17eb2-f82e-7772-a533-b948ad4a78b9",
+    "name": "Cable Bicep Curl",
+    "mainMuscle": "Biceps",
+    "subMuscles": "Forearms",
+    "equipment": "Cable",
+    "difficulty": "Beginner",
+    "description": "Standing curls using a straight or EZ bar attachment on a cable. Constant tension throughout the entire rep.",
+    "youtubeLink": "https://www.youtube.com/watch?v=4XQLqBelbPw"
+  },
+  {
+    "id": "01a17eb2-f82f-71fa-8868-3e26652bd254",
+    "name": "Cable Hammer Curl",
+    "mainMuscle": "Biceps",
+    "subMuscles": "Brachialis, Forearms",
+    "equipment": "Cable",
+    "difficulty": "Intermediate",
+    "description": "Hammer curl variation using a rope cable attachment. Targets the brachialis and brachioradialis along with biceps.",
+    "youtubeLink": "https://www.youtube.com/watch?v=YC9QZiti-40"
+  },
+  {
+    "id": "01a17eb2-f830-75f7-b4a1-e6d8f7adc2f9",
+    "name": "Alternating Dumbbell Curls",
+    "mainMuscle": "Biceps",
+    "subMuscles": "Forearms",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "description": "Classic alternating bicep curls with dumbbells. Supinate your wrist as you curl for full bicep contraction.",
+    "youtubeLink": "https://www.youtube.com/watch?v=sAq_ocpRh_I"
+  },
+  {
+    "id": "01a17eb2-f831-79c8-b26b-9ab16c228e74",
+    "name": "Hammer Curls",
+    "mainMuscle": "Biceps",
+    "subMuscles": "Brachialis, Forearms",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "description": "Neutral grip curls that target the brachialis and forearms in addition to the biceps. Keep palms facing each other.",
+    "youtubeLink": "https://www.youtube.com/watch?v=TwD-YGVP4Bk"
+  },
+  {
+    "id": "01a17eb2-f832-7ba3-aaa0-544bcfa912ec",
+    "name": "Concentration Curls",
+    "mainMuscle": "Biceps",
+    "subMuscles": "Forearms",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "description": "Seated single-arm curl with your elbow braced against your inner thigh. Maximum isolation for the bicep peak.",
+    "youtubeLink": "https://www.youtube.com/watch?v=EjUnEEfTSEY"
+  },
+  {
+    "id": "01a17eb2-f833-775c-b1b8-84216233a41c",
+    "name": "Incline Dumbbell Curls",
+    "mainMuscle": "Biceps",
+    "subMuscles": "Long Head of Biceps",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Curls performed on an incline bench for a deeper stretch on the long head of the biceps. Do not swing the weight.",
+    "youtubeLink": "https://www.youtube.com/watch?v=soxrZlIl35U"
+  },
+  {
+    "id": "01a17eb2-f834-787d-8782-14b1f526cd5e",
+    "name": "EZ Bar Curls",
+    "mainMuscle": "Biceps",
+    "subMuscles": "Forearms",
+    "equipment": "Barbell",
+    "difficulty": "Beginner",
+    "description": "Bicep curls with an EZ curl bar. The angled grip reduces wrist strain while effectively targeting the biceps.",
+    "youtubeLink": "https://www.youtube.com/watch?v=Uez9eEAS1Ac"
+  },
+  {
+    "id": "01a17eb2-f835-783e-9105-2385e3475371",
+    "name": "EZ Bar Preacher Curls",
+    "mainMuscle": "Biceps",
+    "subMuscles": "Forearms",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "Preacher curls using an EZ bar on a preacher bench. Eliminates momentum for strict bicep isolation.",
+    "youtubeLink": "https://www.youtube.com/watch?v=dXZl_9Ko6HI"
+  },
+  {
+    "id": "01a17eb2-f836-70b3-8fe2-4b318b7d1fc6",
+    "name": "Triceps Extension Machine",
+    "mainMuscle": "Triceps",
+    "subMuscles": "Forearms",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Seated machine triceps extension. Provides a guided range of motion for safe and effective triceps isolation.",
+    "youtubeLink": "https://www.youtube.com/watch?v=fwzkg88Okwo"
+  },
+  {
+    "id": "01a17eb2-f837-750f-a94b-6ecfb2d41104",
+    "name": "Assisted Dips",
+    "mainMuscle": "Triceps",
+    "subMuscles": "Chest, Front Deltoids",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Machine-assisted dips to build triceps and chest strength. Gradually reduce assistance as you get stronger.",
+    "youtubeLink": "https://www.youtube.com/watch?v=yN6Q1UI_xkE"
+  },
+  {
+    "id": "01a17eb2-f838-73b4-9f3e-49407a2c20e6",
+    "name": "Triceps Pushdowns",
+    "mainMuscle": "Triceps",
+    "subMuscles": "Forearms",
+    "equipment": "Cable",
+    "difficulty": "Beginner",
+    "description": "Cable pushdowns using a bar or rope attachment. Keep elbows pinned to your sides and extend fully at the bottom.",
+    "youtubeLink": "https://www.youtube.com/watch?v=2-LAMcpzODU"
+  },
+  {
+    "id": "01a17eb2-f839-7b7b-b4c0-0220a7a08556",
+    "name": "Overhead Cable Triceps Extension",
+    "mainMuscle": "Triceps",
+    "subMuscles": "Long Head of Triceps",
+    "equipment": "Cable",
+    "difficulty": "Intermediate",
+    "description": "Face away from the cable machine and extend overhead. Targets the long head of the triceps effectively.",
+    "youtubeLink": "https://www.youtube.com/watch?v=b5le--KkyH0"
+  },
+  {
+    "id": "01a17eb2-f83a-7fd7-9a64-c576f39d8442",
+    "name": "Overhead Dumbbell Triceps Extension",
+    "mainMuscle": "Triceps",
+    "subMuscles": "Long Head of Triceps",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Single or double-arm overhead extension with dumbbells. Lower the weight behind your head and extend fully.",
+    "youtubeLink": "https://www.youtube.com/watch?v=nRiJVZDpdL0"
+  },
+  {
+    "id": "01a17eb2-f83b-75cb-92fe-d5044146aad9",
+    "name": "Triceps Kickbacks",
+    "mainMuscle": "Triceps",
+    "subMuscles": "Rear Deltoids",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "description": "Bent-over kickback movement. Extend the dumbbell behind you while keeping the upper arm stationary.",
+    "youtubeLink": "https://www.youtube.com/watch?v=6SS6K3lAwZ8"
+  },
+  {
+    "id": "01a17eb2-f83c-78eb-a92a-0e93c68d4176",
+    "name": "Dumbbell Skullcrushers",
+    "mainMuscle": "Triceps",
+    "subMuscles": "Forearms",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Lying triceps extension with dumbbells. Lower the weights to the sides of your forehead and press back up.",
+    "youtubeLink": "https://www.youtube.com/watch?v=iuYB_fLp26Q"
+  },
+  {
+    "id": "01a17eb2-f83d-72c8-8a5b-c2f9269df789",
+    "name": "EZ Bar Skullcrushers",
+    "mainMuscle": "Triceps",
+    "subMuscles": "Forearms",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "Classic triceps exercise lying on a bench. Lower the EZ bar toward your forehead, then extend fully.",
+    "youtubeLink": "https://www.youtube.com/watch?v=d_KZxkY_0cM"
+  },
+  {
+    "id": "01a17eb2-f83e-724b-ac24-e3a1f164f8c3",
+    "name": "Close-Grip Bench Press",
+    "mainMuscle": "Triceps",
+    "subMuscles": "Chest, Front Deltoids",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "Bench press with hands closer together to shift emphasis from chest to triceps. Keep elbows tucked.",
+    "youtubeLink": "https://www.youtube.com/watch?v=nEF0bv2FW94"
+  },
+  {
+    "id": "01a17eb2-f83f-7c36-8ea8-be1ae2771039",
+    "name": "Ab Crunch Machine",
+    "mainMuscle": "Core",
+    "subMuscles": "Rectus Abdominis",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Seated abdominal crunch machine with adjustable resistance. Focus on contracting your abs, not pulling with arms.",
+    "youtubeLink": "https://www.youtube.com/watch?v=dkGwcfo9zto"
+  },
+  {
+    "id": "01a17eb2-f840-7566-9f59-972c866cfc63",
+    "name": "Torso Rotation Machine",
+    "mainMuscle": "Core",
+    "subMuscles": "Obliques",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "description": "Seated machine for rotational core work. Rotate your torso against resistance to target the obliques.",
+    "youtubeLink": "https://www.youtube.com/watch?v=6aAQcnoVCns"
+  },
+  {
+    "id": "01a17eb2-f841-7c73-969b-b9c1f20ce090",
+    "name": "Cable Woodchoppers",
+    "mainMuscle": "Core",
+    "subMuscles": "Obliques, Shoulders",
+    "equipment": "Cable",
+    "difficulty": "Intermediate",
+    "description": "Diagonal chopping motion using a cable. Rotate through your core while keeping arms relatively straight.",
+    "youtubeLink": "https://www.youtube.com/watch?v=YIU0U_B57rU"
+  },
+  {
+    "id": "01a17eb2-f842-7bcb-89c8-e0e7ed0af3d3",
+    "name": "Dumbbell Side Bends",
+    "mainMuscle": "Core",
+    "subMuscles": "Obliques",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "description": "Lateral flexion of the trunk holding a dumbbell on one side. Controlled movement to target the obliques.",
+    "youtubeLink": "https://www.youtube.com/watch?v=kqr_IjiUuyY"
+  },
+  {
+    "id": "01a17eb2-f843-7025-9b0e-54dd3faeb0d0",
+    "name": "Russian Twists",
+    "mainMuscle": "Core",
+    "subMuscles": "Obliques, Hip Flexors",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "description": "Seated twisting movement holding a dumbbell. Lean back slightly and rotate side to side with control.",
+    "youtubeLink": "https://www.youtube.com/watch?v=wkD8rjkodUI"
+  },
+  {
+    "id": "01a17eb2-f844-77b7-ab86-d84dd0c25f56",
+    "name": "Barbell Rollouts",
+    "mainMuscle": "Core",
+    "subMuscles": "Shoulders, Lats, Lower Back",
+    "equipment": "Barbell",
+    "difficulty": "Advanced",
+    "description": "Anti-extension exercise using a loaded barbell. Roll forward slowly and pull back using your abs. Extremely challenging.",
+    "youtubeLink": "https://www.youtube.com/watch?v=3C1TRMJveXo"
+  },
+  {
+    "id": "01a17eb2-f845-7d3a-bf91-d7bfb997e546",
+    "name": "Landmine Twists",
+    "mainMuscle": "Core",
+    "subMuscles": "Obliques, Shoulders",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "description": "Rotational exercise using one end of a barbell anchored in a corner. Rotate the bar from side to side with straight arms.",
+    "youtubeLink": "https://www.youtube.com/watch?v=wpfYRQGYVm4"
+  },
+  {
+    "id": "01a17eb2-f846-7d0c-b921-310c8518bbeb",
+    "name": "Shoulder Shrugs",
+    "mainMuscle": "Back",
+    "subMuscles": "Upper Trapezius, Middle Trapezius, Rhomboids",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "description": "The Back Extension is a focused isolation exercise designed to strengthen the erector spinae muscles that run along the spine.",
+    "youtubeLink": "https://www.youtube.com/watch?v=cJRVVxmytaM"
+  },
+  {
+    "id": "01a17eb2-f847-73c8-bc1b-5a10937c2ac5",
+    "name": "Back Extensions",
+    "mainMuscle": "Back",
+    "subMuscles": "Lower Back, Glutes, Hamstrings",
+    "equipment": "Bench",
+    "difficulty": "Beginner",
+    "description": "The Shoulder Shrug is a fundamental isolation exercise designed to build strength and mass in the upper trapezius.",
+    "youtubeLink": "https://www.youtube.com/watch?v=ph3pddpKzzw"
+  }
+]

@@ -6,6 +6,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Seeding\ExerciseCatalog.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\GymRatService.Common\GymRatService.Common.csproj" />
   </ItemGroup>
 
