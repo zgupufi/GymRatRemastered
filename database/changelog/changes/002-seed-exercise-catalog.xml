@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="002-seed-exercise-catalog" author="gymrat">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM "Exercises"</sqlCheck>
+        </preConditions>
+
+        <loadData tableName="Exercises" file="../data/exercise-catalog.csv" relativeToChangelogFile="true" encoding="UTF-8" quotchar="&quot;">
+            <column name="Id" type="UUID" />
+            <column name="Name" type="STRING" />
+            <column name="MainMuscle" type="STRING" />
+            <column name="SubMuscles" type="STRING" />
+            <column name="Equipment" type="STRING" />
+            <column name="Difficulty" type="STRING" />
+            <column name="Description" type="STRING" />
+            <column name="YoutubeLink" type="STRING" />
+        </loadData>
+
+        <rollback>
+            <delete tableName="Exercises" />
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

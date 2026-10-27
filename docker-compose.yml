@@ -23,7 +23,7 @@ services:
     volumes:
       - ./database/changelog:/liquibase/changelog:ro
     command:
-      - --changelog-file=changelog/db.changelog-master.yaml
+      - --changelog-file=changelog/db.changelog-master.xml
       - --url=jdbc:postgresql://db:5432/gymrat
       - --username=gymrat
       - --password=${POSTGRES_PASSWORD}
