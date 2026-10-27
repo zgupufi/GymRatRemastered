@@ -1,0 +1,76 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 3rem;
+  padding: 0 1.375rem;
+  border: 0;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button--sm {
+  height: 2.25rem;
+  padding: 0 0.875rem;
+  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+}
+
+.button--lg {
+  height: 3.625rem;
+  padding: 0 1.875rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  border-radius: var(--radius-lg);
+}
+
+.button--full {
+  width: 100%;
+}
+
+.button--primary {
+  background: var(--emerald);
+  color: #03140d;
+  box-shadow: 0 8px 24px -10px color-mix(in srgb, var(--emerald) 70%, transparent);
+}
+
+.button--blue {
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 8px 24px -10px color-mix(in srgb, var(--blue) 70%, transparent);
+}
+
+.button--purple {
+  background: var(--purple);
+  color: #fff;
+  box-shadow: 0 8px 24px -10px color-mix(in srgb, var(--purple) 70%, transparent);
+}
+
+.button--secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--hairline-strong);
+}
+
+.button--danger {
+  background: rgba(255, 77, 79, 0.12);
+  color: #ff6b6d;
+  border: 1px solid rgba(255, 77, 79, 0.28);
+}
+
+.button--ghost {
+  background: transparent;
+  color: var(--blue);
+  padding: 0 0.625rem;
+}
+
+.button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  box-shadow: none;
+}

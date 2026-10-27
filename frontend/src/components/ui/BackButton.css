@@ -1,0 +1,25 @@
+.back-button {
+  position: fixed;
+  top: var(--space-6);
+  left: var(--space-4);
+  z-index: var(--z-nav);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2.5rem;
+  padding: 0 1rem 0 0.75rem;
+  border-radius: var(--radius-pill);
+  background: var(--material);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--hairline-strong);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .back-button {
+    top: var(--space-8);
+    left: var(--space-8);
+  }
+}

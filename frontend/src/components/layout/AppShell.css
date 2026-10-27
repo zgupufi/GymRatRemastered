@@ -1,0 +1,44 @@
+.app-shell {
+  position: relative;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+.app-shell__glow {
+  position: fixed;
+  width: 44rem;
+  height: 44rem;
+  border-radius: 50%;
+  filter: blur(140px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.app-shell__glow--blue {
+  top: -16rem;
+  left: -14rem;
+  background: rgba(61, 139, 255, 0.2);
+}
+
+.app-shell__glow--emerald {
+  right: -15rem;
+  bottom: -13rem;
+  background: rgba(34, 197, 139, 0.12);
+}
+
+.page {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 5rem var(--space-4) var(--space-12);
+}
+
+.page__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+}
+
+.page__header p {
+  color: var(--text-2);
+}
