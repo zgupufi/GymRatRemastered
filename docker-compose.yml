@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: gymrat
       POSTGRES_USER: gymrat
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gymrat-dev}
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
@@ -26,7 +26,7 @@ services:
       - --changelog-file=changelog/db.changelog-master.xml
       - --url=jdbc:postgresql://db:5432/gymrat
       - --username=gymrat
-      - --password=${POSTGRES_PASSWORD}
+      - --password=${POSTGRES_PASSWORD:-gymrat-dev}
       - update
 
   api:
@@ -35,8 +35,8 @@ services:
       liquibase:
         condition: service_completed_successfully
     environment:
-      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=gymrat;Username=gymrat;Password=${POSTGRES_PASSWORD}
-      JwtSettings__Key: ${JWT_KEY:?Set JWT_KEY in .env (at least 32 characters)}
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=gymrat;Username=gymrat;Password=${POSTGRES_PASSWORD:-gymrat-dev}
+      JwtSettings__Key: ${JWT_KEY:-gymrat-development-only-jwt-signing-key}
     ports:
       - "${API_PORT:-8080}:8080"
 
