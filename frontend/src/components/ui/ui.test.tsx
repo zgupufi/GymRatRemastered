@@ -153,9 +153,7 @@ describe('ui components', () => {
 
     expect(await screen.findByText('Failed')).toBeInTheDocument()
   })
-})
 
-describe('ui components, second batch', () => {
   it('keeps focus in a modal input while the parent re-renders with an inline onClose', async () => {
     function Harness() {
       const [text, setText] = useState('')
@@ -221,6 +219,7 @@ describe('ui components, second batch', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'fail' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Failed')
+    expect(await screen.findByText('Failed')).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('Failed')
   })
 })

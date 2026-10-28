@@ -13,6 +13,28 @@ interface ToastItem {
 
 const TOAST_DURATION_MS = 3000
 
+function ToastBubble({ toast }: { toast: ToastItem | null }) {
+  return (
+    <AnimatePresence>
+      {toast ? (
+        <motion.div
+          key={toast.id}
+          className={`toast toast--${toast.kind}`}
+          initial={{ opacity: 0, y: -32, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -32, scale: 0.96 }}
+          transition={spring}
+        >
+          <span className="toast__icon" aria-hidden="true">
+            {toast.kind === 'success' ? <Check size={14} strokeWidth={3} /> : <TriangleAlert size={14} strokeWidth={3} />}
+          </span>
+          {toast.message}
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  )
+}
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<ToastItem | null>(null)
   const nextId = useRef(0)
@@ -33,26 +55,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={api}>
       {children}
       <div className="toast-region">
-        <AnimatePresence>
-          {toast ? (
-            <motion.div
-              key={toast.id}
-              role={toast.kind === 'error' ? 'alert' : 'status'}
-              className={`toast toast--${toast.kind}`}
-              initial={{ opacity: 0, y: -32, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -32, scale: 0.96 }}
-              transition={spring}
-            >
-              <span className="toast__icon" aria-hidden="true">
-                {toast.kind === 'success' ? <Check size={14} strokeWidth={3} /> : <TriangleAlert size={14} strokeWidth={3} />}
-              </span>
-              {toast.message}
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+        <div role="status" aria-live="polite">
+          <ToastBubble toast={toast?.kind === 'success' ? toast : null} />
+        </div>
+        <div role="alert">
+          <ToastBubble toast={toast?.kind === 'error' ? toast : null} />
+        </div>
       </div>
     </ToastContext.Provider>
   )
 }
-
