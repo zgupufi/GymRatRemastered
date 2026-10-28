@@ -1,3 +1,4 @@
+using GymRatService.Common.Enums;
 using GymRatService.Repository.Entities;
 
 namespace GymRatService.Repository.Interfaces;
@@ -13,4 +14,6 @@ public interface IUsersRepository
     Task AddAsync(User user, CancellationToken cancellationToken);
 
     Task UpdateLastLoginAsync(Guid id, DateTimeOffset lastLoginAt, CancellationToken cancellationToken);
+
+    Task UpdateSettingsAsync(Guid id, WeightUnit weightUnit, int defaultRestTimeSeconds, CancellationToken cancellationToken);
 }
