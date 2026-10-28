@@ -1,5 +1,5 @@
 services:
-  db:
+  postgres:
     image: postgres:17-alpine
     environment:
       POSTGRES_DB: gymrat
@@ -8,34 +8,34 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U gymrat -d gymrat"]
       interval: 5s
       timeout: 3s
       retries: 10
 
-  liquibase:
+  db:
     image: liquibase/liquibase:4.32
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
     volumes:
       - ./database/changelog:/liquibase/changelog:ro
     command:
       - --changelog-file=changelog/db.changelog-master.xml
-      - --url=jdbc:postgresql://db:5432/gymrat
+      - --url=jdbc:postgresql://postgres:5432/gymrat
       - --username=gymrat
       - --password=${POSTGRES_PASSWORD:-gymrat-dev}
       - update
 
-  api:
+  backend:
     build: ./backend
     depends_on:
-      liquibase:
+      db:
         condition: service_completed_successfully
     environment:
-      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=gymrat;Username=gymrat;Password=${POSTGRES_PASSWORD:-gymrat-dev}
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=gymrat;Username=gymrat;Password=${POSTGRES_PASSWORD:-gymrat-dev}
       JwtSettings__Key: ${JWT_KEY:-gymrat-development-only-jwt-signing-key}
     ports:
       - "${API_PORT:-8080}:8080"
@@ -43,9 +43,9 @@ services:
   frontend:
     build: ./frontend
     depends_on:
-      - api
+      - backend
     ports:
       - "${FRONTEND_PORT:-3000}:80"
 
 volumes:
-  db-data:
+  postgres-data:
