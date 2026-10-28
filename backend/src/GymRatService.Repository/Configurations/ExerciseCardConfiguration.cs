@@ -12,7 +12,7 @@ public class ExerciseCardConfiguration : IEntityTypeConfiguration<ExerciseCard>
 
         builder.HasKey(exercise => exercise.Id);
 
-        builder.Property(exercise => exercise.Id).ValueGeneratedNever();
+        builder.Property(exercise => exercise.Id).ValueGeneratedOnAdd().HasDefaultValueSql("uuid_generate_v7()");
 
         builder.Property(exercise => exercise.Name).HasMaxLength(100).IsRequired();
 

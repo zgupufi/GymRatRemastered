@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="InvalidEmail" xml:space="preserve">
+    <value>Adresa de email nu este validă.</value>
+  </data>
+  <data name="PasswordTooShort" xml:space="preserve">
+    <value>Parola trebuie să aibă cel puțin {0} caractere.</value>
+  </data>
+  <data name="FirstNameRequired" xml:space="preserve">
+    <value>Prenumele este obligatoriu.</value>
+  </data>
+  <data name="NameTooLong" xml:space="preserve">
+    <value>Prenumele și numele pot avea cel mult {0} caractere fiecare.</value>
+  </data>
+  <data name="InvalidWeightUnit" xml:space="preserve">
+    <value>Unitatea de greutate nu este validă.</value>
+  </data>
+</root>

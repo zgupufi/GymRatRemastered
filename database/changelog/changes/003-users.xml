@@ -4,9 +4,34 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
+    <changeSet id="003-uuid-generate-v7" author="gymrat">
+        <createProcedure>
+            CREATE OR REPLACE FUNCTION uuid_generate_v7() RETURNS uuid
+            LANGUAGE sql
+            VOLATILE
+            AS $$
+                SELECT encode(
+                    set_bit(
+                        set_bit(
+                            overlay(
+                                uuid_send(gen_random_uuid())
+                                placing substring(int8send(floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint) FROM 3)
+                                FROM 1 FOR 6),
+                            52, 1),
+                        53, 1),
+                    'hex')::uuid
+            $$;
+        </createProcedure>
+        <rollback>DROP FUNCTION uuid_generate_v7();</rollback>
+    </changeSet>
+
+    <changeSet id="003-exercises-id-default" author="gymrat">
+        <addDefaultValue tableName="Exercises" columnName="Id" defaultValueComputed="uuid_generate_v7()" />
+    </changeSet>
+
     <changeSet id="003-users" author="gymrat">
         <createTable tableName="Users">
-            <column name="Id" type="uuid">
+            <column name="Id" type="uuid" defaultValueComputed="uuid_generate_v7()">
                 <constraints primaryKey="true" primaryKeyName="PK_Users" nullable="false" />
             </column>
             <column name="Email" type="varchar(100)">

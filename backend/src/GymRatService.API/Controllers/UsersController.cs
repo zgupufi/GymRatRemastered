@@ -11,7 +11,7 @@ namespace GymRatService.API.Controllers;
 public class UsersController(IUsersService usersService) : ControllerBase
 {
     [HttpGet("me")]
-    public async Task<IActionResult> GetMeAsync(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetUserProfileAsync(CancellationToken cancellationToken)
     {
         var response = await usersService.GetProfileAsync(User.GetUserId(), cancellationToken);
 

@@ -65,6 +65,9 @@ public sealed partial class LiquibaseChangelogTests
         Assert.Equal(10, columns.Count);
         Assert.All(columns, column => Assert.Contains($"<column name=\"{column}\"", schema));
         Assert.Contains("indexName=\"IX_Users_Email\" unique=\"true\"", schema);
+        Assert.Contains("CREATE OR REPLACE FUNCTION uuid_generate_v7()", schema);
+        Assert.Contains("<column name=\"Id\" type=\"uuid\" defaultValueComputed=\"uuid_generate_v7()\">", schema);
+        Assert.Contains("<addDefaultValue tableName=\"Exercises\" columnName=\"Id\" defaultValueComputed=\"uuid_generate_v7()\" />", schema);
     }
 
     [Fact]

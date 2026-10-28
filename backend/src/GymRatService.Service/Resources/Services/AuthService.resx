@@ -15,21 +15,6 @@
   <data name="EmailAlreadyExists" xml:space="preserve">
     <value>An account with this email already exists.</value>
   </data>
-  <data name="InvalidEmail" xml:space="preserve">
-    <value>The email address is not valid.</value>
-  </data>
-  <data name="PasswordTooShort" xml:space="preserve">
-    <value>The password must have at least {0} characters.</value>
-  </data>
-  <data name="FirstNameRequired" xml:space="preserve">
-    <value>The first name is required.</value>
-  </data>
-  <data name="NameTooLong" xml:space="preserve">
-    <value>The first and last name can have at most {0} characters each.</value>
-  </data>
-  <data name="InvalidWeightUnit" xml:space="preserve">
-    <value>The weight unit is not valid.</value>
-  </data>
   <data name="InvalidCredentials" xml:space="preserve">
     <value>The email or password is incorrect.</value>
   </data>

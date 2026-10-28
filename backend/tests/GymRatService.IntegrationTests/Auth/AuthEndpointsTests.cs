@@ -30,14 +30,11 @@ public sealed class AuthEndpointsTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        Assert.Equal("/api/users/me", response.Headers.Location?.OriginalString);
-        var body = await response.Content.ReadFromJsonAsync<RegisterResponse>();
-        Assert.NotNull(body);
-        Assert.Equal(7, body.Id.Version);
+        Assert.Empty(await response.Content.ReadAsStringAsync());
 
         using var scope = _factory.Services.CreateScope();
         var user = await scope.ServiceProvider.GetRequiredService<GymRatDbContext>().Users.SingleAsync();
-        Assert.Equal(body.Id, user.Id);
+        Assert.Equal(7, user.Id.Version);
         Assert.Equal("ana@example.com", user.Email);
         Assert.Equal("Ana", user.FirstName);
         Assert.Equal("Pop", user.LastName);

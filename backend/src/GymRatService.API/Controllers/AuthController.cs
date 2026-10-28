@@ -14,9 +14,9 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
     {
-        var response = await authService.RegisterAsync(request, cancellationToken);
+        await authService.RegisterAsync(request, cancellationToken);
 
-        return Created("/api/users/me", response);
+        return Created();
     }
 
     [AllowAnonymous]

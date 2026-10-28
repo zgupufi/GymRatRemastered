@@ -1,11 +1,13 @@
-using System.Net.Mail;
+using FluentValidation;
 using GymRatService.Common.DTOs.Auth;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
+using GymRatService.Service.Extensions;
 using GymRatService.Service.Interfaces;
 using GymRatService.Service.Security;
+using GymRatService.Service.Validators;
 using Microsoft.Extensions.Localization;
 
 namespace GymRatService.Service.Services;
@@ -14,22 +16,15 @@ public class AuthService(
     IUsersRepository usersRepository,
     IPasswordHasher passwordHasher,
     ITokenGenerator tokenGenerator,
+    IValidator<RegisterRequest> registerValidator,
     TimeProvider timeProvider,
     IStringLocalizer<AuthService> localizer) : IAuthService
 {
-    private const int MinimumPasswordLength = 8;
-
-    private const int MaximumEmailLength = 100;
-
-    private const int MaximumNameLength = 50;
-
-    public async Task<RegisterResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
+    public async Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
     {
-        var email = NormalizeEmail(request.Email);
-        var firstName = request.FirstName.Trim();
-        var lastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName.Trim();
+        await registerValidator.ValidateOrThrowAsync(request, cancellationToken);
 
-        ValidateRegistration(request, email, firstName, lastName);
+        var email = request.Email.NormalizeEmail();
 
         if (await usersRepository.EmailExistsAsync(email, cancellationToken))
         {
@@ -43,20 +38,18 @@ public class AuthService(
             Email = email,
             PasswordHash = hashedPassword.Hash,
             PasswordSalt = hashedPassword.Salt,
-            FirstName = firstName,
-            LastName = lastName,
+            FirstName = request.FirstName.Trim(),
+            LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName.Trim(),
             WeightUnit = request.WeightUnit,
             CreatedAt = timeProvider.GetUtcNow(),
         };
 
         await usersRepository.AddAsync(user, cancellationToken);
-
-        return new RegisterResponse(user.Id);
     }
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
     {
-        var user = await usersRepository.GetByEmailAsync(NormalizeEmail(request.Email), cancellationToken);
+        var user = await usersRepository.GetByEmailAsync(request.Email.NormalizeEmail(), cancellationToken);
 
         if (user is null || !passwordHasher.Verify(request.Password, user.PasswordHash, user.PasswordSalt))
         {
@@ -67,34 +60,4 @@ public class AuthService(
 
         return tokenGenerator.Generate(user);
     }
-
-    private void ValidateRegistration(RegisterRequest request, string email, string firstName, string? lastName)
-    {
-        if (email.Length > MaximumEmailLength || !MailAddress.TryCreate(email, out var address) || address.Address != email)
-        {
-            throw new ServiceException(ErrorCodes.InvalidEmail, localizer["InvalidEmail"]);
-        }
-
-        if (request.Password.Length < MinimumPasswordLength)
-        {
-            throw new ServiceException(ErrorCodes.PasswordTooShort, localizer["PasswordTooShort", MinimumPasswordLength]);
-        }
-
-        if (firstName.Length == 0)
-        {
-            throw new ServiceException(ErrorCodes.FirstNameRequired, localizer["FirstNameRequired"]);
-        }
-
-        if (firstName.Length > MaximumNameLength || lastName?.Length > MaximumNameLength)
-        {
-            throw new ServiceException(ErrorCodes.NameTooLong, localizer["NameTooLong", MaximumNameLength]);
-        }
-
-        if (!Enum.IsDefined(request.WeightUnit))
-        {
-            throw new ServiceException(ErrorCodes.InvalidWeightUnit, localizer["InvalidWeightUnit"]);
-        }
-    }
-
-    private static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
 }

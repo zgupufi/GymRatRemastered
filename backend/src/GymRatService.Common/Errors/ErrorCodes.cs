@@ -18,5 +18,7 @@ public static class ErrorCodes
 
     public const string InvalidCredentials = "Auth.InvalidCredentials";
 
+    public const string InvalidToken = "Auth.InvalidToken";
+
     public const string UserNotFound = "Users.NotFound";
 }

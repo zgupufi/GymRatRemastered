@@ -70,13 +70,12 @@ public class UsersServiceTests
     }
 
     [Fact]
-    public void NewUser_GetsAVersion7GuidAndTheDefaultPreferences()
+    public void NewUser_GetsTheDefaultPreferences()
     {
         // Act
         var user = new User();
 
         // Assert
-        Assert.Equal(7, user.Id.Version);
         Assert.Equal(WeightUnit.Kilograms, user.WeightUnit);
         Assert.Equal(90, user.DefaultRestTimeSeconds);
     }

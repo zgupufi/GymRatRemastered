@@ -12,7 +12,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasKey(user => user.Id);
 
-        builder.Property(user => user.Id).ValueGeneratedNever();
+        builder.Property(user => user.Id).ValueGeneratedOnAdd().HasDefaultValueSql("uuid_generate_v7()");
 
         builder.Property(user => user.Email).HasMaxLength(100).IsRequired();
 

@@ -1,4 +1,5 @@
 using System.Globalization;
+using FluentValidation;
 using GymRatService.Common.DTOs.Auth;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
@@ -25,17 +26,22 @@ public class AuthServiceTests
 
     public AuthServiceTests()
     {
-        var localizer = new ServiceCollection()
+        var provider = new ServiceCollection()
             .AddLogging()
             .AddServiceLayer(connectionString: null)
-            .BuildServiceProvider()
-            .GetRequiredService<IStringLocalizer<AuthService>>();
+            .BuildServiceProvider();
         var timeProvider = Substitute.For<TimeProvider>();
         timeProvider.GetUtcNow().Returns(Now);
 
         CultureInfo.CurrentUICulture = new CultureInfo("en");
         _passwordHasher.Hash(Arg.Any<string>()).Returns(new HashedPassword("hashed", "salt"));
-        _service = new AuthService(_repository, _passwordHasher, _tokenGenerator, timeProvider, localizer);
+        _service = new AuthService(
+            _repository,
+            _passwordHasher,
+            _tokenGenerator,
+            provider.GetRequiredService<IValidator<RegisterRequest>>(),
+            timeProvider,
+            provider.GetRequiredService<IStringLocalizer<AuthService>>());
     }
 
     [Fact]
@@ -47,12 +53,10 @@ public class AuthServiceTests
         await _repository.AddAsync(Arg.Do<User>(user => stored = user), Arg.Any<CancellationToken>());
 
         // Act
-        var response = await _service.RegisterAsync(request, CancellationToken.None);
+        await _service.RegisterAsync(request, CancellationToken.None);
 
         // Assert
         Assert.NotNull(stored);
-        Assert.Equal(stored.Id, response.Id);
-        Assert.Equal(7, response.Id.Version);
         Assert.Equal("ana@example.com", stored.Email);
         Assert.Equal("hashed", stored.PasswordHash);
         Assert.Equal("salt", stored.PasswordSalt);

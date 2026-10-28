@@ -31,6 +31,7 @@ public sealed class GymRatApiFactory : WebApplicationFactory<Program>
             services.RemoveAll<IDbContextOptionsConfiguration<GymRatDbContext>>();
 
             _connection.Open();
+            _connection.CreateFunction("uuid_generate_v7", () => Guid.CreateVersion7().ToString().ToUpperInvariant());
             services.AddDbContext<GymRatDbContext>(options => options.UseSqlite(_connection));
 
             services

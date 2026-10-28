@@ -89,14 +89,4 @@ public class ExercisesServiceTests
         Assert.Equal(ErrorCodes.ExerciseNotFound, exception.Code);
         Assert.Equal(string.Format(expectedMessageFormat, id), exception.Message);
     }
-
-    [Fact]
-    public void NewExerciseCard_GetsAVersion7Guid()
-    {
-        // Act
-        var exercise = new ExerciseCard();
-
-        // Assert
-        Assert.Equal(7, exercise.Id.Version);
-    }
 }
