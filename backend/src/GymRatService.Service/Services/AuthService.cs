@@ -7,8 +7,6 @@ using GymRatService.Service.Exceptions;
 using GymRatService.Service.Extensions;
 using GymRatService.Service.Interfaces;
 using GymRatService.Service.Security;
-using GymRatService.Service.Validators;
-using Microsoft.Extensions.Localization;
 
 namespace GymRatService.Service.Services;
 
@@ -17,18 +15,17 @@ public class AuthService(
     IPasswordHasher passwordHasher,
     ITokenGenerator tokenGenerator,
     IValidator<RegisterRequest> registerValidator,
-    TimeProvider timeProvider,
-    IStringLocalizer<AuthService> localizer) : IAuthService
+    TimeProvider timeProvider) : IAuthService
 {
     public async Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
     {
-        await registerValidator.ValidateOrThrowAsync(request, cancellationToken);
+        await registerValidator.ValidateAndThrowAsync(request, cancellationToken);
 
         var email = request.Email.NormalizeEmail();
 
         if (await usersRepository.EmailExistsAsync(email, cancellationToken))
         {
-            throw new ServiceException(ErrorCodes.EmailAlreadyExists, localizer["EmailAlreadyExists"]);
+            throw new BusinessLogicException(ErrorCodes.EmailAlreadyExists);
         }
 
         var hashedPassword = passwordHasher.Hash(request.Password);
@@ -53,7 +50,7 @@ public class AuthService(
 
         if (user is null || !passwordHasher.Verify(request.Password, user.PasswordHash, user.PasswordSalt))
         {
-            throw new ServiceException(ErrorCodes.InvalidCredentials, localizer["InvalidCredentials"]);
+            throw new BusinessLogicException(ErrorCodes.InvalidCredentials);
         }
 
         await usersRepository.UpdateLastLoginAsync(user.Id, timeProvider.GetUtcNow(), cancellationToken);

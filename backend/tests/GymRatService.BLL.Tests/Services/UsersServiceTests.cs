@@ -1,14 +1,10 @@
-using System.Globalization;
 using GymRatService.Common.DTOs.Users;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
-using GymRatService.Service;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Localization;
 using NSubstitute;
 
 namespace GymRatService.BLL.Tests.Services;
@@ -20,13 +16,7 @@ public class UsersServiceTests
 
     public UsersServiceTests()
     {
-        var localizer = new ServiceCollection()
-            .AddLogging()
-            .AddServiceLayer(connectionString: null)
-            .BuildServiceProvider()
-            .GetRequiredService<IStringLocalizer<UsersService>>();
-
-        _service = new UsersService(_repository, localizer);
+        _service = new UsersService(_repository);
     }
 
     [Fact]
@@ -35,6 +25,7 @@ public class UsersServiceTests
         // Arrange
         var user = new User
         {
+            Id = Guid.CreateVersion7(),
             Email = "ana@example.com",
             FirstName = "Ana",
             LastName = "Pop",
@@ -50,23 +41,19 @@ public class UsersServiceTests
         Assert.Equal(new UserProfileDto("Ana", "Pop", "ana@example.com", WeightUnit.Pounds, 120), profile);
     }
 
-    [Theory]
-    [InlineData("en", "The user does not exist.")]
-    [InlineData("ro", "Utilizatorul nu există.")]
-    public async Task GetProfileAsync_ThrowsLocalizedUserNotFound_WhenTheUserIsMissing(string culture, string expectedMessage)
+    [Fact]
+    public async Task GetProfileAsync_ThrowsUserNotFound_WhenTheUserIsMissing()
     {
         // Arrange
         var id = Guid.CreateVersion7();
-        CultureInfo.CurrentUICulture = new CultureInfo(culture);
         _repository.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns((User?)null);
 
         // Act
-        var exception = await Assert.ThrowsAsync<ServiceException>(
+        var exception = await Assert.ThrowsAsync<BusinessLogicException>(
             () => _service.GetProfileAsync(id, CancellationToken.None));
 
         // Assert
         Assert.Equal(ErrorCodes.UserNotFound, exception.Code);
-        Assert.Equal(expectedMessage, exception.Message);
     }
 
     [Fact]

@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Claims;
 using GymRatService.API.Extensions;
 using GymRatService.Common.Errors;
@@ -23,20 +22,16 @@ public class ClaimsPrincipalExtensionsTests
         Assert.Equal(userId, result);
     }
 
-    [Theory]
-    [InlineData("en", "The access token does not identify a user.")]
-    [InlineData("ro", "Tokenul de acces nu identifică un utilizator.")]
-    public void GetUserId_ThrowsALocalizedInvalidToken_WhenTheSubjectIsMissing(string culture, string expectedMessage)
+    [Fact]
+    public void GetUserId_ThrowsUnauthorizedAccess_WhenTheSubjectIsMissing()
     {
         // Arrange
-        CultureInfo.CurrentUICulture = new CultureInfo(culture);
         var principal = new ClaimsPrincipal(new ClaimsIdentity());
 
         // Act
-        var exception = Assert.Throws<ServiceException>(() => principal.GetUserId());
+        var exception = Assert.Throws<BusinessLogicException>(() => principal.GetUserId());
 
         // Assert
-        Assert.Equal(ErrorCodes.InvalidToken, exception.Code);
-        Assert.Equal(expectedMessage, exception.Message);
+        Assert.Equal(ErrorCodes.UnauthorizedAccess, exception.Code);
     }
 }

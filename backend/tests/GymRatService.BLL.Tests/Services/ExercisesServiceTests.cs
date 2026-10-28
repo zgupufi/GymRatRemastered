@@ -1,13 +1,9 @@
-using System.Globalization;
 using GymRatService.Common.DTOs.Exercises;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
-using GymRatService.Service;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Localization;
 using NSubstitute;
 
 namespace GymRatService.BLL.Tests.Services;
@@ -19,13 +15,7 @@ public class ExercisesServiceTests
 
     public ExercisesServiceTests()
     {
-        var localizer = new ServiceCollection()
-            .AddLogging()
-            .AddServiceLayer(connectionString: null)
-            .BuildServiceProvider()
-            .GetRequiredService<IStringLocalizer<ExercisesService>>();
-
-        _service = new ExercisesService(_repository, localizer);
+        _service = new ExercisesService(_repository);
     }
 
     [Fact]
@@ -69,24 +59,19 @@ public class ExercisesServiceTests
             exercise);
     }
 
-    [Theory]
-    [InlineData("en", "Exercise {0} does not exist.")]
-    [InlineData("ro", "Exercițiul {0} nu există.")]
-    public async Task GetExerciseAsync_ThrowsLocalizedExerciseNotFound_WhenTheExerciseIsMissing(
-        string culture,
-        string expectedMessageFormat)
+    [Fact]
+    public async Task GetExerciseAsync_ThrowsExerciseNotFound_WhenTheExerciseIsMissing()
     {
         // Arrange
         var id = Guid.CreateVersion7();
-        CultureInfo.CurrentUICulture = new CultureInfo(culture);
         _repository.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns((ExerciseCard?)null);
 
         // Act
-        var exception = await Assert.ThrowsAsync<ServiceException>(
+        var exception = await Assert.ThrowsAsync<BusinessLogicException>(
             () => _service.GetExerciseAsync(id, CancellationToken.None));
 
         // Assert
         Assert.Equal(ErrorCodes.ExerciseNotFound, exception.Code);
-        Assert.Equal(string.Format(expectedMessageFormat, id), exception.Message);
+        Assert.Equal(id, Assert.Single(exception.Arguments));
     }
 }

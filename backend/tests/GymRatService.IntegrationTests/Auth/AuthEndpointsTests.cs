@@ -69,7 +69,7 @@ public sealed class AuthEndpointsTests : IDisposable
     }
 
     [Fact]
-    public async Task Register_ReturnsBadRequestWithPasswordTooShort_WhenThePasswordHasFewerThanEightCharacters()
+    public async Task Register_ReturnsBadRequestWithEveryValidationError_WhenTheRequestIsInvalid()
     {
         // Arrange
         await _factory.SeedAsync(_ => { });
@@ -78,12 +78,43 @@ public sealed class AuthEndpointsTests : IDisposable
         // Act
         var response = await client.PostAsJsonAsync(
             "/api/auth/register",
-            new RegisterRequest("ana@example.com", "1234567", "Ana", null, WeightUnit.Kilograms));
+            new RegisterRequest("not-an-email", "1234567", "", null, WeightUnit.Kilograms));
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-        Assert.Equal(new ErrorResponse(ErrorCodes.PasswordTooShort, "The password must have at least 8 characters."), error);
+        Assert.NotNull(error);
+        Assert.Equal(ErrorCodes.InvalidRequest, error.Code);
+        Assert.Equal("The request is not valid.", error.Message);
+        Assert.Equal(
+        [
+            new ValidationError("Email", "'Email' is not a valid email address."),
+            new ValidationError("Password", "The length of 'Password' must be at least 8 characters. You entered 7 characters."),
+            new ValidationError("FirstName", "'First Name' must not be empty."),
+        ], error.Errors);
+    }
+
+    [Fact]
+    public async Task Register_ReturnsRomanianValidationMessages_WhenTheLanguageIsRomanian()
+    {
+        // Arrange
+        await _factory.SeedAsync(_ => { });
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("ro");
+
+        // Act
+        var response = await client.PostAsJsonAsync(
+            "/api/auth/register",
+            new RegisterRequest("ana@example.com", "password123", "", null, WeightUnit.Kilograms));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.NotNull(error);
+        Assert.Equal("Cererea nu este validă.", error.Message);
+        var validationError = Assert.Single(error.Errors!);
+        Assert.Equal("FirstName", validationError.Property);
+        Assert.Equal("'First Name' nu ar trebui să fie goală.", validationError.Message);
     }
 
     [Fact]

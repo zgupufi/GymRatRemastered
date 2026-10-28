@@ -1,5 +1,5 @@
 using System.Text;
-using GymRatService.API.Filters;
+using GymRatService.API.Middleware;
 using GymRatService.Common.Settings;
 using GymRatService.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -41,7 +41,7 @@ builder.Services
     });
 builder.Services.AddAuthorization();
 
-builder.Services.AddControllers(options => options.Filters.Add<ServiceExceptionFilter>());
+builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddServiceLayer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -57,6 +57,8 @@ app.UseRequestLocalization(new RequestLocalizationOptions()
     .SetDefaultCulture(supportedCultures[0])
     .AddSupportedCultures(supportedCultures)
     .AddSupportedUICultures(supportedCultures));
+
+app.UseMiddleware<BusinessLogicExceptionMiddleware>();
 
 app.UseCors(FrontendCorsPolicy);
 

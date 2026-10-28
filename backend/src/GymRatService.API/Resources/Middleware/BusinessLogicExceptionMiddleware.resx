@@ -12,10 +12,22 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="EmailAlreadyExists" xml:space="preserve">
+  <data name="BLException_ExercisesService_ExerciseNotFound" xml:space="preserve">
+    <value>Exercise {0} does not exist.</value>
+  </data>
+  <data name="BLException_AuthService_EmailAlreadyExists" xml:space="preserve">
     <value>An account with this email already exists.</value>
   </data>
-  <data name="InvalidCredentials" xml:space="preserve">
+  <data name="BLException_AuthService_InvalidCredentials" xml:space="preserve">
     <value>The email or password is incorrect.</value>
+  </data>
+  <data name="BLException_AuthService_UnauthorizedAccess" xml:space="preserve">
+    <value>The access token does not identify a user.</value>
+  </data>
+  <data name="BLException_UsersService_UserNotFound" xml:space="preserve">
+    <value>The user does not exist.</value>
+  </data>
+  <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
+    <value>The request is not valid.</value>
   </data>
 </root>

@@ -1,16 +1,13 @@
-using System.Globalization;
 using FluentValidation;
 using GymRatService.Common.DTOs.Auth;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
-using GymRatService.Service;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Security;
 using GymRatService.Service.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Localization;
+using GymRatService.Service.Validators;
 using NSubstitute;
 
 namespace GymRatService.BLL.Tests.Services;
@@ -26,22 +23,11 @@ public class AuthServiceTests
 
     public AuthServiceTests()
     {
-        var provider = new ServiceCollection()
-            .AddLogging()
-            .AddServiceLayer(connectionString: null)
-            .BuildServiceProvider();
         var timeProvider = Substitute.For<TimeProvider>();
         timeProvider.GetUtcNow().Returns(Now);
 
-        CultureInfo.CurrentUICulture = new CultureInfo("en");
         _passwordHasher.Hash(Arg.Any<string>()).Returns(new HashedPassword("hashed", "salt"));
-        _service = new AuthService(
-            _repository,
-            _passwordHasher,
-            _tokenGenerator,
-            provider.GetRequiredService<IValidator<RegisterRequest>>(),
-            timeProvider,
-            provider.GetRequiredService<IStringLocalizer<AuthService>>());
+        _service = new AuthService(_repository, _passwordHasher, _tokenGenerator, new RegisterRequestValidator(), timeProvider);
     }
 
     [Fact]
@@ -85,70 +71,43 @@ public class AuthServiceTests
         Assert.Null(stored.LastName);
     }
 
-    [Theory]
-    [InlineData("en", "An account with this email already exists.")]
-    [InlineData("ro", "Există deja un cont cu această adresă de email.")]
-    public async Task RegisterAsync_ThrowsLocalizedEmailAlreadyExists_WhenTheEmailIsTaken(string culture, string expectedMessage)
+    [Fact]
+    public async Task RegisterAsync_ThrowsEmailAlreadyExists_WhenTheEmailIsTaken()
     {
         // Arrange
-        CultureInfo.CurrentUICulture = new CultureInfo(culture);
         _repository.EmailExistsAsync("ana@example.com", Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => _service.RegisterAsync(
+        var exception = await Assert.ThrowsAsync<BusinessLogicException>(() => _service.RegisterAsync(
             new RegisterRequest("ANA@example.com", "password123", "Ana", null, WeightUnit.Kilograms),
             CancellationToken.None));
 
         // Assert
         Assert.Equal(ErrorCodes.EmailAlreadyExists, exception.Code);
-        Assert.Equal(expectedMessage, exception.Message);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
-    }
-
-    [Theory]
-    [InlineData("not-an-email", "password123", "Ana", null, WeightUnit.Kilograms, ErrorCodes.InvalidEmail, "The email address is not valid.")]
-    [InlineData("Ana <ana@example.com>", "password123", "Ana", null, WeightUnit.Kilograms, ErrorCodes.InvalidEmail, "The email address is not valid.")]
-    [InlineData("ana@example.com", "short", "Ana", null, WeightUnit.Kilograms, ErrorCodes.PasswordTooShort, "The password must have at least 8 characters.")]
-    [InlineData("ana@example.com", "password123", "   ", null, WeightUnit.Kilograms, ErrorCodes.FirstNameRequired, "The first name is required.")]
-    [InlineData("ana@example.com", "password123", "Ana", null, (WeightUnit)5, ErrorCodes.InvalidWeightUnit, "The weight unit is not valid.")]
-    public async Task RegisterAsync_ThrowsAValidationError_WhenTheRequestIsInvalid(
-        string email,
-        string password,
-        string firstName,
-        string? lastName,
-        WeightUnit weightUnit,
-        string expectedCode,
-        string expectedMessage)
-    {
-        // Act
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => _service.RegisterAsync(
-            new RegisterRequest(email, password, firstName, lastName, weightUnit),
-            CancellationToken.None));
-
-        // Assert
-        Assert.Equal(expectedCode, exception.Code);
-        Assert.Equal(expectedMessage, exception.Message);
         await _repository.DidNotReceive().AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task RegisterAsync_ThrowsNameTooLong_WhenTheLastNameExceedsTheLimit()
+    public async Task RegisterAsync_ThrowsEveryValidationError_WhenTheRequestIsInvalid()
     {
         // Act
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => _service.RegisterAsync(
-            new RegisterRequest("ana@example.com", "password123", "Ana", new string('p', 51), WeightUnit.Kilograms),
+        var exception = await Assert.ThrowsAsync<ValidationException>(() => _service.RegisterAsync(
+            new RegisterRequest("not-an-email", "short", "", null, (WeightUnit)5),
             CancellationToken.None));
 
         // Assert
-        Assert.Equal(ErrorCodes.NameTooLong, exception.Code);
-        Assert.Equal("The first and last name can have at most 50 characters each.", exception.Message);
+        Assert.Equal(
+            ["Email", "Password", "FirstName", "WeightUnit"],
+            exception.Errors.Select(error => error.PropertyName));
+        await _repository.DidNotReceive().EmailExistsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _repository.DidNotReceive().AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task LoginAsync_ReturnsTheTokenAndRecordsTheLogin_WhenTheCredentialsAreValid()
     {
         // Arrange
-        var user = new User { Email = "ana@example.com", PasswordHash = "hashed", PasswordSalt = "salt" };
+        var user = new User { Id = Guid.CreateVersion7(), Email = "ana@example.com", PasswordHash = "hashed", PasswordSalt = "salt" };
         var token = new LoginResponse("access-token", Now.AddHours(6));
         _repository.GetByEmailAsync("ana@example.com", Arg.Any<CancellationToken>()).Returns(user);
         _passwordHasher.Verify("password123", "hashed", "salt").Returns(true);
@@ -162,24 +121,20 @@ public class AuthServiceTests
         await _repository.Received(1).UpdateLastLoginAsync(user.Id, Now, Arg.Any<CancellationToken>());
     }
 
-    [Theory]
-    [InlineData("en", "The email or password is incorrect.")]
-    [InlineData("ro", "Adresa de email sau parola este incorectă.")]
-    public async Task LoginAsync_ThrowsLocalizedInvalidCredentials_WhenThePasswordIsWrong(string culture, string expectedMessage)
+    [Fact]
+    public async Task LoginAsync_ThrowsInvalidCredentials_WhenThePasswordIsWrong()
     {
         // Arrange
-        CultureInfo.CurrentUICulture = new CultureInfo(culture);
         var user = new User { Email = "ana@example.com", PasswordHash = "hashed", PasswordSalt = "salt" };
         _repository.GetByEmailAsync("ana@example.com", Arg.Any<CancellationToken>()).Returns(user);
         _passwordHasher.Verify("wrong-password", "hashed", "salt").Returns(false);
 
         // Act
-        var exception = await Assert.ThrowsAsync<ServiceException>(
+        var exception = await Assert.ThrowsAsync<BusinessLogicException>(
             () => _service.LoginAsync(new LoginRequest("ana@example.com", "wrong-password"), CancellationToken.None));
 
         // Assert
         Assert.Equal(ErrorCodes.InvalidCredentials, exception.Code);
-        Assert.Equal(expectedMessage, exception.Message);
         _tokenGenerator.DidNotReceive().Generate(Arg.Any<User>());
         await _repository.DidNotReceive().UpdateLastLoginAsync(Arg.Any<Guid>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
     }
@@ -191,7 +146,7 @@ public class AuthServiceTests
         _repository.GetByEmailAsync("nobody@example.com", Arg.Any<CancellationToken>()).Returns((User?)null);
 
         // Act
-        var exception = await Assert.ThrowsAsync<ServiceException>(
+        var exception = await Assert.ThrowsAsync<BusinessLogicException>(
             () => _service.LoginAsync(new LoginRequest("nobody@example.com", "password123"), CancellationToken.None));
 
         // Assert

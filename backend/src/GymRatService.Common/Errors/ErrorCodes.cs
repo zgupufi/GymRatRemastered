@@ -2,23 +2,15 @@ namespace GymRatService.Common.Errors;
 
 public static class ErrorCodes
 {
-    public const string ExerciseNotFound = "Exercises.NotFound";
+    public const string ExerciseNotFound = "BLException_ExercisesService_ExerciseNotFound";
 
-    public const string EmailAlreadyExists = "Auth.EmailAlreadyExists";
+    public const string EmailAlreadyExists = "BLException_AuthService_EmailAlreadyExists";
 
-    public const string InvalidEmail = "Auth.InvalidEmail";
+    public const string InvalidCredentials = "BLException_AuthService_InvalidCredentials";
 
-    public const string PasswordTooShort = "Auth.PasswordTooShort";
+    public const string UnauthorizedAccess = "BLException_AuthService_UnauthorizedAccess";
 
-    public const string FirstNameRequired = "Auth.FirstNameRequired";
+    public const string UserNotFound = "BLException_UsersService_UserNotFound";
 
-    public const string InvalidWeightUnit = "Auth.InvalidWeightUnit";
-
-    public const string NameTooLong = "Auth.NameTooLong";
-
-    public const string InvalidCredentials = "Auth.InvalidCredentials";
-
-    public const string InvalidToken = "Auth.InvalidToken";
-
-    public const string UserNotFound = "Users.NotFound";
+    public const string InvalidRequest = "BLException_Validation_InvalidRequest";
 }
