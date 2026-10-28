@@ -89,6 +89,7 @@ button {
 
 .footnote {
   font-size: 0.8125rem;
+  line-height: 1.4;
   letter-spacing: 0.005em;
   color: var(--text-3);
 }

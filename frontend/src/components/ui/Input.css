@@ -24,14 +24,14 @@
 }
 
 .field__control:focus-within {
-  border-color: var(--blue);
+  border-color: var(--accent);
   box-shadow: var(--focus-ring);
-  color: var(--blue);
+  color: var(--accent);
 }
 
 .field__control--error {
-  border-color: rgba(255, 77, 79, 0.7);
-  box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.15);
+  border-color: var(--danger-border-strong);
+  box-shadow: 0 0 0 4px var(--danger-bg);
 }
 
 .field__icon {
@@ -61,7 +61,7 @@
 }
 
 .field__message--error {
-  color: #ff6b6d;
+  color: var(--danger);
 }
 
 .number-input {
@@ -86,6 +86,6 @@
 
 .number-input:focus {
   outline: 0;
-  border-color: var(--blue);
+  border-color: var(--accent);
   box-shadow: var(--focus-ring);
 }

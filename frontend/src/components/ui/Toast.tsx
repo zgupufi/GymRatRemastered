@@ -32,11 +32,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={api}>
       {children}
-      <div className="toast-region" role="status" aria-live="polite">
+      <div className="toast-region">
         <AnimatePresence>
           {toast ? (
             <motion.div
               key={toast.id}
+              role={toast.kind === 'error' ? 'alert' : 'status'}
               className={`toast toast--${toast.kind}`}
               initial={{ opacity: 0, y: -32, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}

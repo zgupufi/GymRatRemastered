@@ -10,6 +10,7 @@ interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   variant?: ButtonVariant
   size?: ButtonSize
   fullWidth?: boolean
+  loading?: boolean
   children?: ReactNode
 }
 
@@ -17,6 +18,7 @@ export function Button({
   variant = 'primary',
   size = 'md',
   fullWidth = false,
+  loading = false,
   className,
   type = 'button',
   disabled,
@@ -30,11 +32,13 @@ export function Button({
     <motion.button
       {...rest}
       type={type}
-      disabled={disabled}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       className={classes}
-      whileTap={disabled ? undefined : press}
+      whileTap={disabled || loading ? undefined : press}
       transition={spring}
     >
+      {loading ? <span className="button__spinner" aria-hidden="true" /> : null}
       {children}
     </motion.button>
   )

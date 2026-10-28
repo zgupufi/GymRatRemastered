@@ -9,6 +9,7 @@ import { Modal } from './Modal'
 import { NumberInput } from './NumberInput'
 import { SegmentedControl } from './SegmentedControl'
 import { Spinner } from './Spinner'
+import { Switch } from './Switch'
 import { ToastProvider } from './Toast'
 import { useToast } from './ToastContext'
 
@@ -151,5 +152,75 @@ describe('ui components', () => {
     await userEvent.click(screen.getByRole('button', { name: 'fail' }))
 
     expect(await screen.findByText('Failed')).toBeInTheDocument()
+  })
+})
+
+describe('ui components, second batch', () => {
+  it('keeps focus in a modal input while the parent re-renders with an inline onClose', async () => {
+    function Harness() {
+      const [text, setText] = useState('')
+      return (
+        <Modal open title="Rename" onClose={() => setText('')}>
+          <input aria-label="Name" value={text} onChange={(event) => setText(event.target.value)} />
+        </Modal>
+      )
+    }
+    render(<Harness />)
+    const input = screen.getByLabelText('Name')
+    await userEvent.click(input)
+
+    await userEvent.keyboard('abc')
+
+    expect(input).toHaveValue('abc')
+    expect(input).toHaveFocus()
+  })
+
+  it('traps tab inside the modal and locks body scroll', async () => {
+    render(
+      <>
+        <button>outside</button>
+        <Modal open title="Trap" onClose={() => undefined}>
+          <button>inner</button>
+        </Modal>
+      </>,
+    )
+
+    expect(document.body.style.overflow).toBe('hidden')
+    screen.getByRole('button', { name: 'Close' }).focus()
+    await userEvent.tab()
+    expect(screen.getByRole('button', { name: 'inner' })).toHaveFocus()
+    await userEvent.tab()
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
+  })
+
+  it('toggles a switch', async () => {
+    function Harness() {
+      const [on, setOn] = useState(false)
+      return <Switch label="Notifications" checked={on} onChange={setOn} />
+    }
+    render(<Harness />)
+
+    await userEvent.click(screen.getByRole('switch', { name: 'Notifications' }))
+
+    expect(screen.getByRole('switch', { name: 'Notifications' })).toBeChecked()
+  })
+
+  it('disables a loading button and marks it busy', () => {
+    render(<Button loading>Saving…</Button>)
+
+    expect(screen.getByRole('button', { name: 'Saving…' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Saving…' })).toHaveAttribute('aria-busy', 'true')
+  })
+
+  it('announces an error toast as an alert', async () => {
+    render(
+      <ToastProvider>
+        <ToastTrigger />
+      </ToastProvider>,
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: 'fail' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Failed')
   })
 })

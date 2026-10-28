@@ -33,7 +33,7 @@
 
 .toast--success .toast__icon {
   background: var(--emerald);
-  color: #03140d;
+  color: var(--on-accent);
 }
 
 .toast--error .toast__icon {
