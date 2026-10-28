@@ -4,13 +4,10 @@ using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Interfaces;
 using GymRatService.Service.Mapping;
-using Microsoft.Extensions.Localization;
 
 namespace GymRatService.Service.Services;
 
-public class ExercisesService(
-    IExerciseCardsRepository exerciseCardsRepository,
-    IStringLocalizer<ExercisesService> localizer) : IExercisesService
+public class ExercisesService(IExerciseCardsRepository exerciseCardsRepository) : IExercisesService
 {
     public async Task<IReadOnlyList<ExerciseDto>> GetExercisesAsync(CancellationToken cancellationToken)
     {
@@ -22,7 +19,7 @@ public class ExercisesService(
     public async Task<ExerciseDto> GetExerciseAsync(Guid id, CancellationToken cancellationToken)
     {
         var exercise = await exerciseCardsRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new ServiceException(ErrorCodes.ExerciseNotFound, localizer["ExerciseNotFound", id]);
+            ?? throw new BusinessLogicException(ErrorCodes.ExerciseNotFound, id);
 
         return exercise.ToDto();
     }

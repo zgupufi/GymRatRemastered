@@ -12,6 +12,7 @@ public static class RepositoryLayerExtensions
         services.AddDbContext<GymRatDbContext>(options => options.UseNpgsql(connectionString));
 
         services.AddScoped<IExerciseCardsRepository, ExerciseCardsRepository>();
+        services.AddScoped<IUsersRepository, UsersRepository>();
 
         return services;
     }

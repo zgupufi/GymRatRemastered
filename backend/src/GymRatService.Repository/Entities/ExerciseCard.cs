@@ -2,7 +2,7 @@ namespace GymRatService.Repository.Entities;
 
 public class ExerciseCard
 {
-    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid Id { get; set; }
 
     public string Name { get; set; } = string.Empty;
 
