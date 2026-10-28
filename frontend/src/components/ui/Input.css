@@ -1,0 +1,91 @@
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.field__label {
+  margin-bottom: 0.4375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.field__control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 3.125rem;
+  padding: 0 0.875rem;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--hairline-strong);
+  color: var(--text-3);
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.field__control:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+  color: var(--accent);
+}
+
+.field__control--error {
+  border-color: var(--danger-border-strong);
+  box-shadow: 0 0 0 4px var(--danger-bg);
+}
+
+.field__icon {
+  display: inline-flex;
+}
+
+.field__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.field__input::placeholder,
+.number-input::placeholder {
+  color: var(--text-4);
+}
+
+.field__message {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.field__message--error {
+  color: var(--danger);
+}
+
+.number-input {
+  width: 100%;
+  min-width: 0;
+  height: 3.125rem;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--hairline-strong);
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  appearance: textfield;
+}
+
+.number-input::-webkit-inner-spin-button,
+.number-input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.number-input:focus {
+  outline: 0;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}

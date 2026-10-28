@@ -1,12 +1,11 @@
-import { ExerciseList } from './components/ExerciseList/ExerciseList'
+import { BrowserRouter } from 'react-router-dom'
+import { AppRoutes } from './routes'
 
 function App() {
   return (
-    <main className="app">
-      <h1>GymRat</h1>
-      <h2>Exercises</h2>
-      <ExerciseList />
-    </main>
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   )
 }
 

@@ -1,0 +1,24 @@
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--hairline);
+}
+
+.segmented__option {
+  padding: 0.5rem 1.125rem;
+  border: 0;
+  border-radius: 0.5625rem;
+  background: transparent;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-3);
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.segmented__option--on {
+  background: var(--surface-3);
+  color: var(--text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
