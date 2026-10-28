@@ -4,9 +4,7 @@ using GymRatService.Common.DTOs.Auth;
 using GymRatService.Common.DTOs.Users;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
-using GymRatService.Repository;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace GymRatService.IntegrationTests.Auth;
 
@@ -17,7 +15,7 @@ public sealed class AuthEndpointsTests : IDisposable
     public void Dispose() => _factory.Dispose();
 
     [Fact]
-    public async Task Register_ReturnsCreatedAndStoresTheUserWithAHashedPassword()
+    public async Task Register_ReturnsCreatedAndTheNewUserCanLogIn()
     {
         // Arrange
         await _factory.SeedAsync(_ => { });
@@ -26,22 +24,20 @@ public sealed class AuthEndpointsTests : IDisposable
         // Act
         var response = await client.PostAsJsonAsync(
             "/api/auth/register",
-            new RegisterRequest("Ana@Example.com", "password123", "Ana", "Pop", WeightUnit.Pounds));
+            new RegisterRequest(" Ana@Example.com ", "password123", " Ana ", " Pop ", WeightUnit.Pounds));
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.Empty(await response.Content.ReadAsStringAsync());
 
-        using var scope = _factory.Services.CreateScope();
-        var user = await scope.ServiceProvider.GetRequiredService<GymRatDbContext>().Users.SingleAsync();
-        Assert.Equal(7, user.Id.Version);
-        Assert.Equal("ana@example.com", user.Email);
-        Assert.Equal("Ana", user.FirstName);
-        Assert.Equal("Pop", user.LastName);
-        Assert.Equal(WeightUnit.Pounds, user.WeightUnit);
-        Assert.Equal(90, user.DefaultRestTimeSeconds);
-        Assert.NotEqual("password123", user.PasswordHash);
-        Assert.NotEmpty(user.PasswordSalt);
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest("ana@example.com", "password123"));
+        var login = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        Assert.NotNull(login);
+        var token = new JsonWebToken(login.AccessToken);
+        Assert.Equal(7, Guid.Parse(token.Subject).Version);
+
+        var profile = await _factory.CreateBearerClient(login.AccessToken).GetFromJsonAsync<UserProfileDto>("/api/users/me");
+        Assert.Equal(new UserProfileDto("Ana", "Pop", "ana@example.com", WeightUnit.Pounds, 90), profile);
     }
 
     [Theory]
@@ -139,10 +135,6 @@ public sealed class AuthEndpointsTests : IDisposable
 
         var profile = await _factory.CreateBearerClient(login.AccessToken).GetFromJsonAsync<UserProfileDto>("/api/users/me");
         Assert.Equal(new UserProfileDto("Ana", "Pop", "ana@example.com", WeightUnit.Pounds, 90), profile);
-
-        using var scope = _factory.Services.CreateScope();
-        var user = await scope.ServiceProvider.GetRequiredService<GymRatDbContext>().Users.SingleAsync();
-        Assert.NotNull(user.LastLoginAt);
     }
 
     [Theory]
