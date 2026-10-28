@@ -67,12 +67,12 @@ public sealed partial class LiquibaseChangelogTests
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
 
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "docker-compose.yml")))
+        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "infra")))
         {
             directory = directory.Parent;
         }
 
-        return directory?.FullName ?? throw new InvalidOperationException("docker-compose.yml was not found above the test output directory.");
+        return directory?.FullName ?? throw new InvalidOperationException("infra directory was not found above the test output directory.");
     }
 
     [GeneratedRegex("<include file=\"([^\"]+)\"")]

@@ -21,7 +21,7 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ./database/changelog:/liquibase/changelog:ro
+      - ../database/changelog:/liquibase/changelog:ro
     command:
       - --changelog-file=changelog/db.changelog-master.xml
       - --url=jdbc:postgresql://postgres:5432/gymrat
@@ -30,7 +30,7 @@ services:
       - update
 
   backend:
-    build: ./backend
+    build: ../backend
     depends_on:
       db:
         condition: service_completed_successfully
@@ -41,7 +41,7 @@ services:
       - "${API_PORT:-8080}:8080"
 
   frontend:
-    build: ./frontend
+    build: ../frontend
     depends_on:
       - backend
     ports:

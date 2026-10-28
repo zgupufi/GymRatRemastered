@@ -4,7 +4,10 @@
 
 ## Run with Docker
 
+Run the commands from the `infra` folder, where `docker-compose.yml` lives:
+
 ```bash
+cd infra
 docker compose up db
 docker compose up backend
 docker compose up frontend
@@ -16,7 +19,7 @@ docker compose up --build
 - `up frontend` starts the web app and also starts `backend` and `db`. Frontend: http://localhost:3000.
 - `up --build` builds the backend and frontend images and starts everything.
 
-Postgres is exposed on localhost:5432. The database connection for the backend is defined in `docker-compose.yml` (`backend` service, `ConnectionStrings__DefaultConnection`). The defaults are for local development only. To use your own password or JWT key, copy `.env.example` to `.env` and change them.
+Postgres is exposed on localhost:5432. The database connection for the backend is defined in `infra/docker-compose.yml` (`backend` service, `ConnectionStrings__DefaultConnection`). The defaults are for local development only. To use your own password or JWT key, copy `infra/.env.example` to `infra/.env` and change them.
 
 ## Changing the database
 
