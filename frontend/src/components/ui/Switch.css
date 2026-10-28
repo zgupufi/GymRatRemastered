@@ -1,0 +1,31 @@
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 3.25rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  transition: background 200ms ease;
+}
+
+.switch--on {
+  background: var(--accent);
+}
+
+.switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.switch--on .switch__thumb {
+  transform: translateX(1.25rem);
+}

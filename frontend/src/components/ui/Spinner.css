@@ -1,0 +1,33 @@
+.spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-2);
+}
+
+.spinner__ring {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent);
+  animation: spinner-rotate 0.8s linear infinite;
+}
+
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinner-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner__ring {
+    animation: spinner-pulse 1.6s ease-in-out infinite !important;
+  }
+}

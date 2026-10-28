@@ -1,0 +1,77 @@
+:root {
+  --bg: #05070d;
+  --bg-elevated: #0b0f19;
+  --surface: #111725;
+  --surface-2: #182033;
+  --surface-3: #222b40;
+  --material: rgba(17, 23, 37, 0.72);
+  --material-strong: rgba(24, 32, 51, 0.92);
+  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline-strong: rgba(255, 255, 255, 0.14);
+  --scrim: rgba(3, 5, 10, 0.55);
+
+  --text: #f5f7fb;
+  --text-2: #b4bccc;
+  --text-3: #7d879b;
+  --text-4: #535c70;
+
+  --blue: #3d8bff;
+  --emerald: #22c58b;
+  --purple: #a275ff;
+  --orange: #ff9f2e;
+  --red: #ff4d4f;
+  --cyan: #2ad1e8;
+  --accent: var(--emerald);
+  --on-accent: #03140d;
+  --danger: #ff6b6d;
+  --danger-bg: rgba(255, 77, 79, 0.12);
+  --danger-border: rgba(255, 77, 79, 0.28);
+  --danger-border-strong: rgba(255, 77, 79, 0.7);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  --radius-sm: 0.625rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-pill: 999px;
+
+  --font-sans: -apple-system, 'SF Pro Text', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Consolas, monospace;
+
+  --blur: blur(30px) saturate(160%);
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+  --shadow-float: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 40px 80px -20px rgba(0, 0, 0, 0.8);
+  --focus-ring: 0 0 0 4px color-mix(in srgb, var(--accent) 28%, transparent);
+
+  --z-nav: 50;
+  --z-modal: 100;
+  --z-toast: 300;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --material: #111725;
+    --material-strong: #182033;
+    --blur: none;
+    --scrim: rgba(3, 5, 10, 0.8);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --hairline: rgba(255, 255, 255, 0.28);
+    --hairline-strong: rgba(255, 255, 255, 0.5);
+    --text-3: #aab3c5;
+    --text-4: #8a93a6;
+    --danger-border: rgba(255, 77, 79, 0.7);
+    --danger-border-strong: #ff4d4f;
+  }
+}
