@@ -41,12 +41,12 @@
 }
 
 .landing-logo--dim {
-  color: var(--text-4);
+  color: var(--text-3);
 }
 
 .landing-logo--dim .landing-logo__tile {
   background: var(--surface-2);
-  color: var(--text-4);
+  color: var(--text-3);
   box-shadow: none;
 }
 
@@ -95,6 +95,12 @@
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--text-2);
+}
+
+@media (hover: hover) {
+  .landing-nav__link:hover {
+    color: var(--text);
+  }
 }
 
 .landing-nav__link:active {
@@ -966,7 +972,7 @@
 .landing-footer p {
   font-size: 0.8125rem;
   letter-spacing: 0.005em;
-  color: var(--text-4);
+  color: var(--text-3);
 }
 
 @media (min-width: 40rem) {

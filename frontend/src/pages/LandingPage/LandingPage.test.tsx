@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MotionGlobalConfig } from 'motion/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { LandingPage } from './LandingPage'
 
 function renderLanding() {
@@ -20,6 +20,10 @@ function renderLanding() {
 describe('LandingPage', () => {
   beforeAll(() => {
     MotionGlobalConfig.skipAnimations = true
+  })
+
+  afterAll(() => {
+    MotionGlobalConfig.skipAnimations = false
   })
 
   it('renders the hero headline', () => {
@@ -77,10 +81,13 @@ describe('LandingPage', () => {
   })
 
   it('hides the decorative mockups from assistive technology', () => {
-    renderLanding()
+    const { container } = renderLanding()
 
-    expect(screen.queryByText('Pec deck / butterfly', { ignore: '[aria-hidden="true"] *' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Save changes' })).not.toBeInTheDocument()
+    const mockups = container.querySelectorAll('.phone, .mock')
+
+    expect(mockups).toHaveLength(4)
+    mockups.forEach((mockup) => expect(mockup).toHaveAttribute('aria-hidden', 'true'))
+    expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument()
   })
 
   it('shows the current year in the footer', () => {
