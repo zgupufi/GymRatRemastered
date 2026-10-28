@@ -1,6 +1,7 @@
 using FluentValidation;
 using GymRatService.Common.DTOs.Auth;
 using GymRatService.Common.DTOs.Users;
+using GymRatService.Common.DTOs.Workouts;
 using GymRatService.Repository;
 using GymRatService.Service.Interfaces;
 using GymRatService.Service.Security;
@@ -24,10 +25,14 @@ public static class ServiceLayerExtensions
         services.AddSingleton<ITokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IValidator<RegisterRequest>, RegisterRequestValidator>();
         services.AddSingleton<IValidator<UpdateUserSettingsRequest>, UpdateUserSettingsRequestValidator>();
+        services.AddSingleton<IValidator<CreateWorkoutRequest>, CreateWorkoutRequestValidator>();
+        services.AddSingleton<IValidator<RenameWorkoutRequest>, RenameWorkoutRequestValidator>();
+        services.AddSingleton<IValidator<ReplaceWorkoutExercisesRequest>, ReplaceWorkoutExercisesRequestValidator>();
 
         services.AddScoped<IExercisesService, ExercisesService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUsersService, UsersService>();
+        services.AddScoped<IWorkoutsService, WorkoutsService>();
 
         return services;
     }

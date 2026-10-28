@@ -9,9 +9,9 @@ namespace GymRatService.Service.Services;
 
 public class ExercisesService(IExerciseCardsRepository exerciseCardsRepository) : IExercisesService
 {
-    public async Task<IReadOnlyList<ExerciseDto>> GetExercisesAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ExerciseDto>> GetExercisesAsync(string? search, string? muscle, CancellationToken cancellationToken)
     {
-        var exercises = await exerciseCardsRepository.GetAllAsync(cancellationToken);
+        var exercises = await exerciseCardsRepository.GetAllAsync(search, muscle, cancellationToken);
 
         return exercises.Select(exercise => exercise.ToDto()).ToList();
     }

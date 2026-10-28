@@ -13,6 +13,7 @@ public static class RepositoryLayerExtensions
 
         services.AddScoped<IExerciseCardsRepository, ExerciseCardsRepository>();
         services.AddScoped<IUsersRepository, UsersRepository>();
+        services.AddScoped<IWorkoutsRepository, WorkoutsRepository>();
 
         return services;
     }

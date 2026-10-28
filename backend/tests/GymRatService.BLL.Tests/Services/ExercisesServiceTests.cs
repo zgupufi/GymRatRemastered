@@ -24,10 +24,10 @@ public class ExercisesServiceTests
         // Arrange
         var benchPress = new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest", Equipment = "Barbell" };
         var squat = new ExerciseCard { Name = "Squat", MainMuscle = "Legs", Difficulty = "Intermediate" };
-        _repository.GetAllAsync(Arg.Any<CancellationToken>()).Returns([benchPress, squat]);
+        _repository.GetAllAsync("press", "Chest", Arg.Any<CancellationToken>()).Returns([benchPress, squat]);
 
         // Act
-        var exercises = await _service.GetExercisesAsync(CancellationToken.None);
+        var exercises = await _service.GetExercisesAsync("press", "Chest", CancellationToken.None);
 
         // Assert
         Assert.Equal(

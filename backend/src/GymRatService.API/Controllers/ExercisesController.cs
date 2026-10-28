@@ -10,9 +10,9 @@ namespace GymRatService.API.Controllers;
 public class ExercisesController(IExercisesService exercisesService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetExercisesAsync(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetExercisesAsync(string? search, string? muscle, CancellationToken cancellationToken)
     {
-        var response = await exercisesService.GetExercisesAsync(cancellationToken);
+        var response = await exercisesService.GetExercisesAsync(search, muscle, cancellationToken);
 
         return Ok(response);
     }

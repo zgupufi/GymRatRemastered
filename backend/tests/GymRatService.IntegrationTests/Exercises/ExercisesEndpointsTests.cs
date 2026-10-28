@@ -58,6 +58,32 @@ public sealed class ExercisesEndpointsTests : IDisposable
             });
     }
 
+    [Theory]
+    [InlineData("?search=PRESS", new[] { "Bench Press", "Shoulder Press" })]
+    [InlineData("?search=glutes", new[] { "Squat" })]
+    [InlineData("?search=legs", new[] { "Squat" })]
+    [InlineData("?muscle=chest", new[] { "Bench Press" })]
+    [InlineData("?muscle=Shoulders&search=press", new[] { "Shoulder Press" })]
+    [InlineData("?muscle=Legs&search=press", new string[0])]
+    [InlineData("?search=%20&muscle=", new[] { "Bench Press", "Shoulder Press", "Squat" })]
+    public async Task GetExercises_FiltersByNameMuscleAndSubMuscle(string query, string[] expectedNames)
+    {
+        // Arrange
+        await _factory.SeedAsync(context => context.Exercises.AddRange(
+            new ExerciseCard { Name = "Squat", MainMuscle = "Legs", SubMuscles = "Glutes" },
+            new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest" },
+            new ExerciseCard { Name = "Shoulder Press", MainMuscle = "Shoulders" }));
+        var client = _factory.CreateAuthenticatedClient();
+
+        // Act
+        var response = await client.GetAsync($"/api/exercises{query}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var exercises = await response.Content.ReadFromJsonAsync<List<ExerciseDto>>();
+        Assert.Equal(expectedNames, exercises!.Select(exercise => exercise.Name));
+    }
+
     [Fact]
     public async Task GetExercise_ReturnsTheExercise_WhenItExists()
     {

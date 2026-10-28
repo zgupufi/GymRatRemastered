@@ -27,6 +27,12 @@
   <data name="BLException_UsersService_UserNotFound" xml:space="preserve">
     <value>Utilizatorul nu există.</value>
   </data>
+  <data name="BLException_WorkoutsService_WorkoutNotFound" xml:space="preserve">
+    <value>Antrenamentul {0} nu există.</value>
+  </data>
+  <data name="BLException_WorkoutsService_ExerciseNotFound" xml:space="preserve">
+    <value>Unul sau mai multe exerciții nu există.</value>
+  </data>
   <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
     <value>Cererea nu este validă.</value>
   </data>

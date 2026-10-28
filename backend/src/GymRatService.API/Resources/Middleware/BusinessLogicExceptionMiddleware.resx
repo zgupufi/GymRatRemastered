@@ -27,6 +27,12 @@
   <data name="BLException_UsersService_UserNotFound" xml:space="preserve">
     <value>The user does not exist.</value>
   </data>
+  <data name="BLException_WorkoutsService_WorkoutNotFound" xml:space="preserve">
+    <value>Workout {0} does not exist.</value>
+  </data>
+  <data name="BLException_WorkoutsService_ExerciseNotFound" xml:space="preserve">
+    <value>One or more of the exercises do not exist.</value>
+  </data>
   <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
     <value>The request is not valid.</value>
   </data>
