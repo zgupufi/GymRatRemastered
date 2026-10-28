@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="003-users" author="gymrat">
+        <createTable tableName="Users">
+            <column name="Id" type="uuid">
+                <constraints primaryKey="true" primaryKeyName="PK_Users" nullable="false" />
+            </column>
+            <column name="Email" type="varchar(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="PasswordHash" type="varchar(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="PasswordSalt" type="varchar(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="FirstName" type="varchar(50)">
+                <constraints nullable="false" />
+            </column>
+            <column name="LastName" type="varchar(50)" />
+            <column name="WeightUnit" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="DefaultRestTimeSeconds" type="integer" defaultValueNumeric="90">
+                <constraints nullable="false" />
+            </column>
+            <column name="CreatedAt" type="timestamp with time zone">
+                <constraints nullable="false" />
+            </column>
+            <column name="LastLoginAt" type="timestamp with time zone" />
+        </createTable>
+
+        <createIndex tableName="Users" indexName="IX_Users_Email" unique="true">
+            <column name="Email" />
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

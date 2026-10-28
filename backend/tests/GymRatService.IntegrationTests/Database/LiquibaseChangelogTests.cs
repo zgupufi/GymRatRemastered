@@ -47,6 +47,27 @@ public sealed partial class LiquibaseChangelogTests
     }
 
     [Fact]
+    public void UsersSchema_DefinesEveryColumnOfTheUserEntity()
+    {
+        // Arrange
+        var schema = File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "003-users.xml"));
+        var options = new DbContextOptionsBuilder<GymRatDbContext>()
+            .UseNpgsql("Host=localhost;Database=gymrat_model_check")
+            .Options;
+        using var context = new GymRatDbContext(options);
+        var entityType = context.Model.FindEntityType(typeof(User))!;
+
+        // Act
+        var columns = entityType.GetProperties().Select(property => property.GetColumnName()).ToList();
+
+        // Assert
+        Assert.Equal("Users", entityType.GetTableName());
+        Assert.Equal(10, columns.Count);
+        Assert.All(columns, column => Assert.Contains($"<column name=\"{column}\"", schema));
+        Assert.Contains("indexName=\"IX_Users_Email\" unique=\"true\"", schema);
+    }
+
+    [Fact]
     public void SeedChangelog_HasEveryExerciseWithUniqueGuidV7IdsAndNames()
     {
         // Arrange

@@ -1,5 +1,6 @@
 using System.Text;
 using GymRatService.API.Filters;
+using GymRatService.Common.Settings;
 using GymRatService.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -17,22 +18,25 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod());
 });
 
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
+builder.Services.Configure<PasswordSettings>(builder.Configuration.GetSection(PasswordSettings.SectionName));
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-        var key = jwtSettings["Key"];
+        var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>() ?? new JwtSettings();
 
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSettings["Issuer"],
-            ValidAudience = jwtSettings["Audience"],
-            IssuerSigningKey = string.IsNullOrEmpty(key) ? null : new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = string.IsNullOrEmpty(jwtSettings.Key) ? null : new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
         };
     });
 builder.Services.AddAuthorization();

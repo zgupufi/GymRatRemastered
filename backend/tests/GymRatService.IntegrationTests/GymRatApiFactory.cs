@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using GymRatService.IntegrationTests.Authentication;
 using GymRatService.Repository;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
@@ -14,11 +15,15 @@ namespace GymRatService.IntegrationTests;
 
 public sealed class GymRatApiFactory : WebApplicationFactory<Program>
 {
+    private const string SchemeSelector = "TestOrBearer";
+
     private readonly SqliteConnection _connection = new("DataSource=:memory:");
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        builder.UseSetting("JwtSettings:Key", "integration-test-signing-key-that-is-long-enough");
+        builder.UseSetting("PasswordSettings:Pepper", "integration-test-pepper");
 
         builder.ConfigureServices(services =>
         {
@@ -29,8 +34,12 @@ public sealed class GymRatApiFactory : WebApplicationFactory<Program>
             services.AddDbContext<GymRatDbContext>(options => options.UseSqlite(_connection));
 
             services
-                .AddAuthentication(TestAuthHandler.SchemeName)
-                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
+                .AddAuthentication(SchemeSelector)
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { })
+                .AddPolicyScheme(SchemeSelector, SchemeSelector, options => options.ForwardDefaultSelector = context =>
+                    context.Request.Headers.Authorization == TestAuthHandler.SchemeName
+                        ? TestAuthHandler.SchemeName
+                        : JwtBearerDefaults.AuthenticationScheme);
         });
     }
 
@@ -38,6 +47,14 @@ public sealed class GymRatApiFactory : WebApplicationFactory<Program>
     {
         var client = CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TestAuthHandler.SchemeName);
+
+        return client;
+    }
+
+    public HttpClient CreateBearerClient(string accessToken)
+    {
+        var client = CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, accessToken);
 
         return client;
     }
