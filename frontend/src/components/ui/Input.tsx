@@ -6,9 +6,10 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   icon?: ReactNode
   error?: string
   hint?: string
+  optional?: boolean
 }
 
-export function Input({ label, icon, error, hint, id, className, ...rest }: InputProps) {
+export function Input({ label, icon, error, hint, optional, id, className, ...rest }: InputProps) {
   const generatedId = useId()
   const inputId = id ?? generatedId
   const messageId = `${inputId}-message`
@@ -18,6 +19,7 @@ export function Input({ label, icon, error, hint, id, className, ...rest }: Inpu
       {label ? (
         <label className="field__label" htmlFor={inputId}>
           {label}
+          {optional ? <span className="field__optional">optional</span> : null}
         </label>
       ) : null}
       <div className={`field__control${error ? ' field__control--error' : ''}`}>

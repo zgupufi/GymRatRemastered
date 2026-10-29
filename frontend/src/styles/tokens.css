@@ -6,9 +6,15 @@
   --surface-3: #222b40;
   --material: rgba(17, 23, 37, 0.72);
   --material-strong: rgba(24, 32, 51, 0.92);
+  --fill-subtle: rgba(255, 255, 255, 0.05);
+  --fill-raised: rgba(255, 255, 255, 0.06);
+  --fill-pressed: rgba(255, 255, 255, 0.12);
+  --shadow-chip: 0 2px 8px rgba(0, 0, 0, 0.4);
   --hairline: rgba(255, 255, 255, 0.08);
   --hairline-strong: rgba(255, 255, 255, 0.14);
   --scrim: rgba(3, 5, 10, 0.55);
+  --glow-blue-soft: rgba(61, 139, 255, 0.12);
+  --glow-emerald-strong: rgba(34, 197, 139, 0.18);
 
   --text: #f5f7fb;
   --text-2: #b4bccc;

@@ -26,6 +26,21 @@
   background: rgba(34, 197, 139, 0.12);
 }
 
+.app-shell--mirrored .app-shell__glow--blue {
+  top: auto;
+  right: auto;
+  bottom: -13rem;
+  left: -14rem;
+  background: var(--glow-blue-soft);
+}
+
+.app-shell--mirrored .app-shell__glow--emerald {
+  top: -16rem;
+  right: -15rem;
+  bottom: auto;
+  background: var(--glow-emerald-strong);
+}
+
 .page {
   max-width: 72rem;
   margin: 0 auto;

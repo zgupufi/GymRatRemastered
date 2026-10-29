@@ -3,14 +3,16 @@ import { AppShell } from './components/layout/AppShell'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { ExercisesPage } from './pages/ExercisesPage'
 import { LandingPage } from './pages/LandingPage/LandingPage'
+import { LoginPage } from './pages/LoginPage/LoginPage'
+import { RegisterPage } from './pages/RegisterPage/RegisterPage'
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route element={<AppShell />}>
         <Route index element={<LandingPage />} />
-        <Route path="login" element={<PlaceholderPage title="Welcome back" description="Log in to continue your progress." />} />
-        <Route path="register" element={<PlaceholderPage title="Create account" description="Start your transformation right now." />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
         <Route path="exercises" element={<ExercisesPage />} />
         <Route
           path="exercises/:id"

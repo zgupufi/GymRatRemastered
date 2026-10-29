@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getExercises } from './api/exercises'
+import { AuthProvider } from './auth/AuthProvider'
 import { AppRoutes } from './routes'
 
 vi.mock('./api/exercises')
@@ -10,7 +11,9 @@ vi.mock('./api/exercises')
 function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <AppRoutes />
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </MemoryRouter>,
   )
 }
@@ -40,6 +43,17 @@ describe('AppRoutes', () => {
     renderAt(path)
 
     expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+  })
+
+  it('mirrors the background glow on the register page only', async () => {
+    const { container, unmount } = renderAt('/register')
+    await screen.findByRole('heading', { level: 1, name: 'Create account' })
+    expect(container.querySelector('.app-shell--mirrored')).not.toBeNull()
+    unmount()
+
+    const login = renderAt('/login')
+    await login.findByRole('heading', { level: 1, name: 'Welcome back' })
+    expect(login.container.querySelector('.app-shell--mirrored')).toBeNull()
   })
 
   it('scrolls to the top on navigation', async () => {

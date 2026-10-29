@@ -1,19 +1,27 @@
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? ''
 
+export interface FieldError {
+  property: string
+  message: string
+}
+
 export interface ApiErrorBody {
   code: string
   message: string
+  errors?: FieldError[]
 }
 
 export class ApiError extends Error {
   readonly status: number
   readonly code?: string
+  readonly fieldErrors: FieldError[]
 
-  constructor(status: number, message: string, code?: string) {
+  constructor(status: number, message: string, code?: string, fieldErrors: FieldError[] = []) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.code = code
+    this.fieldErrors = fieldErrors
   }
 }
 
@@ -53,15 +61,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     const body: unknown = await response.json().catch(() => null)
     if (isApiErrorBody(body)) {
-      throw new ApiError(response.status, body.message, body.code)
+      throw new ApiError(response.status, body.message, body.code, body.errors ?? [])
     }
     throw new ApiError(response.status, `Request failed with status ${response.status}`)
   }
 
-  if (response.status === 204) {
-    return undefined as T
-  }
-  return (await response.json()) as T
+  const text = await response.text()
+  return (text ? JSON.parse(text) : undefined) as T
 }
 
 function withJsonBody(method: string, body: unknown): RequestInit {
@@ -74,7 +80,7 @@ function withJsonBody(method: string, body: unknown): RequestInit {
 
 export const apiClient = {
   get: <T>(path: string, signal?: AbortSignal) => request<T>(path, { signal }),
-  post: (path: string, body: unknown) => request<void>(path, withJsonBody('POST', body)),
+  post: <T = void>(path: string, body: unknown) => request<T>(path, withJsonBody('POST', body)),
   put: (path: string, body: unknown) => request<void>(path, withJsonBody('PUT', body)),
   delete: (path: string) => request<void>(path, { method: 'DELETE' }),
 }

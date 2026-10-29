@@ -10,11 +10,12 @@ interface SegmentedControlProps<T extends string> {
   options: Option<T>[]
   value: T
   onChange: (value: T) => void
+  wide?: boolean
 }
 
-export function SegmentedControl<T extends string>({ label, options, value, onChange }: SegmentedControlProps<T>) {
+export function SegmentedControl<T extends string>({ label, options, value, onChange, wide }: SegmentedControlProps<T>) {
   return (
-    <div className="segmented" role="radiogroup" aria-label={label}>
+    <div className={`segmented${wide ? ' segmented--wide' : ''}`} role="radiogroup" aria-label={label}>
       {options.map((option) => (
         <button
           key={option.value}

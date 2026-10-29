@@ -63,6 +63,47 @@ describe('apiClient', () => {
     })
   })
 
+  it('keeps the per-field errors of a validation failure', async () => {
+    mockFetch(
+      Response.json(
+        {
+          code: 'BLException_Validation_InvalidRequest',
+          message: 'The request is not valid.',
+          errors: [{ property: 'Email', message: 'Invalid email.' }],
+        },
+        { status: 400 },
+      ),
+    )
+
+    const error: unknown = await apiClient.post('/api/auth/register', {}).catch((e: unknown) => e)
+
+    expect(error).toMatchObject({ fieldErrors: [{ property: 'Email', message: 'Invalid email.' }] })
+  })
+
+  it('has no field errors when the backend sends none', async () => {
+    mockFetch(Response.json({ code: 'X', message: 'Nope.' }, { status: 400 }))
+
+    const error: unknown = await apiClient.post('/api/things', {}).catch((e: unknown) => e)
+
+    expect(error).toMatchObject({ fieldErrors: [] })
+  })
+
+  it('resolves to undefined on 201 Created without a body', async () => {
+    mockFetch(new Response(null, { status: 201 }))
+
+    const result = await apiClient.post('/api/auth/register', {})
+
+    expect(result).toBeUndefined()
+  })
+
+  it('returns the parsed body of a successful POST', async () => {
+    mockFetch(Response.json({ accessToken: 'abc' }))
+
+    const result = await apiClient.post<{ accessToken: string }>('/api/auth/login', { email: 'a' })
+
+    expect(result).toEqual({ accessToken: 'abc' })
+  })
+
   it('throws a generic ApiError when the error body is not JSON', async () => {
     mockFetch(new Response('boom', { status: 500 }))
 
