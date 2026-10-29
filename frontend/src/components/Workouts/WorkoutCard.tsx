@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Check, ChevronDown, Pencil, Trash2 } from 'lucide-react'
 import { deleteWorkout, renameWorkout, type WorkoutSummary } from '../../api/workouts'
@@ -25,6 +25,14 @@ export function WorkoutCard({ workout, startExpanded = false, startRenaming = fa
   const [name, setName] = useState(workout.name)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [busy, setBusy] = useState(false)
+  const cardRef = useRef<HTMLLIElement>(null)
+
+  useEffect(() => {
+    if (startExpanded) {
+      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      cardRef.current?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' })
+    }
+  }, [startExpanded])
 
   const trimmed = name.trim()
   const canRename = trimmed.length > 0 && trimmed.length <= MAX_NAME_LENGTH
@@ -75,7 +83,7 @@ export function WorkoutCard({ workout, startExpanded = false, startRenaming = fa
   }
 
   return (
-    <li className={`workout-card${confirmingDelete ? ' workout-card--danger' : ''}`}>
+    <li ref={cardRef} className={`workout-card${confirmingDelete ? ' workout-card--danger' : ''}`}>
       <div className="workout-card__row">
         {renaming ? (
           <div className="workout-card__rename">

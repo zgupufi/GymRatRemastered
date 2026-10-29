@@ -143,7 +143,7 @@ export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
         workoutId,
         items.map((item) => ({ exerciseId: item.exercise.id, targetSets: Number(item.targetSets) })),
       )
-      showToast('success', 'Workout saved successfully')
+      showToast('success', 'Workout saved successfully!')
       onSaved()
     } catch {
       showToast('error', 'Save failed. Try again.')

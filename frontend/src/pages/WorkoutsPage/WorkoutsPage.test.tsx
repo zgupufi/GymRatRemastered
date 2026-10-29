@@ -52,6 +52,7 @@ function renderPage() {
 describe('WorkoutsPage', () => {
   beforeAll(() => {
     MotionGlobalConfig.skipAnimations = true
+    Element.prototype.scrollIntoView = vi.fn()
   })
 
   beforeEach(() => {
@@ -166,6 +167,7 @@ describe('WorkoutsPage', () => {
 
     expect(await screen.findByRole('textbox', { name: 'Workout name' })).toHaveValue('New workout - Oct 29')
     expect(createWorkout).toHaveBeenCalledWith(expect.stringMatching(/^New workout - /))
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' })
   })
 
   it('reports a failed creation', async () => {
@@ -210,6 +212,8 @@ describe('WorkoutsPage', () => {
 
     await userEvent.clear(input)
     expect(screen.getByRole('button', { name: 'Save name' })).toBeDisabled()
+    await userEvent.type(input, '{Enter}')
+    expect(renameWorkout).not.toHaveBeenCalled()
     await userEvent.type(input, 'Legs')
     await userEvent.click(screen.getByRole('button', { name: 'Save name' }))
 
@@ -286,7 +290,7 @@ describe('WorkoutsPage', () => {
         { exerciseId: 'e3', targetSets: 5 },
       ]),
     )
-    expect(await screen.findByText('Workout saved successfully')).toBeInTheDocument()
+    expect(await screen.findByText('Workout saved successfully!')).toBeInTheDocument()
   })
 
   it('blocks saving while a set count is out of range', async () => {
@@ -318,8 +322,13 @@ describe('WorkoutsPage', () => {
     await screen.findAllByRole('spinbutton')
 
     const handle = screen.getByRole('button', { name: /Reorder Bench Press/ })
+    fireEvent.pointerDown(handle)
+    fireEvent.keyDown(handle, { key: 'Enter' })
     fireEvent.keyDown(handle, { key: 'ArrowUp' })
     fireEvent.keyDown(handle, { key: 'ArrowDown' })
+    fireEvent.keyDown(screen.getByRole('button', { name: /Reorder Barbell Row/ }), { key: 'ArrowUp' })
+    fireEvent.keyDown(screen.getByRole('button', { name: /Reorder Bench Press/ }), { key: 'ArrowUp' })
+    fireEvent.keyDown(screen.getByRole('button', { name: /Reorder Bench Press/ }), { key: 'ArrowDown' })
     await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
 
     await waitFor(() =>
