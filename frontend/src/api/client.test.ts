@@ -121,6 +121,14 @@ describe('apiClient', () => {
     expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'PUT', body: '{"name":"y"}' })
   })
 
+  it('sends a PATCH request with a JSON body', async () => {
+    const fetchMock = mockFetch(new Response(null, { status: 204 }))
+
+    await apiClient.patch('/api/things/1', { name: 'z' })
+
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'PATCH', body: '{"name":"z"}' })
+  })
+
   it('sends a DELETE request', async () => {
     const fetchMock = mockFetch(new Response(null, { status: 204 }))
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { login as loginRequest, register as registerRequest, type RegisterRequest } from '../api/auth'
 import { ApiError, setAccessToken } from '../api/client'
-import { getUserProfile, type UserProfile } from '../api/users'
+import { getUserProfile, updateUserSettings, type UserProfile, type UserSettings } from '../api/users'
 import { AuthContext, LoginAfterRegisterError, type AuthApi, type AuthStatus } from './AuthContext'
 import { clearSession, loadSession, saveSession } from './sessionStorage'
 
@@ -71,9 +71,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [login],
   )
 
+  const updateSettings = useCallback(async (settings: UserSettings) => {
+    await updateUserSettings(settings)
+    setUser((current) => (current ? { ...current, ...settings } : current))
+  }, [])
+
   const value = useMemo<AuthApi>(
-    () => ({ status, user, login, register, logout: endSession }),
-    [status, user, login, register, endSession],
+    () => ({ status, user, login, register, logout: endSession, updateSettings }),
+    [status, user, login, register, endSession, updateSettings],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

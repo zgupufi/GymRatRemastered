@@ -3,7 +3,7 @@ import { AppShell } from './components/layout/AppShell'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { WorkoutsPage } from './pages/WorkoutsPage/WorkoutsPage'
 import { ExercisesPage } from './pages/ExercisesPage'
-import { LandingPage } from './pages/LandingPage/LandingPage'
+import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage/LoginPage'
 import { RegisterPage } from './pages/RegisterPage/RegisterPage'
 
@@ -11,7 +11,7 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route element={<AppShell />}>
-        <Route index element={<LandingPage />} />
+        <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="exercises" element={<ExercisesPage />} />
