@@ -9,6 +9,8 @@ public class GymRatDbContext(DbContextOptions<GymRatDbContext> options) : DbCont
 
     public DbSet<User> Users => Set<User>();
 
+    public DbSet<SplitDay> SplitDays => Set<SplitDay>();
+
     public DbSet<Workout> Workouts => Set<Workout>();
 
     public DbSet<WorkoutExercise> WorkoutExercises => Set<WorkoutExercise>();

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="005-split-days" author="gymrat">
+        <createTable tableName="SplitDays">
+            <column name="Id" type="uuid" defaultValueComputed="uuid_generate_v7()">
+                <constraints primaryKey="true" primaryKeyName="PK_SplitDays" nullable="false" />
+            </column>
+            <column name="UserId" type="uuid">
+                <constraints nullable="false" foreignKeyName="FK_SplitDays_Users" references="Users(Id)" deleteCascade="true" />
+            </column>
+            <column name="Day" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="WorkoutId" type="uuid">
+                <constraints nullable="false" foreignKeyName="FK_SplitDays_Workouts" references="Workouts(Id)" deleteCascade="true" />
+            </column>
+        </createTable>
+
+        <createIndex tableName="SplitDays" indexName="IX_SplitDays_UserId_Day" unique="true">
+            <column name="UserId" />
+            <column name="Day" />
+        </createIndex>
+
+        <createIndex tableName="SplitDays" indexName="IX_SplitDays_WorkoutId">
+            <column name="WorkoutId" />
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

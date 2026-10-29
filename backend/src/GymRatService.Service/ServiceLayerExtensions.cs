@@ -31,11 +31,13 @@ public static class ServiceLayerExtensions
         services.AddSingleton<IValidator<CreateWorkoutRequest>, CreateWorkoutRequestValidator>();
         services.AddSingleton<IValidator<RenameWorkoutRequest>, RenameWorkoutRequestValidator>();
         services.AddSingleton<IValidator<ReplaceWorkoutExercisesRequest>, ReplaceWorkoutExercisesRequestValidator>();
+        services.AddSingleton<IValidator<int>, SplitDayValidator>();
 
         services.AddScoped<IExercisesService, ExercisesService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUsersService, UsersService>();
         services.AddScoped<IWorkoutsService, WorkoutsService>();
+        services.AddScoped<ISplitService, SplitService>();
 
         return services;
     }
