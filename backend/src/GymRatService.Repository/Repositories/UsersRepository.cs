@@ -1,3 +1,4 @@
+using GymRatService.Common.Enums;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -37,5 +38,16 @@ public class UsersRepository(GymRatDbContext context) : IUsersRepository
         await context.Users
             .Where(user => user.Id == id)
             .ExecuteUpdateAsync(setters => setters.SetProperty(user => user.LastLoginAt, lastLoginAt), cancellationToken);
+    }
+
+    public async Task UpdateSettingsAsync(Guid id, WeightUnit weightUnit, int defaultRestTimeSeconds, CancellationToken cancellationToken)
+    {
+        await context.Users
+            .Where(user => user.Id == id)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(user => user.WeightUnit, weightUnit)
+                    .SetProperty(user => user.DefaultRestTimeSeconds, defaultRestTimeSeconds),
+                cancellationToken);
     }
 }
