@@ -71,4 +71,39 @@ describe('apiClient', () => {
     expect(error).toBeInstanceOf(ApiError)
     expect(error).toMatchObject({ status: 500, message: 'Request failed with status 500' })
   })
+
+  it('sends a PUT request with a JSON body', async () => {
+    const fetchMock = mockFetch(new Response(null, { status: 204 }))
+
+    await apiClient.put('/api/things/1', { name: 'y' })
+
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'PUT', body: '{"name":"y"}' })
+  })
+
+  it('sends a DELETE request', async () => {
+    const fetchMock = mockFetch(new Response(null, { status: 204 }))
+
+    await apiClient.delete('/api/things/1')
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/things/1')
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'DELETE' })
+  })
+
+  it('throws an ApiError with status 0 when the network fails', async () => {
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockRejectedValue(new TypeError('offline')))
+
+    const error: unknown = await apiClient.get('/api/things').catch((e: unknown) => e)
+
+    expect(error).toBeInstanceOf(ApiError)
+    expect(error).toMatchObject({ status: 0, message: 'Network request failed' })
+  })
+
+  it('rethrows an abort so callers can ignore it', async () => {
+    const abort = new DOMException('aborted', 'AbortError')
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockRejectedValue(abort))
+
+    const error: unknown = await apiClient.get('/api/things').catch((e: unknown) => e)
+
+    expect(error).toBe(abort)
+  })
 })

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+staged="$(git diff --cached --name-only)"
+
+if grep -q '^backend/' <<<"$staged"; then
+  "$root/scripts/coverage/check.sh" backend
+fi
+
+if grep -q '^frontend/' <<<"$staged"; then
+  "$root/scripts/coverage/check.sh" frontend
+fi
