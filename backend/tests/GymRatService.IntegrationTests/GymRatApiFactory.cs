@@ -27,6 +27,8 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
     private readonly SqliteConnection _connection = new("DataSource=:memory:");
 
+    public AdvanceableTimeProvider Clock { get; } = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(environment);
@@ -37,6 +39,9 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
         {
             services.RemoveAll<DbContextOptions<GymRatDbContext>>();
             services.RemoveAll<IDbContextOptionsConfiguration<GymRatDbContext>>();
+
+            services.RemoveAll<TimeProvider>();
+            services.AddSingleton<TimeProvider>(Clock);
 
             _connection.Open();
             _connection.CreateFunction("uuid_generate_v7", () => Guid.CreateVersion7().ToString().ToUpperInvariant());

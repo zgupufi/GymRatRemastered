@@ -33,6 +33,12 @@
   <data name="BLException_WorkoutsService_ExerciseNotFound" xml:space="preserve">
     <value>Unul sau mai multe exerciții nu există.</value>
   </data>
+  <data name="BLException_SessionsService_SessionNotFound" xml:space="preserve">
+    <value>Sesiunea {0} nu există.</value>
+  </data>
+  <data name="BLException_SessionsService_SessionAlreadyFinished" xml:space="preserve">
+    <value>Sesiunea {0} a fost deja încheiată.</value>
+  </data>
   <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
     <value>Cererea nu este validă.</value>
   </data>
