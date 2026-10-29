@@ -49,4 +49,13 @@ describe('haptics', () => {
 
     expect(() => tapHaptic()).not.toThrow()
   })
+
+  it('ignores presses whose target is not an element', () => {
+    const uninstall = installHaptics()
+
+    document.dispatchEvent(new Event('pointerdown'))
+
+    expect(vibrate).not.toHaveBeenCalled()
+    uninstall()
+  })
 })
