@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="004-workouts" author="gymrat">
+        <createTable tableName="Workouts">
+            <column name="Id" type="uuid" defaultValueComputed="uuid_generate_v7()">
+                <constraints primaryKey="true" primaryKeyName="PK_Workouts" nullable="false" />
+            </column>
+            <column name="UserId" type="uuid">
+                <constraints nullable="false" foreignKeyName="FK_Workouts_Users" references="Users(Id)" deleteCascade="true" />
+            </column>
+            <column name="Name" type="varchar(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="CreatedAt" type="timestamp with time zone">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <createIndex tableName="Workouts" indexName="IX_Workouts_UserId">
+            <column name="UserId" />
+        </createIndex>
+
+        <createTable tableName="WorkoutExercises">
+            <column name="Id" type="uuid" defaultValueComputed="uuid_generate_v7()">
+                <constraints primaryKey="true" primaryKeyName="PK_WorkoutExercises" nullable="false" />
+            </column>
+            <column name="WorkoutId" type="uuid">
+                <constraints nullable="false" foreignKeyName="FK_WorkoutExercises_Workouts" references="Workouts(Id)" deleteCascade="true" />
+            </column>
+            <column name="ExerciseId" type="uuid">
+                <constraints nullable="false" foreignKeyName="FK_WorkoutExercises_Exercises" references="Exercises(Id)" deleteCascade="true" />
+            </column>
+            <column name="Position" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="TargetSets" type="integer" defaultValueNumeric="3">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <createIndex tableName="WorkoutExercises" indexName="IX_WorkoutExercises_WorkoutId_Position">
+            <column name="WorkoutId" />
+            <column name="Position" />
+        </createIndex>
+
+        <createIndex tableName="WorkoutExercises" indexName="IX_WorkoutExercises_ExerciseId">
+            <column name="ExerciseId" />
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,3 +1,4 @@
+using GymRatService.Common.Filtering;
 using GymRatService.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +11,9 @@ namespace GymRatService.API.Controllers;
 public class ExercisesController(IExercisesService exercisesService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetExercisesAsync(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetExercisesAsync([FromQuery] ExerciseFilter filter, CancellationToken cancellationToken)
     {
-        var response = await exercisesService.GetExercisesAsync(cancellationToken);
+        var response = await exercisesService.GetExercisesAsync(filter, cancellationToken);
 
         return Ok(response);
     }

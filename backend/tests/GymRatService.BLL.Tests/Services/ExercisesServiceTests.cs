@@ -1,5 +1,8 @@
+using FluentValidation;
 using GymRatService.Common.DTOs.Exercises;
 using GymRatService.Common.Errors;
+using GymRatService.Common.Filtering;
+using GymRatService.Service.Validators;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
@@ -15,26 +18,45 @@ public class ExercisesServiceTests
 
     public ExercisesServiceTests()
     {
-        _service = new ExercisesService(_repository);
+        _service = new ExercisesService(_repository, new ExerciseFilterValidator());
     }
 
     [Fact]
-    public async Task GetExercisesAsync_MapsEveryEntityToADto()
+    public async Task GetExercisesAsync_MapsEveryEntityToADtoAndKeepsThePaging()
     {
         // Arrange
         var benchPress = new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest", Equipment = "Barbell" };
         var squat = new ExerciseCard { Name = "Squat", MainMuscle = "Legs", Difficulty = "Intermediate" };
-        _repository.GetAllAsync(Arg.Any<CancellationToken>()).Returns([benchPress, squat]);
+        var filter = new ExerciseFilter { Muscle = "Chest" };
+        _repository.GetAllAsync(filter, Arg.Any<CancellationToken>()).Returns(new PagedResult<ExerciseCard>([benchPress, squat], 1, 20, 2));
 
         // Act
-        var exercises = await _service.GetExercisesAsync(CancellationToken.None);
+        var exercises = await _service.GetExercisesAsync(filter, CancellationToken.None);
 
         // Assert
         Assert.Equal(
         [
             new ExerciseDto(benchPress.Id, "Bench Press", "Chest", null, "Barbell", null, null, null),
             new ExerciseDto(squat.Id, "Squat", "Legs", null, null, "Intermediate", null, null),
-        ], exercises);
+        ], exercises.Items);
+        Assert.Equal(1, exercises.Page);
+        Assert.Equal(20, exercises.PageSize);
+        Assert.Equal(2, exercises.TotalCount);
+    }
+
+    [Fact]
+    public async Task GetExercisesAsync_ThrowsAValidationException_WhenThePageSizeIsTooLarge()
+    {
+        // Arrange
+        var filter = new ExerciseFilter { Pagination = new PaginationFilter { PageSize = 101 } };
+
+        // Act
+        var exception = await Assert.ThrowsAsync<ValidationException>(
+            () => _service.GetExercisesAsync(filter, CancellationToken.None));
+
+        // Assert
+        Assert.Equal("Pagination.PageSize", Assert.Single(exception.Errors).PropertyName);
+        await _repository.DidNotReceiveWithAnyArgs().GetAllAsync(default!, default);
     }
 
     [Fact]
