@@ -23,7 +23,7 @@ type UnitChoice = 'kg' | 'lbs'
 const EMAIL_EXISTS_CODE = 'BLException_AuthService_EmailAlreadyExists'
 const FIELDS: Field[] = ['firstName', 'lastName', 'email', 'password']
 const ACCOUNT_CREATED = 'Your account was created. Log in to continue.'
-const CREATE_FAILED ='We couldn’t create your account. Fix the highlighted fields and try again.'
+const CREATE_FAILED = 'We couldn’t create your account. Fix the highlighted fields and try again.'
 
 const UNIT_OPTIONS: { value: UnitChoice; label: string }[] = [
   { value: 'kg', label: 'Kg (Kilograms)' },

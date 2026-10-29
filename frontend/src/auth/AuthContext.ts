@@ -19,7 +19,7 @@ export class LoginAfterRegisterError extends Error {
   }
 }
 
-export const AuthContext =createContext<AuthApi | null>(null)
+export const AuthContext = createContext<AuthApi | null>(null)
 
 export function useAuth(): AuthApi {
   const context = useContext(AuthContext)
