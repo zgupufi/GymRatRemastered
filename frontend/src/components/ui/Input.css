@@ -89,3 +89,9 @@
   border-color: var(--accent);
   box-shadow: var(--focus-ring);
 }
+
+.field__optional {
+  margin-left: var(--space-2);
+  font-weight: 500;
+  color: var(--text-3);
+}

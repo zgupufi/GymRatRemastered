@@ -22,3 +22,27 @@
   color: var(--text);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
+
+.segmented--wide {
+  display: flex;
+  gap: var(--space-3);
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.segmented--wide .segmented__option {
+  flex: 1;
+  height: 3.25rem;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--hairline-strong);
+}
+
+.segmented--wide .segmented__option--on {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 6px 20px -8px color-mix(in srgb, var(--accent) 30%, transparent);
+}

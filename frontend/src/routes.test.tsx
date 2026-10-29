@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getExercises } from './api/exercises'
+import { AuthProvider } from './auth/AuthProvider'
 import { AppRoutes } from './routes'
 
 vi.mock('./api/exercises')
@@ -10,7 +11,9 @@ vi.mock('./api/exercises')
 function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <AppRoutes />
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </MemoryRouter>,
   )
 }
