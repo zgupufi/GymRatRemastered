@@ -8,5 +8,6 @@
     <include file="changes/002-seed-exercise-catalog.xml" relativeToChangelogFile="true" />
     <include file="changes/003-users.xml" relativeToChangelogFile="true" />
     <include file="changes/004-workouts.xml" relativeToChangelogFile="true" />
+    <include file="changes/005-split-days.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>
