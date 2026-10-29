@@ -18,6 +18,7 @@ import { WorkoutsPage } from './WorkoutsPage'
 
 vi.mock('../../api/workouts')
 vi.mock('../../api/exercises')
+vi.mock('../../hooks/useDebouncedValue', () => ({ useDebouncedValue: <T,>(value: T) => value }))
 
 const bench: Exercise = {
   id: 'e1',
@@ -346,16 +347,17 @@ describe('WorkoutsPage', () => {
     expect(await screen.findByText('You haven’t added any exercises yet.')).toBeInTheDocument()
     const search = screen.getByRole('textbox', { name: 'Search exercises' })
 
-    vi.mocked(searchExercises).mockResolvedValueOnce({ items: [], page: 1, pageSize: 20, totalCount: 0 })
+    vi.mocked(searchExercises).mockResolvedValue({ items: [], page: 1, pageSize: 20, totalCount: 0 })
     await userEvent.type(search, 'zz')
     expect(await screen.findByText('No exercises match “zz”.')).toBeInTheDocument()
 
-    vi.mocked(searchExercises).mockRejectedValueOnce(new Error('boom'))
+    vi.mocked(searchExercises).mockRejectedValue(new Error('boom'))
     await userEvent.type(search, 'x')
     expect(await screen.findByText('Could not load exercises.')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Clear search' }))
     expect(search).toHaveValue('')
+    vi.mocked(searchExercises).mockResolvedValue({ items: [bench, row, squat], page: 1, pageSize: 20, totalCount: 3 })
     await userEvent.type(search, 'sq')
     expect(await screen.findByRole('button', { name: 'Add Squat' })).toBeInTheDocument()
     await userEvent.keyboard('{Escape}')
