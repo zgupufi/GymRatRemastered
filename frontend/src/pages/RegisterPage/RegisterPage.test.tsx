@@ -7,6 +7,7 @@ import { login, register, WeightUnit } from '../../api/auth'
 import { ApiError, setAccessToken } from '../../api/client'
 import { getUserProfile } from '../../api/users'
 import { AuthProvider } from '../../auth/AuthProvider'
+import { LoginPage } from '../LoginPage/LoginPage'
 import { RegisterPage } from './RegisterPage'
 
 vi.mock('../../api/auth', async (importOriginal) => ({
@@ -22,7 +23,7 @@ function renderRegister() {
       <AuthProvider>
         <Routes>
           <Route path="register" element={<RegisterPage />} />
-          <Route path="login" element={<h1>Login page</h1>} />
+          <Route path="login" element={<LoginPage />} />
           <Route index element={<h1>Home page</h1>} />
         </Routes>
       </AuthProvider>
@@ -79,7 +80,7 @@ describe('RegisterPage', () => {
 
     await userEvent.click(screen.getByRole('link', { name: 'Log in' }))
 
-    expect(await screen.findByRole('heading', { name: 'Login page' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
   })
 
   it('does not call the API while required fields are missing', async () => {
@@ -129,6 +130,17 @@ describe('RegisterPage', () => {
 
     await screen.findByRole('heading', { name: 'Home page' })
     expect(register).toHaveBeenCalledWith(expect.objectContaining({ lastName: 'Foica', weightUnit: 1 }))
+  })
+
+  it('sends the user to the login page with a notice when the account exists but login failed', async () => {
+    vi.mocked(login).mockRejectedValueOnce(new ApiError(0, 'Network request failed'))
+    renderRegister()
+
+    await fillRequired()
+    await submit()
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Your account was created. Log in to continue.')
+    expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
   })
 
   it('shows a loading state and locks the form while creating the account', async () => {

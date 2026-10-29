@@ -12,7 +12,14 @@ export interface AuthApi {
   logout: () => void
 }
 
-export const AuthContext = createContext<AuthApi | null>(null)
+export class LoginAfterRegisterError extends Error {
+  constructor() {
+    super('The account was created but logging in failed')
+    this.name = 'LoginAfterRegisterError'
+  }
+}
+
+export const AuthContext =createContext<AuthApi | null>(null)
 
 export function useAuth(): AuthApi {
   const context = useContext(AuthContext)

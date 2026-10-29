@@ -2,7 +2,7 @@
   display: inline-flex;
   padding: 3px;
   border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--fill-raised);
   border: 1px solid var(--hairline);
 }
 
@@ -20,7 +20,7 @@
 .segmented__option--on {
   background: var(--surface-3);
   color: var(--text);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-chip);
 }
 
 .segmented--wide {
@@ -36,7 +36,7 @@
   height: 3.25rem;
   padding: 0 var(--space-3);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--fill-subtle);
   border: 1px solid var(--hairline-strong);
 }
 

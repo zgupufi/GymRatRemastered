@@ -45,6 +45,17 @@ describe('AppRoutes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
   })
 
+  it('mirrors the background glow on the register page only', async () => {
+    const { container, unmount } = renderAt('/register')
+    await screen.findByRole('heading', { level: 1, name: 'Create account' })
+    expect(container.querySelector('.app-shell--mirrored')).not.toBeNull()
+    unmount()
+
+    const login = renderAt('/login')
+    await login.findByRole('heading', { level: 1, name: 'Welcome back' })
+    expect(login.container.querySelector('.app-shell--mirrored')).toBeNull()
+  })
+
   it('scrolls to the top on navigation', async () => {
     renderAt('/exercises')
     await screen.findByRole('heading', { level: 1, name: 'Exercise database' })

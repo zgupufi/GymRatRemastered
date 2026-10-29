@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { ArrowRight, Lock, Mail, User } from 'lucide-react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { WeightUnit } from '../../api/auth'
 import { ApiError } from '../../api/client'
 import { friendlyErrorMessage } from '../../api/errors'
-import { useAuth } from '../../auth/AuthContext'
+import { LoginAfterRegisterError, useAuth } from '../../auth/AuthContext'
 import {
   MINIMUM_PASSWORD_LENGTH,
   validateEmail,
@@ -22,7 +22,8 @@ type UnitChoice = 'kg' | 'lbs'
 
 const EMAIL_EXISTS_CODE = 'BLException_AuthService_EmailAlreadyExists'
 const FIELDS: Field[] = ['firstName', 'lastName', 'email', 'password']
-const CREATE_FAILED = 'We couldn’t create your account. Fix the highlighted fields and try again.'
+const ACCOUNT_CREATED = 'Your account was created. Log in to continue.'
+const CREATE_FAILED ='We couldn’t create your account. Fix the highlighted fields and try again.'
 
 const UNIT_OPTIONS: { value: UnitChoice; label: string }[] = [
   { value: 'kg', label: 'Kg (Kilograms)' },
@@ -39,6 +40,7 @@ function lowerFirst(value: string): string {
 
 export function RegisterPage() {
   const { status, register } = useAuth()
+  const navigate = useNavigate()
   const [values, setValues] = useState<Record<Field, string>>({ firstName: '', lastName: '', email: '', password: '' })
   const [unit, setUnit] = useState<UnitChoice>('kg')
   const [touched, setTouched] = useState<Record<Field, boolean>>({
@@ -89,6 +91,10 @@ export function RegisterPage() {
         weightUnit: unit === 'kg' ? WeightUnit.Kilograms : WeightUnit.Pounds,
       })
     } catch (error) {
+      if (error instanceof LoginAfterRegisterError) {
+        navigate('/login', { replace: true, state: { notice: ACCOUNT_CREATED } })
+        return
+      }
       if (error instanceof ApiError && error.code === EMAIL_EXISTS_CODE) {
         setServerErrors({ email: error.message })
         setFailure(CREATE_FAILED)

@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { LogIn, Lock, Mail } from 'lucide-react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { friendlyErrorMessage } from '../../api/errors'
 import { useAuth } from '../../auth/AuthContext'
 import { validateEmail, validateLoginPassword } from '../../auth/validation'
-import { AuthBanner, AuthLayout } from '../../components/auth/AuthLayout'
+import { AuthBanner, AuthLayout, AuthNotice } from '../../components/auth/AuthLayout'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 
@@ -12,6 +12,8 @@ type Field = 'email' | 'password'
 
 export function LoginPage() {
   const { status, login } = useAuth()
+  const location = useLocation()
+  const notice = (location.state as { notice?: string } | null)?.notice
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [touched, setTouched] = useState<Record<Field, boolean>>({ email: false, password: false })
@@ -58,6 +60,7 @@ export function LoginPage() {
       }
     >
       <form className="auth__form" onSubmit={handleSubmit} noValidate>
+        {notice && !failure ? <AuthNotice message={notice} /> : null}
         {failure ? <AuthBanner message={failure} /> : null}
         <fieldset className="auth__fields" disabled={loading}>
           <Input

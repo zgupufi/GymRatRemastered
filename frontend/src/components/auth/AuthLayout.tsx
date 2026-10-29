@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
-import { ArrowLeft, CircleAlert } from 'lucide-react'
+import { ArrowLeft, CircleAlert, CircleCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { spring } from '../../lib/motion'
 import './AuthLayout.css'
@@ -34,6 +34,15 @@ export function AuthLayout({ accent, wide = false, title, subtitle, footer, chil
         <p className="auth__footer">{footer}</p>
       </motion.section>
     </main>
+  )
+}
+
+export function AuthNotice({ message }: { message: string }) {
+  return (
+    <div className="auth__notice" role="status">
+      <CircleCheck size={18} aria-hidden="true" />
+      <span>{message}</span>
+    </div>
   )
 }
 

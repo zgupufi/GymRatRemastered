@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { login, register, WeightUnit } from '../api/auth'
 import { ApiError, apiClient, setAccessToken } from '../api/client'
 import { getUserProfile, type UserProfile } from '../api/users'
-import { useAuth } from './AuthContext'
+import { LoginAfterRegisterError, useAuth } from './AuthContext'
 import { AuthProvider } from './AuthProvider'
 import { saveSession } from './sessionStorage'
 
@@ -145,6 +145,38 @@ describe('AuthProvider', () => {
     expect(await screen.findByText('status:authenticated')).toBeInTheDocument()
     expect(register).toHaveBeenCalledWith(expect.objectContaining({ email: 'rafael@example.com', weightUnit: 0 }))
     expect(login).toHaveBeenCalledWith({ email: 'rafael@example.com', password: 'secret123' })
+  })
+
+  it('reports a created account whose follow-up login failed', async () => {
+    vi.mocked(login).mockRejectedValue(new ApiError(0, 'Network request failed'))
+    let failure: unknown
+    function Registrar() {
+      const auth = useAuth()
+      return (
+        <button
+          onClick={() =>
+            auth
+              .register({ email: 'rafael@example.com', password: 'secret123', firstName: 'Rafael', lastName: null, weightUnit: WeightUnit.Kilograms })
+              .catch((error: unknown) => {
+                failure = error
+              })
+          }
+        >
+          go
+        </button>
+      )
+    }
+    render(
+      <AuthProvider>
+        <Registrar />
+        <Probe />
+      </AuthProvider>,
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: 'go' }))
+
+    await waitFor(() => expect(failure).toBeInstanceOf(LoginAfterRegisterError))
+    expect(screen.getByText('status:anonymous')).toBeInTheDocument()
   })
 
   it('logs out and forgets the session', async () => {

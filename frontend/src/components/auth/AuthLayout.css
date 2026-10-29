@@ -12,6 +12,11 @@
   --accent: var(--emerald);
 }
 
+.auth .field__control,
+.auth .segmented--wide .segmented__option:not(.segmented__option--on) {
+  background: var(--bg-elevated);
+}
+
 .auth__back {
   position: absolute;
   top: var(--space-6);
@@ -21,14 +26,14 @@
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--fill-raised);
   border: 1px solid var(--hairline-strong);
   color: var(--text);
   transition: background 160ms ease;
 }
 
 .auth__back:active {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--fill-pressed);
   transform: scale(0.95);
 }
 
@@ -119,6 +124,24 @@
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.4;
+}
+
+.auth__notice {
+  display: flex;
+  gap: var(--space-3);
+  padding: 0.875rem;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--emerald) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--emerald) 28%, transparent);
+  color: var(--emerald);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.auth__notice svg {
+  flex: none;
+  margin-top: 1px;
 }
 
 .auth__banner svg {

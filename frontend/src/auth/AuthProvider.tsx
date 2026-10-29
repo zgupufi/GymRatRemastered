@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { login as loginRequest, register as registerRequest, type RegisterRequest } from '../api/auth'
 import { ApiError, setAccessToken } from '../api/client'
 import { getUserProfile, type UserProfile } from '../api/users'
-import { AuthContext, type AuthApi, type AuthStatus } from './AuthContext'
+import { AuthContext, LoginAfterRegisterError, type AuthApi, type AuthStatus } from './AuthContext'
 import { clearSession, loadSession, saveSession } from './sessionStorage'
 
 function restoreToken(): boolean {
@@ -62,7 +62,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(
     async (request: RegisterRequest) => {
       await registerRequest(request)
-      await login(request.email, request.password)
+      try {
+        await login(request.email, request.password)
+      } catch {
+        throw new LoginAfterRegisterError()
+      }
     },
     [login],
   )
