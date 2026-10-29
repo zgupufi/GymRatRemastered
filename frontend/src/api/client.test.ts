@@ -71,4 +71,21 @@ describe('apiClient', () => {
     expect(error).toBeInstanceOf(ApiError)
     expect(error).toMatchObject({ status: 500, message: 'Request failed with status 500' })
   })
+
+  it('sends a PUT request with a JSON body', async () => {
+    const fetchMock = mockFetch(new Response(null, { status: 204 }))
+
+    await apiClient.put('/api/things/1', { name: 'y' })
+
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'PUT', body: '{"name":"y"}' })
+  })
+
+  it('sends a DELETE request', async () => {
+    const fetchMock = mockFetch(new Response(null, { status: 204 }))
+
+    await apiClient.delete('/api/things/1')
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/things/1')
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'DELETE' })
+  })
 })

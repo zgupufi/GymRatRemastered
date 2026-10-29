@@ -46,4 +46,20 @@ describe('ExerciseList', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Could not load exercises.')
   })
+
+  it('shows no error when the request is aborted by unmounting', async () => {
+    let rejectRequest: (reason: unknown) => void = () => {}
+    vi.mocked(getExercises).mockReturnValue(
+      new Promise<Exercise[]>((_, reject) => {
+        rejectRequest = reject
+      }),
+    )
+
+    const { unmount } = render(<ExerciseList />)
+    unmount()
+    rejectRequest(new DOMException('aborted', 'AbortError'))
+    await Promise.resolve()
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
 })

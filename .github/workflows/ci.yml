@@ -30,8 +30,8 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
-      - name: Test
-        run: dotnet test --no-build --configuration Release --verbosity normal
+      - name: Test with 90% coverage gate
+        run: ../scripts/coverage/check.sh backend
 
   frontend:
     name: frontend
@@ -54,5 +54,5 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Test
-        run: npm test
+      - name: Test with 90% coverage gate
+        run: npm run test:coverage

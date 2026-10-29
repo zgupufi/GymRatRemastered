@@ -19,7 +19,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace GymRatService.IntegrationTests;
 
-public sealed class GymRatApiFactory : WebApplicationFactory<Program>
+public sealed class GymRatApiFactory(string environment = "Testing") : WebApplicationFactory<Program>
 {
     private const string SchemeSelector = "TestOrBearer";
 
@@ -29,7 +29,7 @@ public sealed class GymRatApiFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Testing");
+        builder.UseEnvironment(environment);
         builder.UseSetting("JwtSettings:Key", JwtKey);
         builder.UseSetting("PasswordSettings:Pepper", "integration-test-pepper");
 
