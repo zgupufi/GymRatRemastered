@@ -2,6 +2,7 @@ using FluentValidation;
 using GymRatService.Common.DTOs.Exercises;
 using GymRatService.Common.DTOs.Workouts;
 using GymRatService.Common.Errors;
+using GymRatService.Common.Filtering;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
@@ -28,6 +29,7 @@ public class WorkoutsServiceTests
         _service = new WorkoutsService(
             _workouts,
             _exercises,
+            new WorkoutFilterValidator(),
             new CreateWorkoutRequestValidator(),
             new RenameWorkoutRequestValidator(),
             new ReplaceWorkoutExercisesRequestValidator(),
@@ -51,17 +53,33 @@ public class WorkoutsServiceTests
                 new WorkoutExercise { Position = 3, TargetSets = 3, Exercise = chest },
             ],
         };
-        _workouts.GetByUserAsync(_userId, Arg.Any<CancellationToken>()).Returns([workout]);
+        var filter = new WorkoutFilter();
+        _workouts.GetByUserAsync(_userId, filter, Arg.Any<CancellationToken>()).Returns(new PagedResult<Workout>([workout], 1, 20, 1));
 
         // Act
-        var summaries = await _service.GetWorkoutSummariesAsync(_userId, CancellationToken.None);
+        var summaries = await _service.GetWorkoutSummariesAsync(_userId, filter, CancellationToken.None);
 
         // Assert
-        var summary = Assert.Single(summaries);
+        Assert.Equal(1, summaries.TotalCount);
+        var summary = Assert.Single(summaries.Items);
         Assert.Equal(workout.Id, summary.Id);
         Assert.Equal("Push", summary.Name);
         Assert.Equal(3, summary.ExerciseCount);
         Assert.Equal(["Chest", "Legs"], summary.MainMuscles);
+    }
+
+    [Fact]
+    public async Task GetWorkoutSummariesAsync_ThrowsAValidationException_WhenThePageIsZero()
+    {
+        // Arrange
+        var filter = new WorkoutFilter { Pagination = new PaginationFilter { Page = 0 } };
+
+        // Act
+        var exception = await Assert.ThrowsAsync<ValidationException>(
+            () => _service.GetWorkoutSummariesAsync(_userId, filter, CancellationToken.None));
+
+        // Assert
+        Assert.Equal("Pagination.Page", Assert.Single(exception.Errors).PropertyName);
     }
 
     [Fact]

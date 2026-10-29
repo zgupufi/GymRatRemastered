@@ -14,7 +14,9 @@ public class UsersController(IUsersService usersService) : ControllerBase
     [HttpGet("me")]
     public async Task<IActionResult> GetUserProfileAsync(CancellationToken cancellationToken)
     {
-        var response = await usersService.GetProfileAsync(User.GetUserId(), cancellationToken);
+        var userId = User.GetUserId();
+
+        var response = await usersService.GetProfileAsync(userId, cancellationToken);
 
         return Ok(response);
     }
@@ -22,7 +24,9 @@ public class UsersController(IUsersService usersService) : ControllerBase
     [HttpPatch("me/settings")]
     public async Task<IActionResult> UpdateUserSettingsAsync(UpdateUserSettingsRequest request, CancellationToken cancellationToken)
     {
-        await usersService.UpdateSettingsAsync(User.GetUserId(), request, cancellationToken);
+        var userId = User.GetUserId();
+
+        await usersService.UpdateSettingsAsync(userId, request, cancellationToken);
 
         return NoContent();
     }

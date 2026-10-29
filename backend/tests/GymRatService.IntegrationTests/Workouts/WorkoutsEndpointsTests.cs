@@ -5,6 +5,7 @@ using GymRatService.Common.DTOs.Exercises;
 using GymRatService.Common.DTOs.Workouts;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
+using GymRatService.Common.Filtering;
 using GymRatService.Repository.Entities;
 
 namespace GymRatService.IntegrationTests.Workouts;
@@ -95,10 +96,11 @@ public sealed class WorkoutsEndpointsTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var summaries = await response.Content.ReadFromJsonAsync<List<WorkoutSummaryDto>>();
-        Assert.NotNull(summaries);
+        var page = await response.Content.ReadFromJsonAsync<PagedResult<WorkoutSummaryDto>>();
+        Assert.NotNull(page);
+        Assert.Equal(2, page.TotalCount);
         Assert.Collection(
-            summaries,
+            page.Items,
             first =>
             {
                 Assert.Equal(push, first.Id);
@@ -113,6 +115,59 @@ public sealed class WorkoutsEndpointsTests : IDisposable
                 Assert.Equal(1, second.ExerciseCount);
                 Assert.Equal(["Legs"], second.MainMuscles);
             });
+    }
+
+    [Theory]
+    [InlineData("", new[] { "Push", "Pull", "Legs", "Core" }, 4)]
+    [InlineData("?sort.direction=descending", new[] { "Core", "Legs", "Pull", "Push" }, 4)]
+    [InlineData("?sort.by=name", new[] { "Core", "Legs", "Pull", "Push" }, 4)]
+    [InlineData("?sort.by=name&sort.direction=descending", new[] { "Push", "Pull", "Legs", "Core" }, 4)]
+    [InlineData("?search.term=PU", new[] { "Push", "Pull" }, 2)]
+    [InlineData("?search.term=nothing", new string[0], 0)]
+    [InlineData("?sort.by=name&pagination.pageSize=2", new[] { "Core", "Legs" }, 4)]
+    [InlineData("?sort.by=name&pagination.page=2&pagination.pageSize=2", new[] { "Pull", "Push" }, 4)]
+    [InlineData("?pagination.page=3&pagination.pageSize=2", new string[0], 4)]
+    public async Task GetWorkoutSummaries_FiltersSortsAndPagesTheCallersWorkouts(string query, string[] expectedNames, int expectedTotal)
+    {
+        // Arrange
+        await _factory.SeedAsync(_ => { });
+        var client = await CreateClientAsync("ana@example.com");
+        var other = await CreateClientAsync("other@example.com");
+        foreach (var name in new[] { "Push", "Pull", "Legs", "Core" })
+        {
+            await CreateWorkoutAsync(client, name);
+        }
+
+        await CreateWorkoutAsync(other, "Pump");
+
+        // Act
+        var response = await client.GetAsync($"/api/workouts{query}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var page = await response.Content.ReadFromJsonAsync<PagedResult<WorkoutSummaryDto>>();
+        Assert.Equal(expectedNames, page!.Items.Select(summary => summary.Name));
+        Assert.Equal(expectedTotal, page.TotalCount);
+    }
+
+    [Theory]
+    [InlineData("?pagination.page=0", "Pagination.Page")]
+    [InlineData("?pagination.pageSize=0", "Pagination.PageSize")]
+    [InlineData("?search.term=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "Search.Term")]
+    public async Task GetWorkoutSummaries_ReturnsBadRequestWithValidationErrors_WhenTheFilterIsNotValid(string query, string expectedProperty)
+    {
+        // Arrange
+        await _factory.SeedAsync(_ => { });
+        var client = await CreateClientAsync("ana@example.com");
+
+        // Act
+        var response = await client.GetAsync($"/api/workouts{query}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(ErrorCodes.InvalidRequest, error?.Code);
+        Assert.Equal(expectedProperty, Assert.Single(error!.Errors!).Property);
     }
 
     [Fact]
@@ -362,8 +417,8 @@ public sealed class WorkoutsEndpointsTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        var summaries = await client.GetFromJsonAsync<List<WorkoutSummaryDto>>("/api/workouts");
-        Assert.Equal([keep], summaries!.Select(summary => summary.Id));
+        var page = await client.GetFromJsonAsync<PagedResult<WorkoutSummaryDto>>("/api/workouts");
+        Assert.Equal([keep], page!.Items.Select(summary => summary.Id));
         var read = await client.GetAsync($"/api/workouts/{id}");
         Assert.Equal(HttpStatusCode.BadRequest, read.StatusCode);
     }

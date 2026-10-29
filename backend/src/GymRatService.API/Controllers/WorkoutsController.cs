@@ -1,5 +1,6 @@
 using GymRatService.API.Extensions;
 using GymRatService.Common.DTOs.Workouts;
+using GymRatService.Common.Filtering;
 using GymRatService.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +13,11 @@ namespace GymRatService.API.Controllers;
 public class WorkoutsController(IWorkoutsService workoutsService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetWorkoutSummariesAsync(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetWorkoutSummariesAsync([FromQuery] WorkoutFilter filter, CancellationToken cancellationToken)
     {
-        var response = await workoutsService.GetWorkoutSummariesAsync(User.GetUserId(), cancellationToken);
+        var userId = User.GetUserId();
+
+        var response = await workoutsService.GetWorkoutSummariesAsync(userId, filter, cancellationToken);
 
         return Ok(response);
     }
@@ -22,7 +25,9 @@ public class WorkoutsController(IWorkoutsService workoutsService) : ControllerBa
     [HttpGet("{id}")]
     public async Task<IActionResult> GetWorkoutAsync(Guid id, CancellationToken cancellationToken)
     {
-        var response = await workoutsService.GetWorkoutAsync(User.GetUserId(), id, cancellationToken);
+        var userId = User.GetUserId();
+
+        var response = await workoutsService.GetWorkoutAsync(userId, id, cancellationToken);
 
         return Ok(response);
     }
@@ -30,7 +35,9 @@ public class WorkoutsController(IWorkoutsService workoutsService) : ControllerBa
     [HttpPost]
     public async Task<IActionResult> CreateWorkoutAsync(CreateWorkoutRequest request, CancellationToken cancellationToken)
     {
-        var response = await workoutsService.CreateWorkoutAsync(User.GetUserId(), request, cancellationToken);
+        var userId = User.GetUserId();
+
+        var response = await workoutsService.CreateWorkoutAsync(userId, request, cancellationToken);
 
         return Created($"{Request.Path}/{response.Id}", response);
     }
@@ -38,7 +45,9 @@ public class WorkoutsController(IWorkoutsService workoutsService) : ControllerBa
     [HttpPatch("{id}")]
     public async Task<IActionResult> RenameWorkoutAsync(Guid id, RenameWorkoutRequest request, CancellationToken cancellationToken)
     {
-        await workoutsService.RenameWorkoutAsync(User.GetUserId(), id, request, cancellationToken);
+        var userId = User.GetUserId();
+
+        await workoutsService.RenameWorkoutAsync(userId, id, request, cancellationToken);
 
         return NoContent();
     }
@@ -46,7 +55,9 @@ public class WorkoutsController(IWorkoutsService workoutsService) : ControllerBa
     [HttpPut("{id}/exercises")]
     public async Task<IActionResult> ReplaceWorkoutExercisesAsync(Guid id, ReplaceWorkoutExercisesRequest request, CancellationToken cancellationToken)
     {
-        await workoutsService.ReplaceWorkoutExercisesAsync(User.GetUserId(), id, request, cancellationToken);
+        var userId = User.GetUserId();
+
+        await workoutsService.ReplaceWorkoutExercisesAsync(userId, id, request, cancellationToken);
 
         return NoContent();
     }
@@ -54,7 +65,9 @@ public class WorkoutsController(IWorkoutsService workoutsService) : ControllerBa
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteWorkoutAsync(Guid id, CancellationToken cancellationToken)
     {
-        await workoutsService.DeleteWorkoutAsync(User.GetUserId(), id, cancellationToken);
+        var userId = User.GetUserId();
+
+        await workoutsService.DeleteWorkoutAsync(userId, id, cancellationToken);
 
         return NoContent();
     }

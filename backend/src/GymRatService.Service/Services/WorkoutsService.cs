@@ -1,6 +1,7 @@
 using FluentValidation;
 using GymRatService.Common.DTOs.Workouts;
 using GymRatService.Common.Errors;
+using GymRatService.Common.Filtering;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
@@ -12,16 +13,19 @@ namespace GymRatService.Service.Services;
 public class WorkoutsService(
     IWorkoutsRepository workoutsRepository,
     IExerciseCardsRepository exerciseCardsRepository,
+    IValidator<WorkoutFilter> filterValidator,
     IValidator<CreateWorkoutRequest> createValidator,
     IValidator<RenameWorkoutRequest> renameValidator,
     IValidator<ReplaceWorkoutExercisesRequest> replaceExercisesValidator,
     TimeProvider timeProvider) : IWorkoutsService
 {
-    public async Task<IReadOnlyList<WorkoutSummaryDto>> GetWorkoutSummariesAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<PagedResult<WorkoutSummaryDto>> GetWorkoutSummariesAsync(Guid userId, WorkoutFilter filter, CancellationToken cancellationToken)
     {
-        var workouts = await workoutsRepository.GetByUserAsync(userId, cancellationToken);
+        await filterValidator.ValidateAndThrowAsync(filter, cancellationToken);
 
-        return workouts.Select(workout => workout.ToSummaryDto()).ToList();
+        var workouts = await workoutsRepository.GetByUserAsync(userId, filter, cancellationToken);
+
+        return workouts.Map(workout => workout.ToSummaryDto());
     }
 
     public async Task<WorkoutDto> GetWorkoutAsync(Guid userId, Guid id, CancellationToken cancellationToken)

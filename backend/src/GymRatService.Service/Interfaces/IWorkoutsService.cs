@@ -1,10 +1,11 @@
 using GymRatService.Common.DTOs.Workouts;
+using GymRatService.Common.Filtering;
 
 namespace GymRatService.Service.Interfaces;
 
 public interface IWorkoutsService
 {
-    Task<IReadOnlyList<WorkoutSummaryDto>> GetWorkoutSummariesAsync(Guid userId, CancellationToken cancellationToken);
+    Task<PagedResult<WorkoutSummaryDto>> GetWorkoutSummariesAsync(Guid userId, WorkoutFilter filter, CancellationToken cancellationToken);
 
     Task<WorkoutDto> GetWorkoutAsync(Guid userId, Guid id, CancellationToken cancellationToken);
 

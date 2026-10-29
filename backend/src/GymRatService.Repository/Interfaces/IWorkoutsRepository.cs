@@ -1,10 +1,11 @@
+using GymRatService.Common.Filtering;
 using GymRatService.Repository.Entities;
 
 namespace GymRatService.Repository.Interfaces;
 
 public interface IWorkoutsRepository
 {
-    Task<IReadOnlyList<Workout>> GetByUserAsync(Guid userId, CancellationToken cancellationToken);
+    Task<PagedResult<Workout>> GetByUserAsync(Guid userId, WorkoutFilter filter, CancellationToken cancellationToken);
 
     Task<Workout?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 

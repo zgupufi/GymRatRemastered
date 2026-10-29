@@ -1,4 +1,7 @@
+using GymRatService.Common.Enums;
+using GymRatService.Common.Filtering;
 using GymRatService.Repository.Entities;
+using GymRatService.Repository.Extensions;
 using GymRatService.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,19 +9,32 @@ namespace GymRatService.Repository.Repositories;
 
 public class WorkoutsRepository(GymRatDbContext context) : IWorkoutsRepository
 {
-    public async Task<IReadOnlyList<Workout>> GetByUserAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<PagedResult<Workout>> GetByUserAsync(Guid userId, WorkoutFilter filter, CancellationToken cancellationToken)
     {
-        var workouts = await context.Workouts
+        var query = context.Workouts
             .AsNoTracking()
-            .Where(workout => workout.UserId == userId)
+            .Where(workout => workout.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(filter.Search.Term))
+        {
+            var term = filter.Search.Term.Trim().ToLower();
+
+            query = query.Where(workout => workout.Name.ToLower().Contains(term));
+        }
+
+        var direction = filter.Sort.Direction;
+
+        var sorted = (filter.Sort.By ?? WorkoutSortField.CreatedAt) switch
+        {
+            WorkoutSortField.Name => query.OrderByDirection(workout => workout.Name, direction),
+            _ => query.OrderByDirection(workout => workout.Id, direction),
+        };
+
+        return await sorted
+            .ThenByDirection(workout => workout.Id, direction)
             .Include(workout => workout.Exercises)
             .ThenInclude(entry => entry.Exercise)
-            .ToListAsync(cancellationToken);
-
-        return workouts
-            .OrderBy(workout => workout.CreatedAt)
-            .ThenBy(workout => workout.Id)
-            .ToList();
+            .ToPagedResultAsync(filter.Pagination, cancellationToken);
     }
 
     public async Task<Workout?> GetByIdAsync(Guid id, CancellationToken cancellationToken)

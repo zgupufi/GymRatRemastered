@@ -1,4 +1,7 @@
+using GymRatService.Common.Enums;
+using GymRatService.Common.Filtering;
 using GymRatService.Repository.Entities;
+using GymRatService.Repository.Extensions;
 using GymRatService.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,13 +9,13 @@ namespace GymRatService.Repository.Repositories;
 
 public class ExerciseCardsRepository(GymRatDbContext context) : IExerciseCardsRepository
 {
-    public async Task<IReadOnlyList<ExerciseCard>> GetAllAsync(string? search, string? muscle, CancellationToken cancellationToken)
+    public async Task<PagedResult<ExerciseCard>> GetAllAsync(ExerciseFilter filter, CancellationToken cancellationToken)
     {
         var query = context.Exercises.AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(search))
+        if (!string.IsNullOrWhiteSpace(filter.Search.Term))
         {
-            var term = search.Trim().ToLower();
+            var term = filter.Search.Term.Trim().ToLower();
 
             query = query.Where(exercise =>
                 exercise.Name.ToLower().Contains(term)
@@ -20,16 +23,25 @@ public class ExerciseCardsRepository(GymRatDbContext context) : IExerciseCardsRe
                 || (exercise.SubMuscles != null && exercise.SubMuscles.ToLower().Contains(term)));
         }
 
-        if (!string.IsNullOrWhiteSpace(muscle))
+        if (!string.IsNullOrWhiteSpace(filter.Muscle))
         {
-            var mainMuscle = muscle.Trim().ToLower();
+            var mainMuscle = filter.Muscle.Trim().ToLower();
 
             query = query.Where(exercise => exercise.MainMuscle.ToLower() == mainMuscle);
         }
 
-        return await query
-            .OrderBy(exercise => exercise.Name)
-            .ToListAsync(cancellationToken);
+        var direction = filter.Sort.Direction;
+
+        var sorted = (filter.Sort.By ?? ExerciseSortField.Name) switch
+        {
+            ExerciseSortField.MainMuscle => query.OrderByDirection(exercise => exercise.MainMuscle, direction),
+            ExerciseSortField.Difficulty => query.OrderByDirection(exercise => exercise.Difficulty, direction),
+            _ => query.OrderByDirection(exercise => exercise.Name, direction),
+        };
+
+        return await sorted
+            .ThenBy(exercise => exercise.Name)
+            .ToPagedResultAsync(filter.Pagination, cancellationToken);
     }
 
     public async Task<ExerciseCard?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
