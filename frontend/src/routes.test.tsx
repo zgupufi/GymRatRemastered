@@ -26,7 +26,7 @@ describe('AppRoutes', () => {
   })
 
   it.each([
-    ['/', 'GymRat'],
+    ['/', 'Log workouts. Get stronger. Stay motivated.'],
     ['/login', 'Welcome back'],
     ['/register', 'Create account'],
     ['/exercises', 'Exercise database'],
@@ -54,6 +54,6 @@ describe('AppRoutes', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Back' }))
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'GymRat' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Log workouts. Get stronger. Stay motivated.' })).toBeInTheDocument()
   })
 })
