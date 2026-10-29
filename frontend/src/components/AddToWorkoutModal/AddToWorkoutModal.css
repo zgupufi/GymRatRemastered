@@ -1,0 +1,47 @@
+.add-to-workout__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.add-to-workout__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  text-align: left;
+}
+
+.add-to-workout__row:disabled:not(.add-to-workout__row--added) {
+  opacity: 0.5;
+}
+
+.add-to-workout__row--added {
+  border-color: var(--emerald);
+  background: color-mix(in srgb, var(--emerald) 14%, var(--surface));
+}
+
+.add-to-workout__meta {
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+.add-to-workout__added {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--emerald);
+}
+
+.add-to-workout__empty {
+  color: var(--text-2);
+}

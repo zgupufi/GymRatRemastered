@@ -1,7 +1,8 @@
 import { Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
 import { PlaceholderPage } from './pages/PlaceholderPage'
-import { ExercisesPage } from './pages/ExercisesPage'
+import { ExercisesPage } from './pages/ExercisesPage/ExercisesPage'
+import { ExerciseDetailsPage } from './pages/ExerciseDetailsPage/ExerciseDetailsPage'
 import { LandingPage } from './pages/LandingPage/LandingPage'
 import { LoginPage } from './pages/LoginPage/LoginPage'
 import { RegisterPage } from './pages/RegisterPage/RegisterPage'
@@ -14,10 +15,7 @@ export function AppRoutes() {
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="exercises" element={<ExercisesPage />} />
-        <Route
-          path="exercises/:id"
-          element={<PlaceholderPage title="Exercise details" description="Form, muscles and equipment." />}
-        />
+        <Route path="exercises/:id" element={<ExerciseDetailsPage />} />
         <Route path="workouts" element={<PlaceholderPage title="My workouts" description="Create, edit and organize your routines." />} />
         <Route path="split" element={<PlaceholderPage title="My split" description="Assign your workouts to each day of the week." />} />
         <Route

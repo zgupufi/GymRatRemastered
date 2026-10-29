@@ -1,9 +1,10 @@
-import { BackButton } from '../components/ui/BackButton'
-import { ExerciseList } from '../components/ExerciseList/ExerciseList'
+import { BackButton } from '../../components/ui/BackButton'
+import { ExerciseList } from '../../components/ExerciseList/ExerciseList'
+import './ExercisesPage.css'
 
 export function ExercisesPage() {
   return (
-    <main className="page">
+    <main className="page exercises-page">
       <BackButton />
       <header className="page__header">
         <h1>Exercise database</h1>
