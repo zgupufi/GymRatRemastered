@@ -10,14 +10,12 @@
   margin: var(--space-8) 0 var(--space-6);
 }
 
-.exercise-details__kicker {
-  margin-bottom: var(--space-1);
-  font-size: 0.8125rem;
-  color: var(--text-3);
+.exercise-details__header .difficulty-chip {
+  margin-bottom: var(--space-2);
 }
 
 .exercise-details__header h1 {
-  background: linear-gradient(180deg, #fff, var(--text-3));
+  background: linear-gradient(180deg, var(--text), var(--text-3));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

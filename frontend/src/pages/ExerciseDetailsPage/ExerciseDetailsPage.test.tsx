@@ -51,7 +51,7 @@ describe('ExerciseDetailsPage', () => {
 
     expect(screen.getByText('Loading exercise…')).toBeInTheDocument()
     expect(await screen.findByRole('heading', { level: 1, name: 'Bench Press' })).toBeInTheDocument()
-    expect(screen.getByText('Intermediate · Chest')).toBeInTheDocument()
+    expect(screen.getByText('Intermediate')).toHaveClass('difficulty-chip--intermediate')
     expect(screen.getByTitle('Bench Press demo')).toHaveAttribute('src', 'https://www.youtube.com/embed/abc123')
     expect(screen.getByText('Triceps')).toBeInTheDocument()
     expect(screen.getByText('Barbell')).toBeInTheDocument()
@@ -67,7 +67,7 @@ describe('ExerciseDetailsPage', () => {
     expect(await screen.findByText('Demo video unavailable')).toBeInTheDocument()
     expect(screen.getByText('Bodyweight')).toBeInTheDocument()
     expect(screen.getByText('—')).toBeInTheDocument()
-    expect(screen.getByText('Chest', { selector: '.exercise-details__kicker' })).toBeInTheDocument()
+    expect(document.querySelector('.difficulty-chip')).toBeNull()
   })
 
   it('shows a not-found message', async () => {
@@ -89,7 +89,7 @@ describe('ExerciseDetailsPage', () => {
 
   it('opens the workout chooser', async () => {
     vi.mocked(getExercise).mockResolvedValue(benchPress)
-    vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [], page: 1, pageSize: 100, totalCount: 0 })
+    vi.mocked(getWorkoutSummaries).mockResolvedValue([])
 
     renderPage()
     await userEvent.click(await screen.findByRole('button', { name: '+ Add to workout' }))

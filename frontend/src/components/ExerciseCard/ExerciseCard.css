@@ -46,7 +46,7 @@
   height: 2.25rem;
   margin-top: auto;
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--fill-raised);
   border: 1px solid var(--hairline-strong);
   color: var(--text);
   font-size: 0.875rem;

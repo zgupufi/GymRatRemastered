@@ -25,8 +25,20 @@ export interface WorkoutExerciseRequest {
   targetSets: number
 }
 
-export function getWorkoutSummaries(signal?: AbortSignal): Promise<PagedResult<WorkoutSummary>> {
-  return apiClient.get<PagedResult<WorkoutSummary>>('/api/workouts?pagination.pageSize=100', signal)
+const SUMMARY_PAGE_SIZE = 100
+
+export async function getWorkoutSummaries(signal?: AbortSignal): Promise<WorkoutSummary[]> {
+  const summaries: WorkoutSummary[] = []
+  for (let page = 1; ; page++) {
+    const result = await apiClient.get<PagedResult<WorkoutSummary>>(
+      `/api/workouts?pagination.page=${page}&pagination.pageSize=${SUMMARY_PAGE_SIZE}`,
+      signal,
+    )
+    summaries.push(...result.items)
+    if (result.items.length === 0 || summaries.length >= result.totalCount) {
+      return summaries
+    }
+  }
 }
 
 export function getWorkout(id: string, signal?: AbortSignal): Promise<Workout> {

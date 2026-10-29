@@ -44,12 +44,7 @@ describe('AddToWorkoutModal', () => {
   })
 
   it('adds the exercise to the chosen workout and closes after a moment', async () => {
-    vi.mocked(getWorkoutSummaries).mockResolvedValue({
-      items: [summary, { ...summary, id: 'w2', name: 'Legs', exerciseCount: 0 }],
-      page: 1,
-      pageSize: 100,
-      totalCount: 2,
-    })
+    vi.mocked(getWorkoutSummaries).mockResolvedValue([summary, { ...summary, id: 'w2', name: 'Legs', exerciseCount: 0 }])
     vi.mocked(getWorkout).mockResolvedValue(workoutWith('e1'))
     vi.mocked(replaceWorkoutExercises).mockResolvedValue()
     const onClose = renderModal()
@@ -72,7 +67,7 @@ describe('AddToWorkoutModal', () => {
   })
 
   it('does not add the exercise twice', async () => {
-    vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [summary], page: 1, pageSize: 100, totalCount: 1 })
+    vi.mocked(getWorkoutSummaries).mockResolvedValue([summary])
     vi.mocked(getWorkout).mockResolvedValue(workoutWith('e2'))
     renderModal()
 
@@ -83,7 +78,7 @@ describe('AddToWorkoutModal', () => {
   })
 
   it('shows a toast when adding fails', async () => {
-    vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [summary], page: 1, pageSize: 100, totalCount: 1 })
+    vi.mocked(getWorkoutSummaries).mockResolvedValue([summary])
     vi.mocked(getWorkout).mockRejectedValue(new ApiError(500, 'boom'))
     renderModal()
 

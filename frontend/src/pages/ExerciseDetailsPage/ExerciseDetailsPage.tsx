@@ -6,6 +6,7 @@ import { getExercise, type Exercise } from '../../api/exercises'
 import { AddToWorkoutModal } from '../../components/AddToWorkoutModal/AddToWorkoutModal'
 import { BackButton } from '../../components/ui/BackButton'
 import { Button } from '../../components/ui/Button'
+import { DifficultyChip } from '../../components/ui/DifficultyChip'
 import { Spinner } from '../../components/ui/Spinner'
 import { howToPerform } from '../../lib/howToPerform'
 import { youtubeEmbedUrl } from '../../lib/youtube'
@@ -67,14 +68,13 @@ function ExerciseDetails({ id }: { id: string }) {
   const { exercise } = state
   const embedUrl = youtubeEmbedUrl(exercise.youtubeLink)
   const steps = howToPerform(exercise.equipment, exercise.mainMuscle, exercise.description)
-  const kicker = [exercise.difficulty, exercise.mainMuscle].filter(Boolean).join(' · ')
 
   return (
     <main className="page exercise-details">
       <BackButton fallback="/exercises" />
       <header className="exercise-details__header">
         <div>
-          <p className="exercise-details__kicker">{kicker}</p>
+          <DifficultyChip difficulty={exercise.difficulty} />
           <h1>{exercise.name}</h1>
         </div>
         <Button size="lg" onClick={() => setChooserOpen(true)}>

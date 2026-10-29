@@ -30,7 +30,7 @@ function WorkoutChoices({ exerciseId, onClose }: Omit<AddToWorkoutModalProps, 'o
     const request = new AbortController()
     getWorkoutSummaries(request.signal)
       .then((result) => {
-        setWorkouts(result.items)
+        setWorkouts(result)
         setStatus('ready')
       })
       .catch(() => {

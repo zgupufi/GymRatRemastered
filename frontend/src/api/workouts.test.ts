@@ -6,13 +6,27 @@ describe('workouts api', () => {
     vi.unstubAllGlobals()
   })
 
-  it('requests the workout summaries with a large page', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ items: [], page: 1, pageSize: 100, totalCount: 0 }))
+  it('requests every page of workout summaries', async () => {
+    const summary = (id: string) => ({ id, name: id, exerciseCount: 0, mainMuscles: [] })
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json({ items: [summary('a')], page: 1, pageSize: 100, totalCount: 2 }))
+      .mockResolvedValueOnce(Response.json({ items: [summary('b')], page: 2, pageSize: 100, totalCount: 2 }))
     vi.stubGlobal('fetch', fetchMock)
 
-    await getWorkoutSummaries()
+    const result = await getWorkoutSummaries()
 
-    expect(fetchMock.mock.calls[0][0]).toBe('/api/workouts?pagination.pageSize=100')
+    expect(result.map((item) => item.id)).toEqual(['a', 'b'])
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/workouts?pagination.page=1&pagination.pageSize=100')
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/workouts?pagination.page=2&pagination.pageSize=100')
+  })
+
+  it('stops when a page comes back empty', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ items: [], page: 1, pageSize: 100, totalCount: 5 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    expect(await getWorkoutSummaries()).toEqual([])
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it('requests a workout by id', async () => {
