@@ -96,6 +96,32 @@ public sealed partial class LiquibaseChangelogTests
     }
 
     [Fact]
+    public void WorkoutSessionsSchema_DefinesEveryColumnOfTheSessionEntities()
+    {
+        // Arrange
+        var schema = File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "006-workout-sessions.xml"));
+        var options = new DbContextOptionsBuilder<GymRatDbContext>()
+            .UseNpgsql("Host=localhost;Database=gymrat_model_check")
+            .Options;
+        using var context = new GymRatDbContext(options);
+        var session = context.Model.FindEntityType(typeof(WorkoutSession))!;
+        var set = context.Model.FindEntityType(typeof(SessionSet))!;
+
+        // Act
+        var sessionColumns = session.GetProperties().Select(property => property.GetColumnName()).ToList();
+        var setColumns = set.GetProperties().Select(property => property.GetColumnName()).ToList();
+
+        // Assert
+        Assert.Equal("WorkoutSessions", session.GetTableName());
+        Assert.Equal("SessionSets", set.GetTableName());
+        Assert.Equal(6, sessionColumns.Count);
+        Assert.Equal(6, setColumns.Count);
+        Assert.All(sessionColumns.Concat(setColumns), column => Assert.Contains($"<column name=\"{column}\"", schema));
+        Assert.Contains("<column name=\"Id\" type=\"uuid\" defaultValueComputed=\"uuid_generate_v7()\">", schema);
+        Assert.Contains("onDelete=\"SET NULL\"", schema);
+    }
+
+    [Fact]
     public void SeedChangelog_HasEveryExerciseWithUniqueGuidV7IdsAndNames()
     {
         // Arrange

@@ -16,5 +16,9 @@ public static class ErrorCodes
 
     public const string WorkoutExerciseNotFound = "BLException_WorkoutsService_ExerciseNotFound";
 
+    public const string SessionNotFound = "BLException_SessionsService_SessionNotFound";
+
+    public const string SessionAlreadyFinished = "BLException_SessionsService_SessionAlreadyFinished";
+
     public const string InvalidRequest = "BLException_Validation_InvalidRequest";
 }

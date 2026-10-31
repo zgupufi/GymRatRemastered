@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="006-workout-sessions" author="gymrat">
+        <createTable tableName="WorkoutSessions">
+            <column name="Id" type="uuid" defaultValueComputed="uuid_generate_v7()">
+                <constraints primaryKey="true" primaryKeyName="PK_WorkoutSessions" nullable="false" />
+            </column>
+            <column name="UserId" type="uuid">
+                <constraints nullable="false" foreignKeyName="FK_WorkoutSessions_Users" references="Users(Id)" deleteCascade="true" />
+            </column>
+            <column name="WorkoutId" type="uuid" />
+            <column name="StartedAt" type="timestamp with time zone">
+                <constraints nullable="false" />
+            </column>
+            <column name="FinishedAt" type="timestamp with time zone" />
+            <column name="DurationSeconds" type="integer" />
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="WorkoutSessions"
+            baseColumnNames="WorkoutId"
+            constraintName="FK_WorkoutSessions_Workouts"
+            referencedTableName="Workouts"
+            referencedColumnNames="Id"
+            onDelete="SET NULL" />
+
+        <createIndex tableName="WorkoutSessions" indexName="IX_WorkoutSessions_UserId_WorkoutId">
+            <column name="UserId" />
+            <column name="WorkoutId" />
+        </createIndex>
+
+        <createTable tableName="SessionSets">
+            <column name="Id" type="uuid" defaultValueComputed="uuid_generate_v7()">
+                <constraints primaryKey="true" primaryKeyName="PK_SessionSets" nullable="false" />
+            </column>
+            <column name="SessionId" type="uuid">
+                <constraints nullable="false" foreignKeyName="FK_SessionSets_WorkoutSessions" references="WorkoutSessions(Id)" deleteCascade="true" />
+            </column>
+            <column name="ExerciseId" type="uuid">
+                <constraints nullable="false" foreignKeyName="FK_SessionSets_Exercises" references="Exercises(Id)" deleteCascade="true" />
+            </column>
+            <column name="SetNumber" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="Reps" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="WeightKg" type="numeric(7,2)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <createIndex tableName="SessionSets" indexName="IX_SessionSets_SessionId_ExerciseId_SetNumber">
+            <column name="SessionId" />
+            <column name="ExerciseId" />
+            <column name="SetNumber" />
+        </createIndex>
+
+        <createIndex tableName="SessionSets" indexName="IX_SessionSets_ExerciseId">
+            <column name="ExerciseId" />
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
