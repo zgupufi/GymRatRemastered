@@ -38,7 +38,7 @@ describe('AppRoutes', () => {
     vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [], page: 1, pageSize: 10, totalCount: 0 })
     vi.mocked(getSplit).mockResolvedValue([])
     window.scrollTo = vi.fn()
-    window.HTMLElement.prototype.scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = vi.fn()
   })
 
   afterEach(() => {
@@ -53,7 +53,7 @@ describe('AppRoutes', () => {
     ['/exercises/0199e0a1-7c3e-7b5a-9d2f-3f6f0c1a2b3c', 'Bench Press'],
     ['/workouts', 'My workouts'],
     ['/split', 'My split'],
-    ['/workout-execution', 'Workout'],
+    ['/workout-execution', 'Rest day'],
     ['/progress', 'Progression'],
     ['/nowhere', 'Page not found'],
   ])('renders %s', async (path, heading) => {
