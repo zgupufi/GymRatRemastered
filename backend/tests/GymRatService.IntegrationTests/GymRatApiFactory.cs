@@ -13,6 +13,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -29,16 +30,31 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
     public AdvanceableTimeProvider Clock { get; } = new();
 
+    public IChatClient? ChatClient { get; set; }
+
+    public Dictionary<string, string> Settings { get; } = [];
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment(environment);
         builder.UseSetting("JwtSettings:Key", JwtKey);
         builder.UseSetting("PasswordSettings:Pepper", "integration-test-pepper");
 
+        foreach (var (key, value) in Settings)
+        {
+            builder.UseSetting(key, value);
+        }
+
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<GymRatDbContext>>();
             services.RemoveAll<IDbContextOptionsConfiguration<GymRatDbContext>>();
+
+            if (ChatClient is not null)
+            {
+                services.RemoveAll<IChatClient>();
+                services.AddSingleton(ChatClient);
+            }
 
             services.RemoveAll<TimeProvider>();
             services.AddSingleton<TimeProvider>(Clock);

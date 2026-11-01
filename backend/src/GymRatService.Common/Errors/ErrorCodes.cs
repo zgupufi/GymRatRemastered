@@ -20,5 +20,11 @@ public static class ErrorCodes
 
     public const string SessionAlreadyFinished = "BLException_SessionsService_SessionAlreadyFinished";
 
+    public const string ChatRateLimited = "BLException_ChatService_RateLimited";
+
+    public const string ChatTokenBudgetExceeded = "BLException_ChatService_TokenBudgetExceeded";
+
+    public const string ChatProviderUnavailable = "BLException_ChatService_ProviderUnavailable";
+
     public const string InvalidRequest = "BLException_Validation_InvalidRequest";
 }
