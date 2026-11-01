@@ -1,6 +1,6 @@
 .split-page {
   --accent: var(--purple);
-  --on-accent: #ffffff;
+  --on-accent: var(--text);
   max-width: 72rem;
 }
 
