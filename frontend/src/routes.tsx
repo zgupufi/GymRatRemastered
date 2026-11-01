@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
 import { PlaceholderPage } from './pages/PlaceholderPage'
+import { ProgressionPage } from './pages/ProgressionPage/ProgressionPage'
 import { WorkoutsPage } from './pages/WorkoutsPage/WorkoutsPage'
 import { ExercisesPage } from './pages/ExercisesPage'
 import { LandingPage } from './pages/LandingPage/LandingPage'
@@ -25,7 +26,7 @@ export function AppRoutes() {
           path="workout-execution"
           element={<PlaceholderPage title="Workout" description="Log your sets and keep the rest timer going." />}
         />
-        <Route path="progress" element={<PlaceholderPage title="Progression" description="Track your evolution and break plateaus." />} />
+        <Route path="progress" element={<ProgressionPage />} />
         <Route path="*" element={<PlaceholderPage title="Page not found" description="That page does not exist." />} />
       </Route>
     </Routes>

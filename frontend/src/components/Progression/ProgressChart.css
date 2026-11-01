@@ -1,0 +1,123 @@
+.progress-chart {
+  position: relative;
+}
+
+.progress-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  touch-action: pan-y;
+}
+
+.progress-chart__grid {
+  stroke: var(--hairline);
+  stroke-dasharray: 3 5;
+}
+
+.progress-chart__tick {
+  fill: var(--text-3);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-chart__line {
+  fill: none;
+  stroke: var(--emerald);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.progress-chart__cursor {
+  stroke: var(--hairline-strong);
+}
+
+.progress-chart__halo {
+  fill: var(--glow-emerald-strong);
+}
+
+.progress-chart__dot {
+  fill: var(--emerald);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.progress-chart__focus {
+  fill: transparent;
+  outline: none;
+}
+
+.progress-chart__focus:focus-visible {
+  stroke: var(--emerald);
+  stroke-width: 2;
+}
+
+.progress-chart__surface {
+  fill: transparent;
+  cursor: crosshair;
+}
+
+.progress-chart__tooltip {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: 11.5rem;
+  padding: var(--space-3) var(--space-4);
+  gap: 2px;
+  pointer-events: none;
+  background: var(--material-strong);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-float);
+  opacity: 0.94;
+}
+
+.progress-chart__tooltip strong {
+  font-size: 1.75rem;
+  line-height: 1.15;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-chart__tooltip small {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.progress-chart__tooltip hr {
+  width: 100%;
+  margin: var(--space-2) 0;
+  border: 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.progress-chart__tooltip-date,
+.progress-chart__tooltip-label {
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.progress-chart__tooltip-set {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .progress-chart__area,
+  .progress-chart__line {
+    animation: progress-chart-in 0.6s ease-out both;
+  }
+
+  .progress-chart__tooltip {
+    transition: left 0.2s ease-out;
+  }
+}
+
+@keyframes progress-chart-in {
+  from {
+    opacity: 0;
+  }
+}

@@ -4,9 +4,11 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getExercises } from './api/exercises'
 import { AuthProvider } from './auth/AuthProvider'
+import { getSplit } from './api/progress'
 import { getWorkoutSummaries } from './api/workouts'
 import { AppRoutes } from './routes'
 
+vi.mock('./api/progress')
 vi.mock('./api/exercises')
 vi.mock('./api/workouts')
 
@@ -24,6 +26,7 @@ describe('AppRoutes', () => {
   beforeEach(() => {
     vi.mocked(getExercises).mockResolvedValue([])
     vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [], page: 1, pageSize: 10, totalCount: 0 })
+    vi.mocked(getSplit).mockResolvedValue([])
     window.scrollTo = vi.fn()
   })
 
