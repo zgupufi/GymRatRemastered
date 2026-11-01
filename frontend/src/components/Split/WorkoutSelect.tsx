@@ -35,14 +35,42 @@ export function WorkoutSelect({ label, workouts, value, onChange }: WorkoutSelec
     setOpen(false)
   }
 
+  const options = () => Array.from(rootRef.current?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])
+
+  const focusOption = (index: number) => {
+    const items = options()
+    items[Math.max(0, Math.min(items.length - 1, index))]?.focus()
+  }
+
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape') {
       setOpen(false)
+      rootRef.current?.querySelector<HTMLElement>('button')?.focus()
+      return
+    }
+    const step = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0
+    if (step === 0 && event.key !== 'Home' && event.key !== 'End') {
+      return
+    }
+    event.preventDefault()
+    if (!open) {
+      setOpen(true)
+      return
+    }
+    const items = options()
+    const index = items.indexOf(document.activeElement as HTMLElement)
+    if (event.key === 'Home') {
+      focusOption(0)
+    } else if (event.key === 'End') {
+      focusOption(items.length - 1)
+    } else {
+      focusOption(index === -1 ? (step === 1 ? 0 : items.length - 1) : index + step)
     }
   }
 
   const optionKeyDown = (workoutId: string | null) => (event: KeyboardEvent<HTMLLIElement>) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
       choose(workoutId)
     }
   }

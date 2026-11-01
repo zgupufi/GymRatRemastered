@@ -148,6 +148,36 @@ describe('SplitPage', () => {
     expect(screen.getByRole('listbox')).toBeInTheDocument()
   })
 
+  it('navigates the menu with arrows, home, end and space', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    const trigger = await screen.findByRole('button', { name: 'Tuesday workout' })
+
+    trigger.focus()
+    await user.keyboard('{ArrowDown}')
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
+    await user.keyboard('{ArrowDown}')
+    expect(screen.getByRole('option', { name: 'Rest day' })).toHaveFocus()
+    await user.keyboard('{ArrowDown}{ArrowDown}')
+    expect(screen.getByRole('option', { name: 'Leg day' })).toHaveFocus()
+    await user.keyboard('{End}')
+    expect(screen.getByRole('option', { name: 'Everything' })).toHaveFocus()
+    await user.keyboard('{ArrowDown}')
+    expect(screen.getByRole('option', { name: 'Everything' })).toHaveFocus()
+    await user.keyboard('{Home}')
+    expect(screen.getByRole('option', { name: 'Rest day' })).toHaveFocus()
+    await user.keyboard('{ArrowDown}{ }')
+
+    expect(trigger).toHaveTextContent('Push day')
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+    await user.click(trigger)
+    await user.keyboard('{ArrowUp}')
+    expect(screen.getByRole('option', { name: 'Everything' })).toHaveFocus()
+    await user.keyboard('{Escape}')
+    expect(trigger).toHaveFocus()
+  })
+
   it('retries after a load failure', async () => {
     vi.mocked(getSplit).mockRejectedValueOnce(new Error('down'))
     const user = userEvent.setup()
