@@ -46,8 +46,10 @@ function renderPage() {
   )
 }
 
-function splitWithToday(workoutId: string | null) {
-  const today = ((new Date().getDay() + 6) % 7) + 1
+const WEDNESDAY = new Date(2026, 10, 4, 12)
+const SUNDAY = new Date(2026, 10, 8, 12)
+
+function splitWithToday(workoutId: string | null, today = 3) {
   return Array.from({ length: 7 }, (_, index) => ({
     day: index + 1,
     workout:
@@ -57,6 +59,7 @@ function splitWithToday(workoutId: string | null) {
 
 describe('ProgressionPage', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'], now: WEDNESDAY })
     vi.mocked(getSplit).mockResolvedValue(splitWithToday('w1'))
     vi.mocked(getWorkout).mockResolvedValue(workout)
     vi.mocked(searchExercises).mockResolvedValue({ items: [bench, fly], page: 1, pageSize: 6, totalCount: 2 })
@@ -64,7 +67,17 @@ describe('ProgressionPage', () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     vi.resetAllMocks()
+  })
+
+  it('treats Sunday as the seventh split day', async () => {
+    vi.setSystemTime(SUNDAY)
+    vi.mocked(getSplit).mockResolvedValue(splitWithToday('w1', 7))
+
+    renderPage()
+
+    expect(await screen.findByRole('button', { name: 'Bench Press' })).toBeInTheDocument()
   })
 
   it("suggests exercises from today's workout and charts the chosen one", async () => {

@@ -28,6 +28,20 @@ describe('ProgressChart', () => {
     expect(screen.getByText('70 kg × 8 reps')).toBeInTheDocument()
   })
 
+  it('selects a session with Enter or Space and ignores other keys', () => {
+    render(<ProgressChart exerciseName="Bench Press" points={points} />)
+    const buttons = screen.getAllByRole('button')
+
+    fireEvent.keyDown(buttons[0], { key: 'Enter' })
+    expect(screen.getByText('12 Sep 2026')).toBeInTheDocument()
+
+    fireEvent.keyDown(buttons[1], { key: ' ' })
+    expect(screen.getByText('10 Oct 2026')).toBeInTheDocument()
+
+    fireEvent.keyDown(buttons[2], { key: 'a' })
+    expect(screen.getByText('10 Oct 2026')).toBeInTheDocument()
+  })
+
   it('follows the pointer across the plot', () => {
     const { container } = render(<ProgressChart exerciseName="Bench Press" points={points} />)
     const surface = container.querySelector('.progress-chart__surface') as SVGRectElement

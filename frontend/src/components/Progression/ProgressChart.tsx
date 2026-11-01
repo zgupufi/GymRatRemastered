@@ -89,6 +89,12 @@ export function ProgressChart({ exerciseName, points }: ProgressChartProps) {
             role="button"
             aria-label={`${formatFullDate(point.date)}, ${Math.round(point.estimatedOneRepMax)} kg estimated one rep max`}
             onFocus={() => setActive(index)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                setActive(index)
+              }
+            }}
           />
         ))}
         <rect

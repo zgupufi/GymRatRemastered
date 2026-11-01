@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Search } from 'lucide-react'
+import { Activity, ChartNoAxesColumn, Search } from 'lucide-react'
 import { searchExercises, type Exercise } from '../../api/exercises'
 import { getExerciseProgress, getSplit, type ProgressPoint } from '../../api/progress'
 import { getWorkout } from '../../api/workouts'
@@ -118,6 +118,7 @@ export function ProgressionPage() {
       </header>
 
       <Card tone="material" className="progression-page__panel">
+        <div className="progression-page__search">
         <Input
           label="Exercise"
           placeholder="Search exercises…"
@@ -145,6 +146,7 @@ export function ProgressionPage() {
             ) : null}
           </div>
         ) : null}
+        </div>
         {today.length > 0 ? (
           <section className="progression-page__today" aria-label="From today's workout">
             <h2>From today&apos;s workout</h2>
@@ -186,12 +188,18 @@ export function ProgressionPage() {
           ) : null}
           {progress.status === 'loaded' && progress.points.length === 0 ? (
             <div className="progression-page__empty">
+              <span className="progression-page__icon" aria-hidden="true">
+                <Activity size={22} />
+              </span>
               <strong>No data yet</strong>
               <p>Complete this exercise in a workout and its progression will appear here.</p>
             </div>
           ) : null}
           {progress.status === 'loaded' && progress.points.length === 1 ? (
             <div className="progression-page__empty">
+              <span className="progression-page__icon" aria-hidden="true">
+                <ChartNoAxesColumn size={22} />
+              </span>
               <strong>Not enough data</strong>
               <p>You need at least two sessions with this exercise to see a progression chart.</p>
             </div>
