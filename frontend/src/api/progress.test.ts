@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { apiClient } from './client'
-import { getExerciseProgress, getSplit } from './progress'
+import { getExerciseProgress } from './progress'
 
 vi.mock('./client', () => ({ apiClient: { get: vi.fn() } }))
 
@@ -14,13 +14,5 @@ describe('progress api', () => {
     await expect(getExerciseProgress('e1', signal)).resolves.toEqual([])
 
     expect(apiClient.get).toHaveBeenCalledWith('/api/exercises/e1/progress', signal)
-  })
-
-  it('requests the weekly split', async () => {
-    vi.mocked(apiClient.get).mockResolvedValue([])
-
-    await getSplit()
-
-    expect(apiClient.get).toHaveBeenCalledWith('/api/split', undefined)
   })
 })

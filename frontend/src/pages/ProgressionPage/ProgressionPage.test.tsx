@@ -3,12 +3,14 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { searchExercises, type Exercise } from '../../api/exercises'
-import { getExerciseProgress, getSplit, type ProgressPoint } from '../../api/progress'
+import { getExerciseProgress, type ProgressPoint } from '../../api/progress'
+import { getSplit } from '../../api/split'
 import { getWorkout, type Workout } from '../../api/workouts'
 import { ProgressionPage } from './ProgressionPage'
 
 vi.mock('../../api/exercises')
 vi.mock('../../api/progress')
+vi.mock('../../api/split')
 vi.mock('../../api/workouts')
 vi.mock('../../hooks/useDebouncedValue', () => ({ useDebouncedValue: <T,>(value: T) => value }))
 
