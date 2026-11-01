@@ -1,0 +1,94 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--bg:#05070d;--surface:#111725;--surface-2:#182033;--text:#f5f7fb;--text-2:#b4bccc;--text-3:#7d879b;--text-4:#535c70;--blue:#3d8bff;--emerald:#22c58b;--red:#ff6b6d;--hair:rgba(255,255,255,.08)}
+*{box-sizing:border-box;margin:0}
+body{background:#000;color:var(--text);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;padding:28px;width:3000px}
+.title{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.phone{background:var(--bg);border:1px solid var(--hair);border-radius:28px;height:900px;position:relative;overflow:hidden;padding:20px 20px 0;background-image:radial-gradient(500px 280px at 70% -5%,rgba(61,139,255,.16),transparent)}
+.top{display:flex;justify-content:space-between;align-items:center;height:40px}
+.round{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid var(--hair);display:grid;place-items:center;font-size:15px;color:var(--text-2)}
+.pill{padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--hair);font:600 14px ui-monospace,Consolas,monospace;color:var(--text)}
+.bar{position:absolute;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.06)}
+.bar i{display:block;height:100%;width:50%;background:linear-gradient(90deg,var(--blue),var(--emerald));border-radius:0 4px 4px 0}
+.card{background:rgba(17,23,37,.72);border:1px solid var(--hair);border-radius:28px;padding:24px;box-shadow:0 20px 50px -20px rgba(0,0,0,.6)}
+h1{font-size:30px;font-weight:700;letter-spacing:-.02em}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--emerald);font-weight:600;text-transform:uppercase;margin-top:26px}
+h2{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:6px 0 16px}
+.sub{color:var(--text-3);font-size:14px;margin-top:6px}
+.btn{height:50px;border-radius:999px;display:grid;place-items:center;font-weight:600;font-size:16px}
+.primary{background:var(--emerald);color:#03140d}
+.ghost{background:rgba(255,255,255,.07);color:var(--text)}
+.danger{background:rgba(255,77,79,.12);color:var(--red);border:1px solid rgba(255,77,79,.28)}
+.blue{background:var(--blue);color:#fff}
+.center{text-align:center}
+.cols,.row{display:grid;grid-template-columns:44px 1fr 1fr 44px;gap:10px;align-items:center}
+.cols{font-size:11px;letter-spacing:.1em;color:var(--text-3);text-transform:uppercase;padding:0 8px 8px;text-align:center}
+.row{padding:8px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid var(--hair);margin-bottom:8px}
+.row.done{background:rgba(34,197,139,.1);border-color:rgba(34,197,139,.3)}
+.n{font-size:20px;font-weight:600;text-align:center;color:var(--text-2)}
+.in{height:44px;border-radius:12px;background:rgba(0,0,0,.25);display:grid;place-items:center;font-size:18px;font-weight:600}
+.in.ph{color:var(--text-4)}
+.chk{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.06);display:grid;place-items:center;color:var(--text-4);font-size:18px}
+.done .chk{background:var(--emerald);color:#03140d}
+.controls{position:absolute;left:20px;right:20px;bottom:24px;display:flex;gap:10px}
+.rest{position:absolute;left:50%;transform:translateX(-50%);bottom:96px;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 18px;border-radius:999px;background:rgba(24,32,51,.92);border:1px solid var(--hair);box-shadow:0 30px 60px -10px rgba(0,0,0,.8);white-space:nowrap}
+.rest b{font:600 20px ui-monospace,Consolas,monospace;color:var(--emerald)}
+.rest span.b{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.07);font-size:13px;font-weight:600}
+.list{margin-top:18px}
+.li{display:flex;justify-content:space-between;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--hair);margin-bottom:8px;font-weight:600}
+.li.sel{border-color:var(--blue);background:rgba(61,139,255,.1)}
+.li small{color:var(--text-3);font-weight:400}
+.ic{width:72px;height:72px;border-radius:50%;background:rgba(34,197,139,.14);display:grid;place-items:center;font-size:32px;color:var(--emerald);margin:0 auto 18px}
+.scrim{position:absolute;inset:0;background:rgba(3,5,10,.6);backdrop-filter:blur(6px)}
+.sheet{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(24,32,51,.96);border:1px solid var(--hair);border-radius:28px;padding:22px}
+</style></head><body>
+<div class="grid">
+
+<div><div class="title">GR-16 · Rest day</div><div class="phone">
+<div class="top"><div class="round">‹</div></div>
+<div class="card center" style="margin-top:150px;padding:36px 24px">
+<div class="ic" style="background:rgba(255,255,255,.06);color:var(--text-2)">◎</div>
+<h1>Rest day</h1><p class="sub" style="margin:10px 0 28px">Nothing is scheduled for today in your training split.</p>
+<div class="btn primary">Start a workout</div><div class="btn ghost" style="margin-top:10px">View split</div>
+</div>
+<div class="scrim" style="display:none"></div>
+</div></div>
+
+<div><div class="title">GR-16 · Select workout / Start</div><div class="phone">
+<div class="top"><div class="round">‹</div></div>
+<div class="card center" style="margin-top:110px;padding:34px 24px">
+<div class="sub" style="margin:0 0 8px;text-transform:uppercase;letter-spacing:.12em;font-size:12px">Today</div>
+<h1 style="font-size:36px">Push Day</h1><p class="sub" style="margin:8px 0 26px">6 exercises planned</p>
+<div class="btn primary" style="height:58px;font-size:18px">▶ Start workout</div>
+<div class="btn ghost" style="margin-top:10px;height:44px;font-size:14px">Switch workout</div></div>
+<div class="scrim"></div>
+<div class="sheet"><h1 style="font-size:20px">Select workout</h1>
+<div class="list"><div class="li sel">Push Day<small>6 exercises</small></div><div class="li">Pull Day<small>5 exercises</small></div><div class="li">Leg Day<small>7 exercises</small></div></div></div>
+</div></div>
+
+<div><div class="title">GR-16 · Executing, rest timer running</div><div class="phone">
+<div class="bar"><i></i></div>
+<div class="top"><div class="round">‹</div><div class="pill">12:48</div></div>
+<div class="eyebrow">Exercise 3 of 6</div><h2>Incline Dumbbell Press</h2>
+<div class="card" style="padding:16px">
+<div class="cols"><div>Set</div><div>Kg</div><div>Reps</div><div>✓</div></div>
+<div class="row done"><div class="n">1</div><div class="in">32</div><div class="in">10</div><div class="chk">✓</div></div>
+<div class="row done"><div class="n">2</div><div class="in">32</div><div class="in">9</div><div class="chk">✓</div></div>
+<div class="row"><div class="n">3</div><div class="in ph">32</div><div class="in ph">9</div><div class="chk">✓</div></div>
+<div class="row"><div class="n">4</div><div class="in ph">30</div><div class="in ph">8</div><div class="chk">✓</div></div>
+</div>
+<div class="rest"><span style="width:8px;height:8px;border-radius:50%;background:var(--emerald)"></span><b>01:12</b><span class="b">+30s</span><span class="b">−10s</span><span class="b" style="background:rgba(255,77,79,.14);color:var(--red)">Skip</span></div>
+<div class="controls"><div class="btn danger" style="width:54px">■</div><div class="btn ghost" style="flex:1">Previous</div><div class="btn blue" style="flex:2">Next</div></div>
+</div></div>
+
+<div><div class="title">GR-16 · Finished</div><div class="phone">
+<div class="top"><div class="round">‹</div></div>
+<div class="card center" style="margin-top:150px;padding:38px 24px">
+<div class="ic">✓</div><h1>Workout finished</h1>
+<p class="sub" style="margin:10px 0 28px">Great work today. Total time 58:12</p>
+<div class="btn primary">Return to menu</div></div>
+</div></div>
+
+</div></body></html>
