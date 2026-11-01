@@ -1,0 +1,5 @@
+.exercises-page .page__header {
+  align-items: center;
+  margin-top: var(--space-8);
+  text-align: center;
+}

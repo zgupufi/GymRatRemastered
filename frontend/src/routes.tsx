@@ -4,7 +4,8 @@ import { PlaceholderPage } from './pages/PlaceholderPage'
 import { ProgressionPage } from './pages/ProgressionPage/ProgressionPage'
 import { WorkoutsPage } from './pages/WorkoutsPage/WorkoutsPage'
 import { SplitPage } from './pages/SplitPage/SplitPage'
-import { ExercisesPage } from './pages/ExercisesPage'
+import { ExercisesPage } from './pages/ExercisesPage/ExercisesPage'
+import { ExerciseDetailsPage } from './pages/ExerciseDetailsPage/ExerciseDetailsPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage/LoginPage'
 import { RegisterPage } from './pages/RegisterPage/RegisterPage'
@@ -17,10 +18,7 @@ export function AppRoutes() {
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="exercises" element={<ExercisesPage />} />
-        <Route
-          path="exercises/:id"
-          element={<PlaceholderPage title="Exercise details" description="Form, muscles and equipment." />}
-        />
+        <Route path="exercises/:id" element={<ExerciseDetailsPage />} />
         <Route path="workouts" element={<WorkoutsPage />} />
         <Route path="split" element={<SplitPage />} />
         <Route

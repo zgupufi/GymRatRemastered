@@ -1,0 +1,23 @@
+.difficulty-chip {
+  --tone: var(--text-2);
+  display: inline-block;
+  padding: 0.1875rem 0.625rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--tone) 30%, transparent);
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  color: var(--tone);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.difficulty-chip--beginner {
+  --tone: var(--emerald);
+}
+
+.difficulty-chip--intermediate {
+  --tone: var(--blue);
+}
+
+.difficulty-chip--advanced {
+  --tone: var(--orange);
+}

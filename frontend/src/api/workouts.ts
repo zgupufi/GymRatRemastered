@@ -51,3 +51,16 @@ export function replaceWorkoutExercises(id: string, exercises: WorkoutExerciseEn
 export function deleteWorkout(id: string): Promise<void> {
   return apiClient.delete(`/api/workouts/${id}`)
 }
+
+const SUMMARY_PAGE_SIZE = 100
+
+export async function getAllWorkoutSummaries(signal?: AbortSignal): Promise<WorkoutSummary[]> {
+  const summaries: WorkoutSummary[] = []
+  for (let page = 1; ; page++) {
+    const result = await getWorkoutSummaries({ sortBy: 'Name', direction: 'Ascending', page, pageSize: SUMMARY_PAGE_SIZE }, signal)
+    summaries.push(...result.items)
+    if (result.items.length === 0 || summaries.length >= result.totalCount) {
+      return summaries
+    }
+  }
+}

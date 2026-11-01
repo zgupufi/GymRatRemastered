@@ -1,0 +1,54 @@
+.exercise-card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.exercise-card:hover {
+  border-color: var(--hairline-strong);
+  transform: translateY(-2px);
+}
+
+.exercise-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.exercise-card__icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--blue) 14%, transparent);
+  color: var(--blue);
+}
+
+.exercise-card__name {
+  margin-bottom: var(--space-1);
+}
+
+.exercise-card__muscles {
+  margin-bottom: var(--space-4);
+  font-size: 0.8125rem;
+  color: var(--text-3);
+}
+
+.exercise-card__link {
+  display: grid;
+  place-items: center;
+  height: 2.25rem;
+  margin-top: auto;
+  border-radius: var(--radius-sm);
+  background: var(--fill-raised);
+  border: 1px solid var(--hairline-strong);
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}

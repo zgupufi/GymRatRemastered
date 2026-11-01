@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getExercises } from './api/exercises'
+import { getExercise, searchExercises } from './api/exercises'
 import { AuthProvider } from './auth/AuthProvider'
 import { getSplit } from './api/split'
 import { getWorkoutSummaries } from './api/workouts'
@@ -24,7 +24,17 @@ function renderAt(path: string) {
 
 describe('AppRoutes', () => {
   beforeEach(() => {
-    vi.mocked(getExercises).mockResolvedValue([])
+    vi.mocked(searchExercises).mockResolvedValue({ items: [], page: 1, pageSize: 24, totalCount: 0 })
+    vi.mocked(getExercise).mockResolvedValue({
+      id: '0199e0a1-7c3e-7b5a-9d2f-3f6f0c1a2b3c',
+      name: 'Bench Press',
+      mainMuscle: 'Chest',
+      subMuscles: null,
+      equipment: 'Barbell',
+      difficulty: 'Intermediate',
+      description: null,
+      youtubeLink: null,
+    })
     vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [], page: 1, pageSize: 10, totalCount: 0 })
     vi.mocked(getSplit).mockResolvedValue([])
     window.scrollTo = vi.fn()
@@ -40,7 +50,7 @@ describe('AppRoutes', () => {
     ['/login', 'Welcome back'],
     ['/register', 'Create account'],
     ['/exercises', 'Exercise database'],
-    ['/exercises/0199e0a1-7c3e-7b5a-9d2f-3f6f0c1a2b3c', 'Exercise details'],
+    ['/exercises/0199e0a1-7c3e-7b5a-9d2f-3f6f0c1a2b3c', 'Bench Press'],
     ['/workouts', 'My workouts'],
     ['/split', 'My split'],
     ['/workout-execution', 'Workout'],
