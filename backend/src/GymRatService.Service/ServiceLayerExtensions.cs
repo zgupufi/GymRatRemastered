@@ -1,5 +1,6 @@
 using FluentValidation;
 using GymRatService.Common.DTOs.Auth;
+using GymRatService.Common.DTOs.Chat;
 using GymRatService.Common.DTOs.Sessions;
 using GymRatService.Common.DTOs.Users;
 using GymRatService.Common.DTOs.Workouts;
@@ -35,6 +36,8 @@ public static class ServiceLayerExtensions
         services.AddSingleton<IValidator<int>, SplitDayValidator>();
         services.AddSingleton<IValidator<StartSessionRequest>, StartSessionRequestValidator>();
         services.AddSingleton<IValidator<SaveExerciseSetsRequest>, SaveExerciseSetsRequestValidator>();
+        services.AddSingleton<IValidator<ChatMessageRequest>, ChatMessageRequestValidator>();
+        services.AddSingleton<IChatUsageLimiter, ChatUsageLimiter>();
 
         services.AddScoped<IExercisesService, ExercisesService>();
         services.AddScoped<IAuthService, AuthService>();
@@ -42,6 +45,7 @@ public static class ServiceLayerExtensions
         services.AddScoped<IWorkoutsService, WorkoutsService>();
         services.AddScoped<ISplitService, SplitService>();
         services.AddScoped<ISessionsService, SessionsService>();
+        services.AddScoped<IChatService, ChatService>();
 
         return services;
     }

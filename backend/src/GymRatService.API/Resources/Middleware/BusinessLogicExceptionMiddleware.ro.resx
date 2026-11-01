@@ -39,6 +39,15 @@
   <data name="BLException_SessionsService_SessionAlreadyFinished" xml:space="preserve">
     <value>Sesiunea {0} a fost deja încheiată.</value>
   </data>
+  <data name="BLException_ChatService_RateLimited" xml:space="preserve">
+    <value>Ai trimis prea multe mesaje. Te rugăm să aștepți puțin și să încerci din nou.</value>
+  </data>
+  <data name="BLException_ChatService_TokenBudgetExceeded" xml:space="preserve">
+    <value>Ai atins limita zilnică pentru antrenorul AI. Te rugăm să încerci din nou mâine.</value>
+  </data>
+  <data name="BLException_ChatService_ProviderUnavailable" xml:space="preserve">
+    <value>Antrenorul AI nu este disponibil momentan. Te rugăm să încerci din nou mai târziu.</value>
+  </data>
   <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
     <value>Cererea nu este validă.</value>
   </data>

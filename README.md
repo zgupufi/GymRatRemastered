@@ -24,3 +24,12 @@ Postgres is exposed on localhost:5432. The database connection for the backend i
 ## Changing the database
 
 Add a new XML changeset under `database/changelog/changes`, include it in `db.changelog-master.xml`, and run `docker compose up db`. Never edit a changeset that has already been applied.
+
+## AI coach
+
+`POST /api/chat/messages` talks to an LLM through `Microsoft.Extensions.AI` (`IChatClient`). The default is Gemini 2.5 Flash-Lite through Google's OpenAI-compatible endpoint. The API key is never stored in the repo:
+
+- Locally, in `backend/src/GymRatService.API`: `dotnet user-secrets set "AiCoach:ApiKey" "<your Gemini API key>"`
+- Docker: set `AI_COACH_API_KEY` in `infra/.env`
+
+Without a key the endpoint answers 400 `BLException_ChatService_ProviderUnavailable`. `AiCoach:Model` and `AiCoach:Endpoint` switch to any other OpenAI-compatible provider through configuration. Limits are `AiCoach:RateLimitRequests` per `AiCoach:RateLimitWindowSeconds` per user and `AiCoach:DailyTokenBudget` tokens per user per day.
