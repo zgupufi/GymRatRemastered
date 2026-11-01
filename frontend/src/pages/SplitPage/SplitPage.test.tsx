@@ -73,7 +73,7 @@ describe('SplitPage', () => {
     const card = await screen.findByRole('listitem', { name })
     expect(within(card).getByText('Today')).toBeInTheDocument()
     expect(screen.getAllByText('Today')).toHaveLength(1)
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalled()
+    await waitFor(() => expect(Element.prototype.scrollIntoView).toHaveBeenCalled())
   })
 
   it('shows a full body chip from six muscle groups', async () => {
