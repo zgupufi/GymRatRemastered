@@ -3,12 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../api/client'
-import { getExercises, type Exercise, type PagedResult } from '../../api/exercises'
+import { searchExercises, type Exercise } from '../../api/exercises'
+import type { PagedResult } from '../../api/pagination'
 import { ExerciseList } from './ExerciseList'
 
 vi.mock('../../api/exercises', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../api/exercises')>()),
-  getExercises: vi.fn(),
+  searchExercises: vi.fn(),
 }))
 
 function exercise(id: string, name: string, mainMuscle: string): Exercise {
@@ -33,7 +34,7 @@ describe('ExerciseList', () => {
   })
 
   it('groups the loaded exercises by muscle', async () => {
-    vi.mocked(getExercises).mockResolvedValue(
+    vi.mocked(searchExercises).mockResolvedValue(
       page([exercise('1', 'Bench Press', 'Chest'), exercise('2', 'Push-up', 'Chest'), exercise('3', 'Squat', 'Legs')]),
     )
 
@@ -49,7 +50,7 @@ describe('ExerciseList', () => {
   })
 
   it('loads and appends the next page', async () => {
-    vi.mocked(getExercises)
+    vi.mocked(searchExercises)
       .mockResolvedValueOnce(page([exercise('1', 'Bench Press', 'Chest')], 2))
       .mockResolvedValueOnce(page([exercise('2', 'Push-up', 'Chest')], 2, 2))
 
@@ -58,12 +59,12 @@ describe('ExerciseList', () => {
 
     expect(await screen.findByText('Push-up')).toBeInTheDocument()
     expect(screen.getByText('Bench Press')).toBeInTheDocument()
-    expect(vi.mocked(getExercises).mock.calls[1][0]).toMatchObject({ page: 2 })
+    expect(vi.mocked(searchExercises).mock.calls[1][0]).toMatchObject({ page: 2 })
     expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
   })
 
   it('lets the user retry when loading more fails', async () => {
-    vi.mocked(getExercises)
+    vi.mocked(searchExercises)
       .mockResolvedValueOnce(page([exercise('1', 'Bench Press', 'Chest')], 2))
       .mockRejectedValueOnce(new Error('network'))
       .mockResolvedValueOnce(page([exercise('2', 'Push-up', 'Chest')], 2, 2))
@@ -78,27 +79,27 @@ describe('ExerciseList', () => {
   })
 
   it('searches after the user stops typing', async () => {
-    vi.mocked(getExercises).mockResolvedValue(page([exercise('1', 'Bench Press', 'Chest')]))
+    vi.mocked(searchExercises).mockResolvedValue(page([exercise('1', 'Bench Press', 'Chest')]))
 
     renderList()
     await screen.findByText('Bench Press')
     await userEvent.type(screen.getByRole('searchbox', { name: 'Search exercises' }), 'bench')
 
-    await waitFor(() => expect(vi.mocked(getExercises).mock.calls.at(-1)?.[0]).toMatchObject({ term: 'bench', page: 1 }))
+    await waitFor(() => expect(vi.mocked(searchExercises).mock.calls.at(-1)?.[0]).toMatchObject({ term: 'bench', page: 1 }))
   })
 
   it('filters by muscle group', async () => {
-    vi.mocked(getExercises).mockResolvedValue(page([exercise('1', 'Bench Press', 'Chest')]))
+    vi.mocked(searchExercises).mockResolvedValue(page([exercise('1', 'Bench Press', 'Chest')]))
 
     renderList()
     await screen.findByText('Bench Press')
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Muscle group' }), 'Chest')
 
-    await waitFor(() => expect(vi.mocked(getExercises).mock.calls.at(-1)?.[0]).toMatchObject({ muscle: 'Chest' }))
+    await waitFor(() => expect(vi.mocked(searchExercises).mock.calls.at(-1)?.[0]).toMatchObject({ muscle: 'Chest' }))
   })
 
   it('shows an empty state for a search and clears it', async () => {
-    vi.mocked(getExercises).mockImplementation(async (query) =>
+    vi.mocked(searchExercises).mockImplementation(async (query) =>
       query.term ? page([]) : page([exercise('1', 'Bench Press', 'Chest')]),
     )
 
@@ -114,7 +115,7 @@ describe('ExerciseList', () => {
   })
 
   it('shows a plain empty state when there is nothing to search', async () => {
-    vi.mocked(getExercises).mockResolvedValue(page([]))
+    vi.mocked(searchExercises).mockResolvedValue(page([]))
 
     renderList()
 
@@ -123,7 +124,7 @@ describe('ExerciseList', () => {
   })
 
   it('shows an error and retries', async () => {
-    vi.mocked(getExercises)
+    vi.mocked(searchExercises)
       .mockRejectedValueOnce(new ApiError(0, 'Network request failed'))
       .mockResolvedValueOnce(page([exercise('1', 'Bench Press', 'Chest')]))
 
@@ -137,7 +138,7 @@ describe('ExerciseList', () => {
 
   it('shows no error when the request is aborted by unmounting', async () => {
     let rejectRequest: (reason: unknown) => void = () => {}
-    vi.mocked(getExercises).mockReturnValue(
+    vi.mocked(searchExercises).mockReturnValue(
       new Promise<PagedResult<Exercise>>((_, reject) => {
         rejectRequest = reject
       }),

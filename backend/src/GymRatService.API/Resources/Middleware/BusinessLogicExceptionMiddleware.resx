@@ -33,6 +33,12 @@
   <data name="BLException_WorkoutsService_ExerciseNotFound" xml:space="preserve">
     <value>One or more of the exercises do not exist.</value>
   </data>
+  <data name="BLException_SessionsService_SessionNotFound" xml:space="preserve">
+    <value>Session {0} does not exist.</value>
+  </data>
+  <data name="BLException_SessionsService_SessionAlreadyFinished" xml:space="preserve">
+    <value>Session {0} has already been finished.</value>
+  </data>
   <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
     <value>The request is not valid.</value>
   </data>

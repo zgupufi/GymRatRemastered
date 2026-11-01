@@ -10,7 +10,7 @@ namespace GymRatService.API.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class WorkoutsController(IWorkoutsService workoutsService) : ControllerBase
+public class WorkoutsController(IWorkoutsService workoutsService, ISessionsService sessionsService) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetWorkoutSummariesAsync([FromQuery] WorkoutFilter filter, CancellationToken cancellationToken)
@@ -28,6 +28,16 @@ public class WorkoutsController(IWorkoutsService workoutsService) : ControllerBa
         var userId = User.GetUserId();
 
         var response = await workoutsService.GetWorkoutAsync(userId, id, cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpGet("{id}/last-session")]
+    public async Task<IActionResult> GetLastSessionAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+
+        var response = await sessionsService.GetLastSessionAsync(userId, id, cancellationToken);
 
         return Ok(response);
     }

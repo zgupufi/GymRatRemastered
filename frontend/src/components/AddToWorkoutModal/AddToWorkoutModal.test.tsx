@@ -4,7 +4,7 @@ import { MotionGlobalConfig } from 'motion/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../api/client'
 import type { Exercise } from '../../api/exercises'
-import { getWorkout, getWorkoutSummaries, replaceWorkoutExercises, type Workout } from '../../api/workouts'
+import { getWorkout, getAllWorkoutSummaries, replaceWorkoutExercises, type Workout } from '../../api/workouts'
 import { ToastProvider } from '../ui/Toast'
 import { AddToWorkoutModal } from './AddToWorkoutModal'
 
@@ -44,7 +44,7 @@ describe('AddToWorkoutModal', () => {
   })
 
   it('adds the exercise to the chosen workout and closes after a moment', async () => {
-    vi.mocked(getWorkoutSummaries).mockResolvedValue([summary, { ...summary, id: 'w2', name: 'Legs', exerciseCount: 0 }])
+    vi.mocked(getAllWorkoutSummaries).mockResolvedValue([summary, { ...summary, id: 'w2', name: 'Legs', exerciseCount: 0 }])
     vi.mocked(getWorkout).mockResolvedValue(workoutWith('e1'))
     vi.mocked(replaceWorkoutExercises).mockResolvedValue()
     const onClose = renderModal()
@@ -67,7 +67,7 @@ describe('AddToWorkoutModal', () => {
   })
 
   it('does not add the exercise twice', async () => {
-    vi.mocked(getWorkoutSummaries).mockResolvedValue([summary])
+    vi.mocked(getAllWorkoutSummaries).mockResolvedValue([summary])
     vi.mocked(getWorkout).mockResolvedValue(workoutWith('e2'))
     renderModal()
 
@@ -78,7 +78,7 @@ describe('AddToWorkoutModal', () => {
   })
 
   it('shows a toast when adding fails', async () => {
-    vi.mocked(getWorkoutSummaries).mockResolvedValue([summary])
+    vi.mocked(getAllWorkoutSummaries).mockResolvedValue([summary])
     vi.mocked(getWorkout).mockRejectedValue(new ApiError(500, 'boom'))
     renderModal()
 
@@ -89,7 +89,7 @@ describe('AddToWorkoutModal', () => {
   })
 
   it('shows an error when the workouts cannot be loaded', async () => {
-    vi.mocked(getWorkoutSummaries).mockRejectedValue(new ApiError(500, 'boom'))
+    vi.mocked(getAllWorkoutSummaries).mockRejectedValue(new ApiError(500, 'boom'))
     renderModal()
 
     expect(await screen.findByText('Could not load your workouts.')).toBeInTheDocument()
@@ -97,7 +97,7 @@ describe('AddToWorkoutModal', () => {
 
   it('ignores an aborted request after unmounting', async () => {
     let rejectRequest: (reason: unknown) => void = () => {}
-    vi.mocked(getWorkoutSummaries).mockReturnValue(
+    vi.mocked(getAllWorkoutSummaries).mockReturnValue(
       new Promise((_, reject) => {
         rejectRequest = reject
       }),

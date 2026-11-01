@@ -2,11 +2,15 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getExercise, getExercises } from './api/exercises'
+import { getExercise, searchExercises } from './api/exercises'
 import { AuthProvider } from './auth/AuthProvider'
+import { getSplit } from './api/split'
+import { getWorkoutSummaries } from './api/workouts'
 import { AppRoutes } from './routes'
 
+vi.mock('./api/split')
 vi.mock('./api/exercises')
+vi.mock('./api/workouts')
 
 function renderAt(path: string) {
   return render(
@@ -20,7 +24,7 @@ function renderAt(path: string) {
 
 describe('AppRoutes', () => {
   beforeEach(() => {
-    vi.mocked(getExercises).mockResolvedValue({ items: [], page: 1, pageSize: 24, totalCount: 0 })
+    vi.mocked(searchExercises).mockResolvedValue({ items: [], page: 1, pageSize: 24, totalCount: 0 })
     vi.mocked(getExercise).mockResolvedValue({
       id: '0199e0a1-7c3e-7b5a-9d2f-3f6f0c1a2b3c',
       name: 'Bench Press',
@@ -31,7 +35,10 @@ describe('AppRoutes', () => {
       description: null,
       youtubeLink: null,
     })
+    vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [], page: 1, pageSize: 10, totalCount: 0 })
+    vi.mocked(getSplit).mockResolvedValue([])
     window.scrollTo = vi.fn()
+    window.HTMLElement.prototype.scrollIntoView = vi.fn()
   })
 
   afterEach(() => {

@@ -1,0 +1,44 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+:root{--bg:#05070d;--surface:#111725;--surface-2:#182033;--hair:rgba(255,255,255,.08);--text:#f5f7fb;--t2:#b4bccc;--t3:#7d879b;--emerald:#22c58b;--purple:#a275ff;--blue:#3d8bff}
+*{box-sizing:border-box}body{margin:0;background:#000;color:var(--text);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;padding:30px;display:flex;gap:30px;align-items:flex-start;width:3000px}
+.lab{font-size:12px;letter-spacing:.08em;color:var(--t3);text-transform:uppercase;margin-bottom:10px}
+.frame{background:radial-gradient(900px 300px at 80% -10%,rgba(162,117,255,.12),transparent),var(--bg);border:1px solid var(--hair);border-radius:20px;padding:36px}
+.desk{width:1900px}.mob{width:390px;padding:20px}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--t2);font-size:14px;margin-bottom:18px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:28px;flex-wrap:wrap}
+h1{margin:0;font-size:40px;letter-spacing:-.03em}.mob h1{font-size:30px}
+.sub{color:var(--t2);margin:8px 0 0;font-size:16px;max-width:560px}
+.btn{background:var(--emerald);color:#03140d;font-weight:600;border-radius:999px;padding:12px 24px;font-size:15px;box-shadow:0 8px 24px -8px rgba(34,197,139,.6)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.mob .grid{grid-template-columns:1fr}
+.card{background:rgba(17,23,37,.72);border:1px solid var(--hair);border-radius:24px;padding:20px;position:relative;min-height:190px}
+.card.on{border-color:rgba(162,117,255,.3)}
+.card.today{border-color:rgba(162,117,255,.7);box-shadow:0 0 0 4px rgba(162,117,255,.14)}
+.day{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.day b{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--t3)}.on .day b,.today .day b{color:var(--text)}
+.badge{font-size:11px;font-weight:600;color:var(--purple);background:rgba(162,117,255,.14);border-radius:999px;padding:3px 10px;letter-spacing:.06em}
+.sel{display:flex;justify-content:space-between;align-items:center;background:var(--surface-2);border:1px solid var(--hair);border-radius:14px;padding:12px 14px;font-size:15px}
+.sel span:last-child{color:var(--t3)}.rest{color:var(--t3)}
+.menu{position:absolute;left:20px;right:20px;top:92px;z-index:5;background:#182033;border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:6px;box-shadow:0 30px 60px -10px rgba(0,0,0,.8)}
+.menu div{padding:10px 12px;border-radius:10px;font-size:15px}.menu .cur{background:rgba(162,117,255,.16);color:#fff}.menu .m{color:var(--t3)}
+.focus{margin-top:16px;padding-top:14px;border-top:1px solid var(--hair)}.focus small{display:block;color:var(--t3);font-size:12px;margin-bottom:8px}
+.chip{display:inline-block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--purple);background:rgba(162,117,255,.12);border-radius:999px;padding:4px 10px;margin:0 6px 6px 0}
+.chip.fb{color:var(--blue);background:rgba(61,139,255,.14)}
+.toast{margin-top:20px;display:inline-block;background:rgba(24,32,51,.92);border:1px solid var(--hair);border-radius:999px;padding:10px 18px;font-size:14px}
+</style></head><body>
+<div><div class="lab">GR-15 · Training split (desktop)</div><div class="frame desk">
+<div class="back">‹ Back</div>
+<div class="head"><div><h1>My split</h1><p class="sub">Assign a workout to each day of the week, or leave it as a rest day.</p></div><div class="btn">Save split</div></div>
+<div class="grid">
+<div class="card on"><div class="day"><b>Monday</b></div><div class="sel"><span>Push Day</span><span>⌄</span></div><div class="focus"><small>Main focus</small><span class="chip">Chest</span><span class="chip">Triceps</span><span class="chip">Shoulders</span></div></div>
+<div class="card on"><div class="day"><b>Tuesday</b></div><div class="sel"><span>Pull Day</span><span>⌄</span></div><div class="focus"><small>Main focus</small><span class="chip">Back</span><span class="chip">Biceps</span></div></div>
+<div class="card today"><div class="day"><b>Wednesday</b><span class="badge">TODAY</span></div><div class="sel"><span>Leg Day</span><span>⌃</span></div>
+<div class="menu"><div class="m">Rest day</div><div>Push Day</div><div>Pull Day</div><div class="cur">Leg Day</div><div>Full Body A</div></div></div>
+<div class="card"><div class="day"><b>Thursday</b></div><div class="sel"><span class="rest">Rest day</span><span>⌄</span></div></div>
+<div class="card on"><div class="day"><b>Friday</b></div><div class="sel"><span>Full Body A</span><span>⌄</span></div><div class="focus"><small>Main focus</small><span class="chip fb">Full body</span></div></div>
+<div class="card"><div class="day"><b>Saturday</b></div><div class="sel"><span class="rest">Rest day</span><span>⌄</span></div></div>
+<div class="card"><div class="day"><b>Sunday</b></div><div class="sel"><span class="rest">Rest day</span><span>⌄</span></div></div>
+</div><div class="toast">Split saved</div></div></div>
+<div><div class="lab">Mobile</div><div class="frame mob"><div class="back">‹ Back</div><h1>My split</h1><p class="sub">Assign a workout to each day.</p><div class="btn" style="text-align:center;margin:16px 0">Save split</div>
+<div class="grid"><div class="card today"><div class="day"><b>Wednesday</b><span class="badge">TODAY</span></div><div class="sel"><span>Leg Day</span><span>⌄</span></div><div class="focus"><small>Main focus</small><span class="chip">Quads</span><span class="chip">Hamstrings</span><span class="chip">Calves</span></div></div>
+<div class="card"><div class="day"><b>Thursday</b></div><div class="sel"><span class="rest">Rest day</span><span>⌄</span></div></div></div></div></div>
+</body></html>

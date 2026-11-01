@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronDown, Search } from 'lucide-react'
 import { friendlyErrorMessage } from '../../api/errors'
-import { getExercises, MUSCLE_GROUPS, type Exercise } from '../../api/exercises'
+import { MUSCLE_GROUPS, searchExercises, type Exercise } from '../../api/exercises'
 import { ExerciseCard } from '../ExerciseCard/ExerciseCard'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
@@ -74,7 +74,7 @@ export function ExerciseList() {
   useEffect(() => {
     const request = new AbortController()
     controller.current = request
-    getExercises({ term, muscle, page: 1, pageSize: PAGE_SIZE }, request.signal)
+    searchExercises({ term, muscle, sortBy: 'MainMuscle', page: 1, pageSize: PAGE_SIZE }, request.signal)
       .then((result) => setLoaded({ key: queryKey, items: result.items, total: result.totalCount, page: 1 }))
       .catch((error: unknown) => {
         if (!request.signal.aborted) {
@@ -91,7 +91,7 @@ export function ExerciseList() {
     const request = new AbortController()
     controller.current = request
     setMore({ key: queryKey, failed: false })
-    getExercises({ term, muscle, page: loaded.page + 1, pageSize: PAGE_SIZE }, request.signal)
+    searchExercises({ term, muscle, sortBy: 'MainMuscle', page: loaded.page + 1, pageSize: PAGE_SIZE }, request.signal)
       .then((result) => {
         setLoaded({ key: queryKey, items: [...loaded.items, ...result.items], total: result.totalCount, page: result.page })
         setMore(null)

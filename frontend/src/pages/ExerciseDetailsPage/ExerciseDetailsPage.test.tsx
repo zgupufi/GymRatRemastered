@@ -5,7 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../api/client'
 import { getExercise, type Exercise } from '../../api/exercises'
-import { getWorkoutSummaries } from '../../api/workouts'
+import { getAllWorkoutSummaries } from '../../api/workouts'
 import { ToastProvider } from '../../components/ui/Toast'
 import { ExerciseDetailsPage } from './ExerciseDetailsPage'
 
@@ -89,7 +89,7 @@ describe('ExerciseDetailsPage', () => {
 
   it('opens the workout chooser', async () => {
     vi.mocked(getExercise).mockResolvedValue(benchPress)
-    vi.mocked(getWorkoutSummaries).mockResolvedValue([])
+    vi.mocked(getAllWorkoutSummaries).mockResolvedValue([])
 
     renderPage()
     await userEvent.click(await screen.findByRole('button', { name: '+ Add to workout' }))

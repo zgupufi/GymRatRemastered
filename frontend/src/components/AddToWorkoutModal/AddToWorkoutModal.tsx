@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check } from 'lucide-react'
 import { friendlyErrorMessage } from '../../api/errors'
-import { getWorkout, getWorkoutSummaries, replaceWorkoutExercises, type WorkoutSummary } from '../../api/workouts'
+import { getWorkout, getAllWorkoutSummaries, replaceWorkoutExercises, type WorkoutSummary } from '../../api/workouts'
 import { Modal } from '../ui/Modal'
 import { Spinner } from '../ui/Spinner'
 import { useToast } from '../ui/ToastContext'
@@ -28,7 +28,7 @@ function WorkoutChoices({ exerciseId, onClose }: Omit<AddToWorkoutModalProps, 'o
 
   useEffect(() => {
     const request = new AbortController()
-    getWorkoutSummaries(request.signal)
+    getAllWorkoutSummaries(request.signal)
       .then((result) => {
         setWorkouts(result)
         setStatus('ready')

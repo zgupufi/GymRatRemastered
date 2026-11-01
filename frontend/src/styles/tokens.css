@@ -9,6 +9,7 @@
   --fill-subtle: rgba(255, 255, 255, 0.05);
   --fill-raised: rgba(255, 255, 255, 0.06);
   --fill-pressed: rgba(255, 255, 255, 0.12);
+  --fill-inset: rgba(0, 0, 0, 0.22);
   --shadow-chip: 0 2px 8px rgba(0, 0, 0, 0.4);
   --hairline: rgba(255, 255, 255, 0.08);
   --hairline-strong: rgba(255, 255, 255, 0.14);
