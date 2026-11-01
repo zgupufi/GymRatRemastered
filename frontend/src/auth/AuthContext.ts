@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { RegisterRequest } from '../api/auth'
-import type { UserProfile } from '../api/users'
+import type { UserProfile, UserSettings } from '../api/users'
 
 export type AuthStatus = 'loading' | 'authenticated' | 'anonymous'
 
@@ -10,6 +10,7 @@ export interface AuthApi {
   login: (email: string, password: string) => Promise<void>
   register: (request: RegisterRequest) => Promise<void>
   logout: () => void
+  updateSettings: (settings: UserSettings) => Promise<void>
 }
 
 export class LoginAfterRegisterError extends Error {
