@@ -28,7 +28,7 @@ export const guideSteps: GuideStep[] = [
   {
     title: 'Set Your Split',
     description: 'Assign your newly created workouts to specific days of the week for proper structure and muscle recovery.',
-    color: '#7b8cff',
+    color: 'var(--blue)',
   },
   {
     title: 'Execute & Log',

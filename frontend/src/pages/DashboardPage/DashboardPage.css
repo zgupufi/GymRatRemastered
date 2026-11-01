@@ -176,7 +176,7 @@
 
 .module:hover .module__chevron {
   background: var(--module-color);
-  color: #fff;
+  color: var(--text);
 }
 
 .module__text {

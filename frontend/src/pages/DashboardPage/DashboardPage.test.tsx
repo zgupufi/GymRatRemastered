@@ -10,6 +10,7 @@ import { AuthProvider } from '../../auth/AuthProvider'
 import { saveSession } from '../../auth/sessionStorage'
 import { ToastProvider } from '../../components/ui/Toast'
 import { HomePage } from '../HomePage'
+import { SettingsModal } from './SettingsModal'
 
 vi.mock('../../api/auth', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../api/auth')>()),
@@ -237,5 +238,21 @@ describe('HomePage', () => {
     )
 
     expect(screen.getByRole('status')).toBeInTheDocument()
+  })
+})
+
+describe('SettingsModal without a session', () => {
+  it('renders nothing when nobody is signed in', () => {
+    render(
+      <MemoryRouter>
+        <AuthProvider>
+          <ToastProvider>
+            <SettingsModal open onClose={() => undefined} />
+          </ToastProvider>
+        </AuthProvider>
+      </MemoryRouter>,
+    )
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

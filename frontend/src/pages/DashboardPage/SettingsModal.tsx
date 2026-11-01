@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { LogOut, Minus, Plus } from 'lucide-react'
 import { WeightUnit } from '../../api/auth'
 import { friendlyErrorMessage } from '../../api/errors'
+import type { UserProfile } from '../../api/users'
 import { useAuth } from '../../auth/AuthContext'
 import { Button } from '../../components/ui/Button'
 import { Modal } from '../../components/ui/Modal'
@@ -25,11 +26,11 @@ interface SettingsModalProps {
   onClose: () => void
 }
 
-function SettingsForm({ onClose }: { onClose: () => void }) {
-  const { user, updateSettings, logout } = useAuth()
+function SettingsForm({ user, onClose }: { user: UserProfile; onClose: () => void }) {
+  const { updateSettings, logout } = useAuth()
   const { showToast } = useToast()
-  const [unit, setUnit] = useState<UnitKey>(user?.weightUnit === WeightUnit.Pounds ? 'lbs' : 'kg')
-  const [restSeconds, setRestSeconds] = useState(user?.defaultRestTimeSeconds ?? 90)
+  const [unit, setUnit] = useState<UnitKey>(user.weightUnit === WeightUnit.Pounds ? 'lbs' : 'kg')
+  const [restSeconds, setRestSeconds] = useState(user.defaultRestTimeSeconds)
   const [saving, setSaving] = useState(false)
 
   const changeRest = (delta: number) => {
@@ -51,17 +52,17 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
     }
   }
 
-  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ')
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ')
 
   return (
     <div className="settings">
       <div className="settings__who">
         <span className="settings__avatar" aria-hidden="true">
-          {(user?.firstName ?? '?').slice(0, 1).toUpperCase()}
+          {user.firstName.slice(0, 1).toUpperCase()}
         </span>
         <div>
           <strong>{fullName}</strong>
-          <span>{user?.email}</span>
+          <span>{user.email}</span>
         </div>
       </div>
 
@@ -107,9 +108,13 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
 }
 
 export function SettingsModal({ open, onClose }: SettingsModalProps) {
+  const { user } = useAuth()
+  if (!user) {
+    return null
+  }
   return (
     <Modal open={open} title="Settings" onClose={onClose}>
-      <SettingsForm onClose={onClose} />
+      <SettingsForm user={user} onClose={onClose} />
     </Modal>
   )
 }
