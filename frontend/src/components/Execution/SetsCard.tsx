@@ -27,7 +27,8 @@ export function SetsCard({ drafts, previous, unit, onChange, onToggle }: SetsCar
       {drafts.map((draft, index) => {
         const number = index + 1
         const last = previousFor(previous, number)
-        const valid = isValidDraft(draft, unit)
+        const ready = isValidDraft(draft, unit) && drafts.slice(0, index).every((earlier) => earlier.done)
+        const locked = draft.done && drafts.slice(index + 1).some((later) => later.done)
         return (
           <div key={number} className={`sets-card__row${draft.done ? ' sets-card__row--done' : ''}`}>
             <span className="sets-card__number">{number}</span>
@@ -50,7 +51,7 @@ export function SetsCard({ drafts, previous, unit, onChange, onToggle }: SetsCar
               className="sets-card__check"
               aria-label={draft.done ? `Undo set ${number}` : `Complete set ${number}`}
               aria-pressed={draft.done}
-              disabled={!draft.done && !valid}
+              disabled={draft.done ? locked : !ready}
               whileTap={press}
               transition={spring}
               onClick={() => onToggle(index)}

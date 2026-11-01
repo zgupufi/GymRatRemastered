@@ -28,7 +28,7 @@ export function RestTimerPill({ remaining, onExtend, onReduce, onSkip }: RestTim
             +30s
           </button>
           <button type="button" onClick={onReduce}>
-            -10s
+            −10s
           </button>
           <button type="button" className="rest-pill__skip" onClick={onSkip}>
             Skip

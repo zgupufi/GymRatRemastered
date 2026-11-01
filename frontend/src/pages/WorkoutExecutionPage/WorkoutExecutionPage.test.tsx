@@ -234,7 +234,7 @@ describe('WorkoutExecutionPage', () => {
     expect(timer).toHaveTextContent('01:00')
     await user.click(within(timer).getByRole('button', { name: '+30s' }))
     expect(timer).toHaveTextContent('01:30')
-    await user.click(within(timer).getByRole('button', { name: '-10s' }))
+    await user.click(within(timer).getByRole('button', { name: '−10s' }))
     expect(timer).toHaveTextContent('01:20')
     await user.click(within(timer).getByRole('button', { name: 'Skip' }))
     await waitFor(() => expect(screen.queryByRole('timer')).not.toBeInTheDocument())
@@ -385,6 +385,52 @@ describe('WorkoutExecutionPage', () => {
 
     expect(await screen.findByText('Could not finish the workout. Try again.')).toBeInTheDocument()
     expect(screen.getByText('Exercise 1 of 2')).toBeInTheDocument()
+  })
+
+  it('only lets sets be completed in order so saved set numbers match', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await startToday(user)
+    await user.type(screen.getByLabelText('Set 2 weight'), '60')
+    await user.type(screen.getByLabelText('Set 2 reps'), '8')
+
+    expect(screen.getByRole('button', { name: 'Complete set 2' })).toBeDisabled()
+
+    await fillSet(user, 1, '60', '8')
+    expect(screen.getByRole('button', { name: 'Complete set 2' })).toBeEnabled()
+    await user.click(screen.getByRole('button', { name: 'Complete set 2' }))
+
+    expect(screen.getByRole('button', { name: 'Undo set 1' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Undo set 2' })).toBeEnabled()
+  })
+
+  it('cancels the pending auto advance when the last set is undone', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    renderPage()
+    await startToday(user)
+    await fillSet(user, 1, '60', '8')
+    await fillSet(user, 2, '60', '7')
+
+    await user.click(screen.getByRole('button', { name: 'Undo set 2' }))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(600)
+    })
+
+    expect(screen.getByText('Exercise 1 of 2')).toBeInTheDocument()
+    expect(saveExerciseSets).not.toHaveBeenCalled()
+  })
+
+  it('offers a back button on the finish screen', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await startToday(user)
+    await user.click(screen.getByRole('button', { name: 'Stop workout' }))
+    await screen.findByRole('heading', { level: 1, name: 'Workout finished' })
+
+    await user.click(screen.getByRole('button', { name: 'Back' }))
+
+    expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument()
   })
 
   it('works without a previous session', async () => {

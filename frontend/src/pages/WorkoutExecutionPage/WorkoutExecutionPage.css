@@ -263,3 +263,8 @@
   border-color: var(--blue);
   background: var(--glow-blue-soft);
 }
+
+.execution__badge--neutral {
+  color: var(--text-2);
+  background: var(--fill-raised);
+}
