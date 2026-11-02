@@ -7,6 +7,7 @@ import { BackButton } from '../../components/ui/BackButton'
 import { Button } from '../../components/ui/Button'
 import { Spinner } from '../../components/ui/Spinner'
 import { useToast } from '../../components/ui/ToastContext'
+import { useWorkoutsChanged } from '../../lib/workoutsChanged'
 import './SplitPage.css'
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -32,6 +33,7 @@ export function SplitPage() {
   const [saving, setSaving] = useState(false)
   const todayRef = useRef<HTMLLIElement>(null)
   const today = todayNumber()
+  useWorkoutsChanged(() => setReloadKey((key) => key + 1))
 
   useEffect(() => {
     const controller = new AbortController()
