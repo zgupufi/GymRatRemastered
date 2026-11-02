@@ -10,7 +10,7 @@
                 <constraints primaryKey="true" primaryKeyName="PK_Workouts" nullable="false" />
             </column>
             <column name="UserId" type="uuid">
-                <constraints nullable="false" foreignKeyName="FK_Workouts_Users" references="Users(Id)" deleteCascade="true" />
+                <constraints nullable="false" foreignKeyName="FK_Workouts_Users" references="&quot;Users&quot;(&quot;Id&quot;)" deleteCascade="true" />
             </column>
             <column name="Name" type="varchar(100)">
                 <constraints nullable="false" />
@@ -29,10 +29,10 @@
                 <constraints primaryKey="true" primaryKeyName="PK_WorkoutExercises" nullable="false" />
             </column>
             <column name="WorkoutId" type="uuid">
-                <constraints nullable="false" foreignKeyName="FK_WorkoutExercises_Workouts" references="Workouts(Id)" deleteCascade="true" />
+                <constraints nullable="false" foreignKeyName="FK_WorkoutExercises_Workouts" references="&quot;Workouts&quot;(&quot;Id&quot;)" deleteCascade="true" />
             </column>
             <column name="ExerciseId" type="uuid">
-                <constraints nullable="false" foreignKeyName="FK_WorkoutExercises_Exercises" references="Exercises(Id)" deleteCascade="true" />
+                <constraints nullable="false" foreignKeyName="FK_WorkoutExercises_Exercises" references="&quot;Exercises&quot;(&quot;Id&quot;)" deleteCascade="true" />
             </column>
             <column name="Position" type="integer">
                 <constraints nullable="false" />

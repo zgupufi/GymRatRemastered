@@ -10,13 +10,13 @@
                 <constraints primaryKey="true" primaryKeyName="PK_SplitDays" nullable="false" />
             </column>
             <column name="UserId" type="uuid">
-                <constraints nullable="false" foreignKeyName="FK_SplitDays_Users" references="Users(Id)" deleteCascade="true" />
+                <constraints nullable="false" foreignKeyName="FK_SplitDays_Users" references="&quot;Users&quot;(&quot;Id&quot;)" deleteCascade="true" />
             </column>
             <column name="Day" type="integer">
                 <constraints nullable="false" />
             </column>
             <column name="WorkoutId" type="uuid">
-                <constraints nullable="false" foreignKeyName="FK_SplitDays_Workouts" references="Workouts(Id)" deleteCascade="true" />
+                <constraints nullable="false" foreignKeyName="FK_SplitDays_Workouts" references="&quot;Workouts&quot;(&quot;Id&quot;)" deleteCascade="true" />
             </column>
         </createTable>
 
