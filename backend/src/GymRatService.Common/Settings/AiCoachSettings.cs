@@ -4,13 +4,13 @@ public sealed class AiCoachSettings
 {
     public const string SectionName = "AiCoach";
 
-    public const string GeminiEndpoint = "https://generativelanguage.googleapis.com/v1beta/openai/";
+    public const string DefaultEndpoint = "https://openrouter.ai/api/v1";
 
-    public string Model { get; set; } = "gemini-2.5-flash-lite";
+    public string Model { get; set; } = "nvidia/nemotron-3-ultra:free";
 
     public string ApiKey { get; set; } = string.Empty;
 
-    public string Endpoint { get; set; } = GeminiEndpoint;
+    public string Endpoint { get; set; } = DefaultEndpoint;
 
     public int MaximumMessageLength { get; set; } = 1000;
 

@@ -27,9 +27,9 @@ Add a new XML changeset under `database/changelog/changes`, include it in `db.ch
 
 ## AI coach
 
-`POST /api/chat/messages` talks to an LLM through `Microsoft.Extensions.AI` (`IChatClient`). The default is Gemini 2.5 Flash-Lite through Google's OpenAI-compatible endpoint. The API key is never stored in the repo:
+`POST /api/chat/messages` talks to an LLM through `Microsoft.Extensions.AI` (`IChatClient`). The default is `nvidia/nemotron-3-ultra:free` through OpenRouter's OpenAI-compatible endpoint. The API key is never stored in the repo:
 
-- Locally, in `backend/src/GymRatService.API`: `dotnet user-secrets set "AiCoach:ApiKey" "<your Gemini API key>"`
+- Locally, in `backend/src/GymRatService.API`: `dotnet user-secrets set "AiCoach:ApiKey" "<your OpenRouter API key>"`
 - Docker: set `AI_COACH_API_KEY` in `infra/.env`
 
 Without a key the endpoint answers 400 `BLException_ChatService_ProviderUnavailable`. `AiCoach:Model` and `AiCoach:Endpoint` switch to any other OpenAI-compatible provider through configuration. Limits are `AiCoach:RateLimitRequests` per `AiCoach:RateLimitWindowSeconds` per user and `AiCoach:DailyTokenBudget` tokens per user per day.

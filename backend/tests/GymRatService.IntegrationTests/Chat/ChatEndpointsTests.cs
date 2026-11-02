@@ -85,7 +85,7 @@ public sealed class ChatEndpointsTests : IDisposable
         var body = await response.Content.ReadFromJsonAsync<ChatMessageResponse>();
         Assert.Equal("Hello", body?.Reply);
         Assert.Equal(2, chat.Calls[0].Count);
-        Assert.Equal("gemini-2.5-flash-lite", chat.Options[0]?.ModelId);
+        Assert.Equal("nvidia/nemotron-3-ultra:free", chat.Options[0]?.ModelId);
     }
 
     [Fact]
