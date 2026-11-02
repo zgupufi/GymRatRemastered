@@ -10,7 +10,7 @@
                 <constraints primaryKey="true" primaryKeyName="PK_WorkoutSessions" nullable="false" />
             </column>
             <column name="UserId" type="uuid">
-                <constraints nullable="false" foreignKeyName="FK_WorkoutSessions_Users" references="Users(Id)" deleteCascade="true" />
+                <constraints nullable="false" foreignKeyName="FK_WorkoutSessions_Users" references="&quot;Users&quot;(&quot;Id&quot;)" deleteCascade="true" />
             </column>
             <column name="WorkoutId" type="uuid" />
             <column name="StartedAt" type="timestamp with time zone">
@@ -38,10 +38,10 @@
                 <constraints primaryKey="true" primaryKeyName="PK_SessionSets" nullable="false" />
             </column>
             <column name="SessionId" type="uuid">
-                <constraints nullable="false" foreignKeyName="FK_SessionSets_WorkoutSessions" references="WorkoutSessions(Id)" deleteCascade="true" />
+                <constraints nullable="false" foreignKeyName="FK_SessionSets_WorkoutSessions" references="&quot;WorkoutSessions&quot;(&quot;Id&quot;)" deleteCascade="true" />
             </column>
             <column name="ExerciseId" type="uuid">
-                <constraints nullable="false" foreignKeyName="FK_SessionSets_Exercises" references="Exercises(Id)" deleteCascade="true" />
+                <constraints nullable="false" foreignKeyName="FK_SessionSets_Exercises" references="&quot;Exercises&quot;(&quot;Id&quot;)" deleteCascade="true" />
             </column>
             <column name="SetNumber" type="integer">
                 <constraints nullable="false" />
