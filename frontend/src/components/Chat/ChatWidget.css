@@ -11,7 +11,7 @@
   border-radius: 50%;
   background: linear-gradient(135deg, var(--cyan), var(--blue));
   color: var(--on-cyan);
-  box-shadow: 0 10px 30px -6px color-mix(in srgb, var(--cyan) 55%, transparent), 0 1px 0 var(--hairline-strong) inset;
+  box-shadow: 0 10px 30px -6px color-mix(in srgb, var(--cyan) 55%, transparent), 0 1px 0 color-mix(in srgb, var(--text) 35%, transparent) inset;
   cursor: pointer;
 }
 

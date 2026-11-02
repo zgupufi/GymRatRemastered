@@ -64,6 +64,26 @@ describe('useChat persistence', () => {
     expect(new Set(second.result.current.entries.map((item) => item.id)).size).toBe(4)
   })
 
+  it('shows a reply that lands after the widget was remounted', async () => {
+    let resolve: (value: { reply: string; workoutsChanged: boolean }) => void = () => {}
+    vi.mocked(sendChatMessage).mockReturnValue(new Promise((done) => (resolve = done)))
+    const first = renderHook(() => useChat())
+    let sending: Promise<void> = Promise.resolve()
+    act(() => {
+      sending = first.result.current.send('Hi')
+    })
+    first.unmount()
+    const second = renderHook(() => useChat())
+    expect(second.result.current.entries.map((item) => item.content)).toEqual(['Hi'])
+
+    await act(async () => {
+      resolve({ reply: 'Late reply', workoutsChanged: false })
+      await sending
+    })
+
+    expect(second.result.current.entries.map((item) => item.content)).toEqual(['Hi', 'Late reply'])
+  })
+
   it('removes the stored conversation when it is cleared', async () => {
     vi.mocked(sendChatMessage).mockResolvedValue({ reply: 'Hello', workoutsChanged: false })
     const { result } = renderHook(() => useChat())

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError } from '../../api/client'
 import { sendChatMessage, type ChatHistoryItem } from '../../api/chat'
 import { friendlyErrorMessage } from '../../api/errors'
@@ -7,12 +7,18 @@ import { clearChatEntries, loadChatEntries, saveChatEntries } from './chatStorag
 
 export const HISTORY_LIMIT = 10
 
+const CHANGED_EVENT = 'gymrat:chat-changed'
+
 export interface ChatEntry {
   id: number
   kind: 'user' | 'assistant' | 'error'
   content: string
   workoutsChanged?: boolean
   retryText?: string
+}
+
+function nextIdAfter(entries: ChatEntry[]): number {
+  return entries.reduce((highest, entry) => Math.max(highest, entry.id + 1), 0)
 }
 
 function errorMessage(error: unknown): string {
@@ -39,8 +45,10 @@ export function useChat() {
   const [initial] = useState(loadChatEntries)
   const [entries, setEntries] = useState<ChatEntry[]>(initial)
   const [pending, setPending] = useState(false)
-  const nextId = useRef(initial.reduce((highest, entry) => Math.max(highest, entry.id + 1), 0))
+  const nextId = useRef(nextIdAfter(initial))
   const entriesRef = useRef<ChatEntry[]>(initial)
+
+  const instance = useRef(Symbol('chat'))
 
   const commit = useCallback((next: ChatEntry[]) => {
     entriesRef.current = next
@@ -50,6 +58,21 @@ export function useChat() {
     } else {
       clearChatEntries()
     }
+    window.dispatchEvent(new CustomEvent<symbol>(CHANGED_EVENT, { detail: instance.current }))
+  }, [])
+
+  useEffect(() => {
+    const onChanged = (event: Event) => {
+      if ((event as CustomEvent<symbol>).detail === instance.current) {
+        return
+      }
+      const stored = loadChatEntries()
+      entriesRef.current = stored
+      nextId.current = Math.max(nextId.current, nextIdAfter(stored))
+      setEntries(stored)
+    }
+    window.addEventListener(CHANGED_EVENT, onChanged)
+    return () => window.removeEventListener(CHANGED_EVENT, onChanged)
   }, [])
 
   const send = useCallback(
