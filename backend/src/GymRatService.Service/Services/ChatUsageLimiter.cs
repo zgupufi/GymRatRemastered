@@ -24,6 +24,7 @@ public class ChatUsageLimiter(IOptions<AiCoachSettings> options, TimeProvider ti
             {
                 usage.Day = today;
                 usage.Tokens = 0;
+                usage.DayRequests = 0;
             }
 
             if (usage.Tokens >= settings.DailyTokenBudget)
@@ -43,6 +44,12 @@ public class ChatUsageLimiter(IOptions<AiCoachSettings> options, TimeProvider ti
                 throw new BusinessLogicException(ErrorCodes.ChatRateLimited);
             }
 
+            if (usage.DayRequests >= settings.DailyRequestLimit)
+            {
+                throw new BusinessLogicException(ErrorCodes.ChatRateLimited);
+            }
+
+            usage.DayRequests++;
             usage.Requests.Enqueue(now);
         }
     }
@@ -62,6 +69,8 @@ public class ChatUsageLimiter(IOptions<AiCoachSettings> options, TimeProvider ti
         public Queue<DateTimeOffset> Requests { get; } = new();
 
         public DateOnly Day { get; set; }
+
+        public int DayRequests { get; set; }
 
         public long Tokens { get; set; }
     }

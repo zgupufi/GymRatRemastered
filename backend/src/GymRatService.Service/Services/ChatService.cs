@@ -21,8 +21,6 @@ public class ChatService(
     IValidator<ChatMessageRequest> requestValidator,
     IOptions<AiCoachSettings> options) : IChatService
 {
-    private const int MaximumToolIterations = 8;
-
     private const string SystemPrompt =
         "You are GymRat Coach, a concise and friendly strength-training coach inside a workout tracking app. " +
         "Answer questions about training, exercises and progression. " +
@@ -50,11 +48,10 @@ public class ChatService(
         {
             Tools = tools.CreateTools(),
             MaxOutputTokens = settings.MaximumOutputTokens,
-            ModelId = settings.Model,
         };
 
-        var client = new ChatClientBuilder(chatClient)
-            .UseFunctionInvocation(configure: invocation => invocation.MaximumIterationsPerRequest = MaximumToolIterations)
+        var client = new ChatClientBuilder(new FailoverChatClient(chatClient, options))
+            .UseFunctionInvocation(configure: invocation => invocation.MaximumIterationsPerRequest = settings.MaximumToolIterations)
             .Build();
 
         ChatResponse response;
@@ -63,7 +60,7 @@ public class ChatService(
         {
             response = await client.GetResponseAsync(messages, chatOptions, cancellationToken);
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
         {
             throw new BusinessLogicException(ErrorCodes.ChatProviderUnavailable);
         }
