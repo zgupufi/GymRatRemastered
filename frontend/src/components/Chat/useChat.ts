@@ -3,8 +3,9 @@ import { ApiError } from '../../api/client'
 import { sendChatMessage, type ChatHistoryItem } from '../../api/chat'
 import { friendlyErrorMessage } from '../../api/errors'
 import { announceWorkoutsChanged } from '../../lib/workoutsChanged'
+import { clearChatEntries, loadChatEntries, saveChatEntries } from './chatStorage'
 
-const HISTORY_LIMIT = 10
+export const HISTORY_LIMIT = 10
 
 export interface ChatEntry {
   id: number
@@ -21,22 +22,34 @@ function errorMessage(error: unknown): string {
   return friendlyErrorMessage(error)
 }
 
-function toHistory(entries: ChatEntry[]): ChatHistoryItem[] {
-  return entries
-    .filter((entry) => entry.kind !== 'error')
-    .slice(-HISTORY_LIMIT)
-    .map((entry) => ({ role: entry.kind === 'user' ? 'User' : 'Assistant', content: entry.content }))
+function withoutLeadingAssistant(entries: ChatEntry[]): ChatEntry[] {
+  const firstUser = entries.findIndex((entry) => entry.kind === 'user')
+  return firstUser === -1 ? [] : entries.slice(firstUser)
+}
+
+export function toHistory(entries: ChatEntry[]): ChatHistoryItem[] {
+  const delivered = entries.filter((entry, index) => entry.kind !== 'error' && entries[index + 1]?.kind !== 'error')
+  return withoutLeadingAssistant(withoutLeadingAssistant(delivered).slice(-HISTORY_LIMIT)).map((entry) => ({
+    role: entry.kind === 'user' ? 'User' : 'Assistant',
+    content: entry.content,
+  }))
 }
 
 export function useChat() {
-  const [entries, setEntries] = useState<ChatEntry[]>([])
+  const [initial] = useState(loadChatEntries)
+  const [entries, setEntries] = useState<ChatEntry[]>(initial)
   const [pending, setPending] = useState(false)
-  const nextId = useRef(0)
-  const entriesRef = useRef<ChatEntry[]>([])
+  const nextId = useRef(initial.reduce((highest, entry) => Math.max(highest, entry.id + 1), 0))
+  const entriesRef = useRef<ChatEntry[]>(initial)
 
   const commit = useCallback((next: ChatEntry[]) => {
     entriesRef.current = next
     setEntries(next)
+    if (next.length > 0) {
+      saveChatEntries(next)
+    } else {
+      clearChatEntries()
+    }
   }, [])
 
   const send = useCallback(

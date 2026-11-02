@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MotionGlobalConfig } from 'motion/react'
 import { MemoryRouter } from 'react-router-dom'
@@ -6,6 +6,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { assignSplitDay, getSplit } from '../../api/split'
 import { getWorkoutSummaries, type WorkoutSummary } from '../../api/workouts'
 import { ToastProvider } from '../../components/ui/Toast'
+import { announceWorkoutsChanged } from '../../lib/workoutsChanged'
 import { SplitPage } from './SplitPage'
 
 vi.mock('../../api/split')
@@ -83,6 +84,18 @@ describe('SplitPage', () => {
     const friday = await screen.findByRole('listitem', { name: 'Friday' })
     expect(within(friday).getByText('Full body')).toBeInTheDocument()
     expect(within(friday).queryByText('Chest')).not.toBeInTheDocument()
+  })
+
+  it('reloads the split when the coach changes workouts', async () => {
+    renderPage()
+    await screen.findByRole('listitem', { name: 'Monday' })
+    vi.mocked(getSplit).mockResolvedValue(days({ 2: legs }))
+
+    act(() => announceWorkoutsChanged())
+
+    const tuesday = await screen.findByRole('listitem', { name: 'Tuesday' })
+    await waitFor(() => expect(within(tuesday).getByRole('button', { name: 'Tuesday workout' })).toHaveTextContent('Leg day'))
+    expect(getSplit).toHaveBeenCalledTimes(2)
   })
 
   it('saves only the changed days', async () => {

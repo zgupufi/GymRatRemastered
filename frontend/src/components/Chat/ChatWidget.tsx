@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ArrowUp, Check, MessageCircle, Sparkles, Trash2, X } from 'lucide-react'
 import { MAX_CHAT_MESSAGE_LENGTH } from '../../api/chat'
@@ -8,6 +8,8 @@ import { useChat } from './useChat'
 import './ChatWidget.css'
 
 const COUNTER_THRESHOLD = 850
+
+const GREETING = "Hi, I'm your GymRat Coach. I can build workouts, change sets and plan your week. What do you need?"
 
 const SUGGESTIONS = [
   'Build a push day',
@@ -21,7 +23,15 @@ export function ChatWidget() {
   const [draft, setDraft] = useState('')
   const { entries, pending, send, retry, clear } = useChat()
   const listRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const input = inputRef.current
+    if (input) {
+      input.style.height = 'auto'
+      input.style.height = `${input.scrollHeight}px`
+    }
+  }, [draft, open])
 
   useEffect(() => {
     const list = listRef.current
@@ -48,13 +58,24 @@ export function ChatWidget() {
   const overLimit = draft.length > MAX_CHAT_MESSAGE_LENGTH
   const canSend = trimmed.length > 0 && !overLimit && !pending
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault()
+  const submit = () => {
     if (!canSend) {
       return
     }
     setDraft('')
     void send(trimmed)
+  }
+
+  const onSubmit = (event: FormEvent) => {
+    event.preventDefault()
+    submit()
+  }
+
+  const onInputKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+      event.preventDefault()
+      submit()
+    }
   }
 
   const ask = (text: string) => {
@@ -115,6 +136,15 @@ export function ChatWidget() {
                 </div>
               ) : null}
 
+              {entries.length > 0 ? (
+                <div className="chat__row">
+                  <span className="chat__avatar chat__avatar--small" aria-hidden="true">
+                    <Sparkles size={13} />
+                  </span>
+                  <div className="chat__bubble chat__bubble--assistant">{GREETING}</div>
+                </div>
+              ) : null}
+
               {entries.map((entry) => {
                 if (entry.kind === 'user') {
                   return (
@@ -165,12 +195,14 @@ export function ChatWidget() {
               ) : null}
             </div>
 
-            <form className="chat__composer" onSubmit={submit}>
+            <form className="chat__composer" onSubmit={onSubmit}>
               <div className="chat__input">
-                <input
+                <textarea
                   ref={inputRef}
+                  rows={1}
                   value={draft}
                   onChange={(event) => setDraft(event.target.value)}
+                  onKeyDown={onInputKeyDown}
                   placeholder="Ask the coach…"
                   aria-label="Message the coach"
                   autoComplete="off"

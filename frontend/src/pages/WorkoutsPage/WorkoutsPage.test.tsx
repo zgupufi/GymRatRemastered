@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MotionGlobalConfig } from 'motion/react'
 import { MemoryRouter } from 'react-router-dom'
@@ -14,6 +14,7 @@ import {
   type WorkoutSummary,
 } from '../../api/workouts'
 import { ToastProvider } from '../../components/ui/Toast'
+import { announceWorkoutsChanged } from '../../lib/workoutsChanged'
 import { WorkoutsPage } from './WorkoutsPage'
 
 vi.mock('../../api/workouts')
@@ -71,6 +72,17 @@ describe('WorkoutsPage', () => {
 
   afterEach(() => {
     vi.resetAllMocks()
+  })
+
+  it('reloads the list when the coach changes workouts', async () => {
+    renderPage()
+    await screen.findByText('Push day')
+    vi.mocked(getWorkoutSummaries).mockResolvedValue(page([push, pull, { ...push, id: 'w3', name: 'Leg day' }]))
+
+    act(() => announceWorkoutsChanged())
+
+    expect(await screen.findByText('Leg day')).toBeInTheDocument()
+    expect(getWorkoutSummaries).toHaveBeenCalledTimes(2)
   })
 
   it('lists workouts with their muscles and exercise count', async () => {

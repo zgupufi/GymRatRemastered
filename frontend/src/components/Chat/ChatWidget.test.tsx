@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { sendChatMessage } from '../../api/chat'
@@ -25,6 +25,7 @@ describe('ChatWidget', () => {
   })
 
   afterEach(() => {
+    sessionStorage.clear()
     vi.resetAllMocks()
   })
 
@@ -151,5 +152,39 @@ describe('ChatWidget', () => {
 
     expect(screen.queryByText('Leg Day')).not.toBeInTheDocument()
     expect(screen.getByText('Your digital trainer')).toBeInTheDocument()
+  })
+
+  it('opens the conversation with a greeting from the coach', async () => {
+    const user = await openChat()
+    expect(screen.queryByText(/I'm your GymRat Coach/)).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Build a push day' }))
+
+    expect(await screen.findByText(/I'm your GymRat Coach/)).toBeInTheDocument()
+    expect(sendChatMessage).toHaveBeenCalledWith('Build a push day', [])
+  })
+
+  it('inserts a new line on Shift+Enter and sends on Enter', async () => {
+    const user = await openChat()
+    const input = screen.getByLabelText('Message the coach')
+
+    await user.type(input, 'Line one{Shift>}{Enter}{/Shift}Line two')
+    expect(input).toHaveValue('Line one\nLine two')
+    expect(sendChatMessage).not.toHaveBeenCalled()
+
+    await user.keyboard('{Enter}')
+    await waitFor(() => expect(sendChatMessage).toHaveBeenCalledWith('Line one\nLine two', []))
+  })
+
+  it('restores the conversation when the widget mounts again', async () => {
+    const user = await openChat()
+    await user.click(screen.getByRole('button', { name: 'Build a push day' }))
+    await screen.findByText('Leg Day')
+    cleanup()
+
+    await openChat()
+
+    expect(screen.getByText('Leg Day')).toBeInTheDocument()
+    expect(screen.getByText('Build a push day')).toBeInTheDocument()
   })
 })
