@@ -1,11 +1,12 @@
 using System.ClientModel;
 using GymRatService.Common.Settings;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace GymRatService.Service.Services;
 
-public sealed class FailoverChatClient(IChatClient inner, IOptions<AiCoachSettings> options) : DelegatingChatClient(inner)
+public sealed class FailoverChatClient(IChatClient inner, IOptions<AiCoachSettings> options, ILogger logger) : DelegatingChatClient(inner)
 {
     public override async Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? chatOptions = null, CancellationToken cancellationToken = default)
     {
@@ -17,6 +18,11 @@ public sealed class FailoverChatClient(IChatClient inner, IOptions<AiCoachSettin
         {
             var response = await base.GetResponseAsync(history, WithModel(chatOptions, settings.Model), cancellationToken);
 
+            if (hasFallback && IsEmpty(response))
+            {
+                logger.LogWarning("AI coach model {Model} returned an empty reply, trying {FallbackModel}", settings.Model, settings.FallbackModel);
+            }
+
             if (!hasFallback || !IsEmpty(response))
             {
                 return response;
@@ -24,6 +30,7 @@ public sealed class FailoverChatClient(IChatClient inner, IOptions<AiCoachSettin
         }
         catch (Exception exception) when (hasFallback && ShouldFailOver(exception, cancellationToken))
         {
+            logger.LogWarning(exception, "AI coach model {Model} failed, trying {FallbackModel}", settings.Model, settings.FallbackModel);
         }
 
         return await base.GetResponseAsync(history, WithModel(chatOptions, settings.FallbackModel), cancellationToken);

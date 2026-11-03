@@ -6,6 +6,7 @@ using GymRatService.Common.Settings;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Interfaces;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using AiChatRole = Microsoft.Extensions.AI.ChatRole;
 using ChatRole = GymRatService.Common.Enums.ChatRole;
@@ -19,7 +20,8 @@ public class ChatService(
     IExercisesService exercisesService,
     IChatUsageLimiter usageLimiter,
     IValidator<ChatMessageRequest> requestValidator,
-    IOptions<AiCoachSettings> options) : IChatService
+    IOptions<AiCoachSettings> options,
+    ILogger<ChatService> logger) : IChatService
 {
     private const string SystemPrompt =
         "You are GymRat Coach, a concise and friendly strength-training coach inside a workout tracking app. " +
@@ -50,7 +52,7 @@ public class ChatService(
             MaxOutputTokens = settings.MaximumOutputTokens,
         };
 
-        var client = new ChatClientBuilder(new FailoverChatClient(chatClient, options))
+        var client = new ChatClientBuilder(new FailoverChatClient(chatClient, options, logger))
             .UseFunctionInvocation(configure: invocation => invocation.MaximumIterationsPerRequest = settings.MaximumToolIterations)
             .Build();
 
@@ -60,8 +62,10 @@ public class ChatService(
         {
             response = await client.GetResponseAsync(messages, chatOptions, cancellationToken);
         }
-        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
         {
+            logger.LogError(exception, "AI coach request failed");
+
             throw new BusinessLogicException(ErrorCodes.ChatProviderUnavailable);
         }
 
