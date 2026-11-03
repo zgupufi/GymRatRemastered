@@ -10,6 +10,7 @@ import { SegmentedControl } from '../../components/ui/SegmentedControl'
 import { Spinner } from '../../components/ui/Spinner'
 import { useToast } from '../../components/ui/ToastContext'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { useWorkoutsChanged } from '../../lib/workoutsChanged'
 import './WorkoutsPage.css'
 
 const PAGE_SIZE = 10
@@ -44,6 +45,7 @@ export function WorkoutsPage() {
   const debouncedTerm = useDebouncedValue(term.trim(), SEARCH_DELAY_MS)
 
   const reload = useCallback(() => setReloadKey((key) => key + 1), [])
+  useWorkoutsChanged(reload)
 
   useEffect(() => {
     const controller = new AbortController()

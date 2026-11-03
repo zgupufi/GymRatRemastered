@@ -1,0 +1,115 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--bg:#05070d;--surface:#111725;--surface-2:#182033;--surface-3:#222b40;--text:#f5f7fb;--text-2:#b4bccc;--text-3:#7d879b;--text-4:#535c70;--blue:#3d8bff;--emerald:#22c58b;--cyan:#2ad1e8;--red:#ff6b6d;--orange:#ff9f2e;--hair:rgba(255,255,255,.08)}
+*{box-sizing:border-box;margin:0}
+body{background:#000;color:var(--text);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;padding:28px;width:1640px}
+.label{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
+.row{display:grid;grid-template-columns:860px 360px 360px;gap:24px;align-items:start}
+.frame{background:var(--bg);border:1px solid var(--hair);border-radius:28px;position:relative;overflow:hidden;background-image:radial-gradient(520px 300px at 20% -5%,rgba(61,139,255,.16),transparent),radial-gradient(520px 300px at 100% 105%,rgba(34,197,139,.12),transparent)}
+.desk{height:760px}
+.mob{height:760px}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:20px 28px}
+.logo{font-weight:700;font-size:18px;letter-spacing:-.02em}
+.chip{padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--hair);font-size:13px;color:var(--text-2)}
+.ghostcard{margin:10px 28px;height:120px;border-radius:24px;background:rgba(17,23,37,.5);border:1px solid var(--hair)}
+.ghostgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 28px}
+.ghostgrid div{height:100px;border-radius:22px;background:rgba(17,23,37,.4);border:1px solid var(--hair)}
+.fab{position:absolute;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--cyan),var(--blue));box-shadow:0 10px 30px -6px rgba(42,209,232,.55),0 1px 0 rgba(255,255,255,.35) inset;color:#03141a}
+.panel{position:absolute;background:rgba(17,23,37,.78);backdrop-filter:blur(30px) saturate(160%);border:1px solid rgba(255,255,255,.14);border-radius:26px;box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 40px 80px -20px rgba(0,0,0,.8);display:flex;flex-direction:column;overflow:hidden}
+.panel.d{right:24px;bottom:96px;width:400px;height:600px}
+.panel.m{left:10px;right:10px;top:14px;bottom:10px}
+.head{display:flex;align-items:center;gap:12px;padding:16px 16px 14px;border-bottom:1px solid var(--hair)}
+.av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:rgba(42,209,232,.14);color:var(--cyan);flex:none}
+.head h4{font-size:16px;font-weight:650;letter-spacing:-.01em}
+.head small{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3);margin-top:2px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--emerald)}
+.sp{flex:1}
+.ib{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.06);display:grid;place-items:center;color:var(--text-2);font-size:14px}
+.msgs{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.m1{display:flex;gap:8px;align-items:flex-end}
+.m1.u{justify-content:flex-end}
+.sav{width:26px;height:26px;border-radius:50%;background:rgba(42,209,232,.14);color:var(--cyan);display:grid;place-items:center;flex:none;font-size:12px}
+.b{max-width:80%;padding:10px 14px;border-radius:20px;font-size:14px;line-height:1.45}
+.b.ai{background:var(--surface-2);border:1px solid var(--hair);border-bottom-left-radius:6px;color:var(--text)}
+.b.me{background:var(--blue);color:#fff;border-bottom-right-radius:6px}
+.b strong{color:var(--cyan);font-weight:600}
+.b ul{padding-left:18px;margin-top:6px;color:var(--text-2)}
+.note{align-self:flex-start;margin-left:34px;display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:rgba(34,197,139,.12);border:1px solid rgba(34,197,139,.3);color:var(--emerald);font-size:12px;font-weight:600}
+.typing{display:inline-flex;gap:4px;padding:13px 15px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--cyan);opacity:.35}
+.typing i:nth-child(2){opacity:.65}.typing i:nth-child(3){opacity:1}
+.comp{padding:12px 14px 14px;border-top:1px solid var(--hair)}
+.inp{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.22);border:1px solid var(--hair);border-radius:999px;padding:5px 5px 5px 16px}
+.inp.focus{border-color:rgba(42,209,232,.6);box-shadow:0 0 0 4px rgba(42,209,232,.18)}
+.inp span{flex:1;font-size:14px;color:var(--text-3)}
+.inp span.t{color:var(--text)}
+.send{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--blue));display:grid;place-items:center;color:#03141a;font-weight:700}
+.send.off{background:rgba(255,255,255,.08);color:var(--text-4)}
+.cnt{text-align:right;font:500 11px ui-monospace,Consolas,monospace;color:var(--text-3);margin-top:6px;padding-right:6px}
+.cnt.warn{color:var(--orange)}
+.sugs{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.sug{padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--hair);font-size:13px;color:var(--text-2)}
+.hero{text-align:center;margin:36px 0 18px}
+.hero .av{width:56px;height:56px;margin:0 auto 14px}
+.hero h3{font-size:20px;letter-spacing:-.02em}
+.hero p{color:var(--text-3);font-size:14px;margin-top:6px;line-height:1.45}
+.err{align-self:flex-start;margin-left:34px;max-width:80%;padding:10px 14px;border-radius:16px;background:rgba(255,77,79,.12);border:1px solid rgba(255,77,79,.28);color:var(--red);font-size:13px;line-height:1.45}
+.err b{display:block;margin-top:6px;color:var(--text);font-weight:600;font-size:12px}
+</style></head><body>
+<div class="row">
+
+<div>
+<div class="label">Desktop · open, a workout was created</div>
+<div class="frame desk">
+  <div class="nav"><div class="logo">GymRat</div><div class="chip">Profile</div></div>
+  <div class="ghostcard"></div>
+  <div class="ghostgrid"><div></div><div></div><div></div><div></div></div>
+  <div class="panel d">
+    <div class="head"><div class="av">✦</div><div><h4>GymRat Coach</h4><small><i class="dot"></i>AI assistant · Online</small></div><div class="sp"></div><div class="ib">⌫</div><div class="ib">✕</div></div>
+    <div class="msgs">
+      <div class="m1"><div class="sav">✦</div><div class="b ai">Hi, I'm your GymRat Coach. I can build workouts, change sets and plan your week. What do you need?</div></div>
+      <div class="m1 u"><div class="b me">Build me a 3 exercise leg day</div></div>
+      <div class="m1"><div class="sav">✦</div><div class="b ai">Done. I created <strong>Leg Day</strong> with:<ul><li>Barbell squat · 4 sets</li><li>Romanian deadlift · 3 sets</li><li>Leg press · 3 sets</li></ul></div></div>
+      <div class="note">✓ Workouts updated</div>
+      <div class="m1 u"><div class="b me">Put it on Friday</div></div>
+      <div class="m1"><div class="sav">✦</div><div class="b ai typing"><i></i><i></i><i></i></div></div>
+    </div>
+    <div class="comp"><div class="inp"><span>Ask the coach…</span><div class="send off">↑</div></div></div>
+  </div>
+  <div class="fab" style="right:24px;bottom:24px">✕</div>
+</div>
+</div>
+
+<div>
+<div class="label">Mobile · empty state</div>
+<div class="frame mob">
+  <div class="panel m">
+    <div class="head"><div class="av">✦</div><div><h4>GymRat Coach</h4><small><i class="dot"></i>AI assistant · Online</small></div><div class="sp"></div><div class="ib">✕</div></div>
+    <div class="msgs">
+      <div class="hero"><div class="av">✦</div><h3>Your digital trainer</h3><p>Ask for a workout, tweak your sets or plan your week. I'll update your app as we go.</p></div>
+      <div class="sugs"><span class="sug">Build a push day</span><span class="sug">Add 1 set to every exercise</span><span class="sug">Plan my week, 4 days</span><span class="sug">Swap squats for leg press</span></div>
+    </div>
+    <div class="comp"><div class="inp focus"><span class="t">Build a push day|</span><div class="send">↑</div></div></div>
+  </div>
+</div>
+</div>
+
+<div>
+<div class="label">Mobile · limit and error states</div>
+<div class="frame mob">
+  <div class="panel m">
+    <div class="head"><div class="av">✦</div><div><h4>GymRat Coach</h4><small><i class="dot"></i>AI assistant · Online</small></div><div class="sp"></div><div class="ib">⌫</div><div class="ib">✕</div></div>
+    <div class="msgs">
+      <div class="m1 u"><div class="b me">Swap squats for leg press in Leg Day</div></div>
+      <div class="err">You're sending messages too fast. Wait a moment and try again.<b>Retry</b></div>
+      <div class="m1 u"><div class="b me">Plan my week</div></div>
+      <div class="err">The AI coach isn't available right now. Please try again later.<b>Retry</b></div>
+    </div>
+    <div class="comp"><div class="inp focus"><span class="t">Make my chest day harder, add more volume and also drop</span><div class="send">↑</div></div><div class="cnt warn">880 / 1000</div></div>
+  </div>
+</div>
+</div>
+
+</div>
+</body></html>
