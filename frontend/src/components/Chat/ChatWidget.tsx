@@ -89,7 +89,7 @@ export function ChatWidget() {
       <AnimatePresence>
         {open ? (
           <motion.section
-            className="chat"
+            className="coach"
             role="dialog"
             aria-label="GymRat Coach"
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -97,38 +97,38 @@ export function ChatWidget() {
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
             transition={spring}
           >
-            <header className="chat__header">
-              <span className="chat__avatar" aria-hidden="true">
+            <header className="coach__header">
+              <span className="coach__avatar" aria-hidden="true">
                 <Sparkles size={18} />
               </span>
-              <div className="chat__title">
+              <div className="coach__title">
                 <h2>GymRat Coach</h2>
                 <p>
-                  <span className="chat__dot" aria-hidden="true" />
+                  <span className="coach__dot" aria-hidden="true" />
                   AI assistant · Online
                 </p>
               </div>
               {entries.length > 0 ? (
-                <button type="button" className="chat__icon-button" aria-label="Clear chat" onClick={clear} disabled={pending}>
+                <button type="button" className="coach__icon-button" aria-label="Clear chat" onClick={clear} disabled={pending}>
                   <Trash2 size={15} aria-hidden="true" />
                 </button>
               ) : null}
-              <button type="button" className="chat__icon-button" aria-label="Close chat" onClick={() => setOpen(false)}>
+              <button type="button" className="coach__icon-button" aria-label="Close chat" onClick={() => setOpen(false)}>
                 <X size={16} aria-hidden="true" />
               </button>
             </header>
 
-            <div className="chat__messages" ref={listRef} role="log" aria-live="polite">
+            <div className="coach__messages" ref={listRef} role="log" aria-live="polite">
               {entries.length === 0 ? (
-                <div className="chat__empty">
-                  <span className="chat__avatar chat__avatar--large" aria-hidden="true">
+                <div className="coach__empty">
+                  <span className="coach__avatar coach__avatar--large" aria-hidden="true">
                     <Sparkles size={26} />
                   </span>
                   <h3>Your digital trainer</h3>
                   <p>Ask for a workout, tweak your sets or plan your week. I will update your app as we go.</p>
-                  <div className="chat__suggestions">
+                  <div className="coach__suggestions">
                     {SUGGESTIONS.map((suggestion) => (
-                      <button key={suggestion} type="button" className="chat__suggestion" onClick={() => ask(suggestion)}>
+                      <button key={suggestion} type="button" className="coach__suggestion" onClick={() => ask(suggestion)}>
                         {suggestion}
                       </button>
                     ))}
@@ -137,25 +137,25 @@ export function ChatWidget() {
               ) : null}
 
               {entries.length > 0 ? (
-                <div className="chat__row">
-                  <span className="chat__avatar chat__avatar--small" aria-hidden="true">
+                <div className="coach__row">
+                  <span className="coach__avatar coach__avatar--small" aria-hidden="true">
                     <Sparkles size={13} />
                   </span>
-                  <div className="chat__bubble chat__bubble--assistant">{GREETING}</div>
+                  <div className="coach__bubble coach__bubble--assistant">{GREETING}</div>
                 </div>
               ) : null}
 
               {entries.map((entry) => {
                 if (entry.kind === 'user') {
                   return (
-                    <div key={entry.id} className="chat__row chat__row--user">
-                      <div className="chat__bubble chat__bubble--user">{entry.content}</div>
+                    <div key={entry.id} className="coach__row coach__row--user">
+                      <div className="coach__bubble coach__bubble--user">{entry.content}</div>
                     </div>
                   )
                 }
                 if (entry.kind === 'error') {
                   return (
-                    <div key={entry.id} className="chat__error" role="alert">
+                    <div key={entry.id} className="coach__error" role="alert">
                       {entry.content}
                       <button type="button" onClick={() => void retry(entry.id)} disabled={pending}>
                         Retry
@@ -164,15 +164,15 @@ export function ChatWidget() {
                   )
                 }
                 return (
-                  <div key={entry.id} className="chat__group">
-                    <div className="chat__row">
-                      <span className="chat__avatar chat__avatar--small" aria-hidden="true">
+                  <div key={entry.id} className="coach__group">
+                    <div className="coach__row">
+                      <span className="coach__avatar coach__avatar--small" aria-hidden="true">
                         <Sparkles size={13} />
                       </span>
-                      <div className="chat__bubble chat__bubble--assistant">{formatReply(entry.content)}</div>
+                      <div className="coach__bubble coach__bubble--assistant">{formatReply(entry.content)}</div>
                     </div>
                     {entry.workoutsChanged ? (
-                      <span className="chat__updated">
+                      <span className="coach__updated">
                         <Check size={12} strokeWidth={3} aria-hidden="true" />
                         Workouts updated
                       </span>
@@ -182,11 +182,11 @@ export function ChatWidget() {
               })}
 
               {pending ? (
-                <div className="chat__row" role="status" aria-label="The coach is typing">
-                  <span className="chat__avatar chat__avatar--small" aria-hidden="true">
+                <div className="coach__row" role="status" aria-label="The coach is typing">
+                  <span className="coach__avatar coach__avatar--small" aria-hidden="true">
                     <Sparkles size={13} />
                   </span>
-                  <div className="chat__bubble chat__bubble--assistant chat__typing" aria-hidden="true">
+                  <div className="coach__bubble coach__bubble--assistant coach__typing" aria-hidden="true">
                     <i />
                     <i />
                     <i />
@@ -195,8 +195,8 @@ export function ChatWidget() {
               ) : null}
             </div>
 
-            <form className="chat__composer" onSubmit={onSubmit}>
-              <div className="chat__input">
+            <form className="coach__composer" onSubmit={onSubmit}>
+              <div className="coach__input">
                 <textarea
                   ref={inputRef}
                   rows={1}
@@ -209,7 +209,7 @@ export function ChatWidget() {
                 />
                 <motion.button
                   type="submit"
-                  className="chat__send"
+                  className="coach__send"
                   aria-label="Send message"
                   disabled={!canSend}
                   whileTap={canSend ? press : undefined}
@@ -219,7 +219,7 @@ export function ChatWidget() {
                 </motion.button>
               </div>
               {draft.length >= COUNTER_THRESHOLD ? (
-                <p className={`chat__counter${overLimit ? ' chat__counter--over' : ''}`}>
+                <p className={`coach__counter${overLimit ? ' coach__counter--over' : ''}`}>
                   {draft.length} / {MAX_CHAT_MESSAGE_LENGTH}
                 </p>
               ) : null}
@@ -230,7 +230,7 @@ export function ChatWidget() {
 
       <motion.button
         type="button"
-        className={`chat__fab${open ? ' chat__fab--open' : ''}`}
+        className={`coach__fab${open ? ' coach__fab--open' : ''}`}
         aria-label={open ? 'Close GymRat Coach' : 'Open GymRat Coach'}
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}

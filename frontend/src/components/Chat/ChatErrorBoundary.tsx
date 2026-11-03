@@ -19,7 +19,7 @@ export class ChatErrorBoundary extends Component<ChatErrorBoundaryProps, ChatErr
   render() {
     if (this.state.failed) {
       return (
-        <div className="chat__crash" role="alert">
+        <div className="coach__crash" role="alert">
           The coach hit a problem. Reload the page to try again.
         </div>
       )
