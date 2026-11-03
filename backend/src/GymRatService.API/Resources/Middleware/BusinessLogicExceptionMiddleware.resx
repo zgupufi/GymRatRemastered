@@ -39,6 +39,15 @@
   <data name="BLException_SessionsService_SessionAlreadyFinished" xml:space="preserve">
     <value>Session {0} has already been finished.</value>
   </data>
+  <data name="BLException_ChatService_RateLimited" xml:space="preserve">
+    <value>You have sent too many messages. Please wait a moment and try again.</value>
+  </data>
+  <data name="BLException_ChatService_TokenBudgetExceeded" xml:space="preserve">
+    <value>You have reached your daily AI coach limit. Please try again tomorrow.</value>
+  </data>
+  <data name="BLException_ChatService_ProviderUnavailable" xml:space="preserve">
+    <value>The AI coach is unavailable right now. Please try again later.</value>
+  </data>
   <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
     <value>The request is not valid.</value>
   </data>

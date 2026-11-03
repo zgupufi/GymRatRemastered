@@ -38,6 +38,7 @@ services:
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=gymrat;Username=gymrat;Password=${POSTGRES_PASSWORD:-gymrat-dev}
       JwtSettings__Key: ${JWT_KEY:-gymrat-development-only-jwt-signing-key}
       PasswordSettings__Pepper: ${PASSWORD_PEPPER:-gymrat-development-only-password-pepper}
+      AiCoach__ApiKey: ${AI_COACH_API_KEY:-}
     ports:
       - "${API_PORT:-8080}:8080"
 
