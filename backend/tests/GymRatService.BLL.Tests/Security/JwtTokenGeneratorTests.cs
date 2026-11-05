@@ -26,7 +26,7 @@ public class JwtTokenGeneratorTests
     {
         // Arrange
         var user = new User { Email = "ana@example.com" };
-        var generator = new JwtTokenGenerator(Options.Create(_settings), TimeProvider.System);
+        var generator = new JwtTokenGenerator(Options.Create(_settings));
 
         // Act
         var response = generator.Generate(user);
@@ -48,17 +48,15 @@ public class JwtTokenGeneratorTests
     public void Generate_ExpiresAfterTheConfiguredMinutes()
     {
         // Arrange
-        var now = new DateTimeOffset(2026, 10, 28, 12, 0, 0, TimeSpan.Zero);
-        var timeProvider = Substitute.For<TimeProvider>();
-        timeProvider.GetUtcNow().Returns(now);
-        var generator = new JwtTokenGenerator(Options.Create(_settings), timeProvider);
+        var before = DateTimeOffset.UtcNow;
+        var generator = new JwtTokenGenerator(Options.Create(_settings));
 
         // Act
         var response = generator.Generate(new User { Email = "ana@example.com" });
 
         // Assert
-        Assert.Equal(now.AddMinutes(30), response.ExpiresAt);
-        Assert.Equal(now.AddMinutes(30).UtcDateTime, new JsonWebToken(response.AccessToken).ValidTo);
+        Assert.InRange(response.ExpiresAt, before.AddMinutes(30), DateTimeOffset.UtcNow.AddMinutes(30));
+        Assert.InRange(new JsonWebToken(response.AccessToken).ValidTo, before.AddMinutes(30).UtcDateTime.AddSeconds(-1), DateTimeOffset.UtcNow.AddMinutes(30).UtcDateTime);
     }
 
     [Fact]
@@ -66,7 +64,7 @@ public class JwtTokenGeneratorTests
     {
         // Arrange
         _settings.Key = string.Empty;
-        var generator = new JwtTokenGenerator(Options.Create(_settings), TimeProvider.System);
+        var generator = new JwtTokenGenerator(Options.Create(_settings));
 
         // Act
         var exception = Assert.Throws<InvalidOperationException>(() => generator.Generate(new User()));

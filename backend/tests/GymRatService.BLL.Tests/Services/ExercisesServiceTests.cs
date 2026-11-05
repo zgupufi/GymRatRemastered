@@ -1,8 +1,6 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Exercises;
 using GymRatService.Common.Errors;
 using GymRatService.Common.Filtering;
-using GymRatService.Service.Validators;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
@@ -18,7 +16,7 @@ public class ExercisesServiceTests
 
     public ExercisesServiceTests()
     {
-        _service = new ExercisesService(_repository, new ExerciseFilterValidator());
+        _service = new ExercisesService(_repository);
     }
 
     [Fact]
@@ -42,21 +40,6 @@ public class ExercisesServiceTests
         Assert.Equal(1, exercises.Page);
         Assert.Equal(20, exercises.PageSize);
         Assert.Equal(2, exercises.TotalCount);
-    }
-
-    [Fact]
-    public async Task GetExercisesAsync_ThrowsAValidationException_WhenThePageSizeIsTooLarge()
-    {
-        // Arrange
-        var filter = new ExerciseFilter { Pagination = new PaginationFilter { PageSize = 101 } };
-
-        // Act
-        var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.GetExercisesAsync(filter, CancellationToken.None));
-
-        // Assert
-        Assert.Equal("Pagination.PageSize", Assert.Single(exception.Errors).PropertyName);
-        await _repository.DidNotReceiveWithAnyArgs().GetAllAsync(default!, default);
     }
 
     [Fact]

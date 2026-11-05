@@ -1,7 +1,7 @@
 using FluentValidation;
 using GymRatService.Common.DTOs.Sessions;
 
-namespace GymRatService.Service.Validators;
+namespace GymRatService.API.Validators;
 
 public class StartSessionRequestValidator : AbstractValidator<StartSessionRequest>
 {

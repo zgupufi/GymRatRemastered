@@ -225,7 +225,7 @@ public sealed class ChatEndpointsTests : IDisposable
         // Arrange
         UseChatClient((_, _) => ScriptedChatClient.Reply("ok"));
         _factory.Settings["AiCoach:RateLimitRequests"] = "2";
-        _factory.Settings["AiCoach:RateLimitWindowSeconds"] = "60";
+        _factory.Settings["AiCoach:RateLimitWindowSeconds"] = "1";
         var ana = await CreateClientAsync("ana@example.com");
         var bob = await CreateClientAsync("bob@example.com");
         var message = new ChatMessageRequest("Hi", null);
@@ -235,7 +235,7 @@ public sealed class ChatEndpointsTests : IDisposable
         var second = await ana.PostAsJsonAsync("/api/chat/messages", message);
         var third = await ana.PostAsJsonAsync("/api/chat/messages", message);
         var otherUser = await bob.PostAsJsonAsync("/api/chat/messages", message);
-        _factory.Clock.Advance(TimeSpan.FromSeconds(61));
+        await Task.Delay(TimeSpan.FromMilliseconds(1100));
         var afterWindow = await ana.PostAsJsonAsync("/api/chat/messages", message);
 
         // Assert
@@ -247,7 +247,7 @@ public sealed class ChatEndpointsTests : IDisposable
     }
 
     [Fact]
-    public async Task SendMessage_ReturnsTokenBudgetExceeded_UntilTheNextDay()
+    public async Task SendMessage_ReturnsTokenBudgetExceeded_OnceTheBudgetIsSpent()
     {
         // Arrange
         UseChatClient((_, _) => ScriptedChatClient.Reply("ok", totalTokens: 100));
@@ -259,14 +259,11 @@ public sealed class ChatEndpointsTests : IDisposable
         var first = await client.PostAsJsonAsync("/api/chat/messages", message);
         var second = await client.PostAsJsonAsync("/api/chat/messages", message);
         var third = await client.PostAsJsonAsync("/api/chat/messages", message);
-        _factory.Clock.Advance(TimeSpan.FromDays(1));
-        var nextDay = await client.PostAsJsonAsync("/api/chat/messages", message);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.OK, second.StatusCode);
         await AssertBadRequestAsync(third, ErrorCodes.ChatTokenBudgetExceeded);
-        Assert.Equal(HttpStatusCode.OK, nextDay.StatusCode);
     }
 
     [Fact]

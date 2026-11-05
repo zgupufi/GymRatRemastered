@@ -1,7 +1,7 @@
 using FluentValidation;
 using GymRatService.Common.DTOs.Users;
 
-namespace GymRatService.Service.Validators;
+namespace GymRatService.API.Validators;
 
 public class UpdateUserSettingsRequestValidator : AbstractValidator<UpdateUserSettingsRequest>
 {

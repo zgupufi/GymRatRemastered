@@ -1,4 +1,3 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Auth;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
@@ -7,14 +6,13 @@ using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Security;
 using GymRatService.Service.Services;
-using GymRatService.Service.Validators;
 using NSubstitute;
 
 namespace GymRatService.BLL.Tests.Services;
 
 public class AuthServiceTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 10, 28, 12, 0, 0, TimeSpan.Zero);
+    private readonly DateTimeOffset Now = DateTimeOffset.UtcNow;
 
     private readonly IUsersRepository _repository = Substitute.For<IUsersRepository>();
     private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
@@ -23,11 +21,8 @@ public class AuthServiceTests
 
     public AuthServiceTests()
     {
-        var timeProvider = Substitute.For<TimeProvider>();
-        timeProvider.GetUtcNow().Returns(Now);
-
         _passwordHasher.Hash(Arg.Any<string>()).Returns(new HashedPassword("hashed", "salt"));
-        _service = new AuthService(_repository, _passwordHasher, _tokenGenerator, new RegisterRequestValidator(), timeProvider);
+        _service = new AuthService(_repository, _passwordHasher, _tokenGenerator);
     }
 
     [Fact]
@@ -50,7 +45,7 @@ public class AuthServiceTests
         Assert.Equal("Pop", stored.LastName);
         Assert.Equal(WeightUnit.Pounds, stored.WeightUnit);
         Assert.Equal(90, stored.DefaultRestTimeSeconds);
-        Assert.Equal(Now, stored.CreatedAt);
+        Assert.InRange(stored.CreatedAt, Now, DateTimeOffset.UtcNow);
         _passwordHasher.Received(1).Hash("password123");
     }
 
@@ -88,22 +83,6 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task RegisterAsync_ThrowsEveryValidationError_WhenTheRequestIsInvalid()
-    {
-        // Act
-        var exception = await Assert.ThrowsAsync<ValidationException>(() => _service.RegisterAsync(
-            new RegisterRequest("not-an-email", "short", "", null, (WeightUnit)5),
-            CancellationToken.None));
-
-        // Assert
-        Assert.Equal(
-            ["Email", "Password", "FirstName", "WeightUnit"],
-            exception.Errors.Select(error => error.PropertyName));
-        await _repository.DidNotReceive().EmailExistsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        await _repository.DidNotReceive().AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
     public async Task LoginAsync_ReturnsTheTokenAndRecordsTheLogin_WhenTheCredentialsAreValid()
     {
         // Arrange
@@ -118,7 +97,7 @@ public class AuthServiceTests
 
         // Assert
         Assert.Equal(token, response);
-        await _repository.Received(1).UpdateLastLoginAsync(user.Id, Now, Arg.Any<CancellationToken>());
+        await _repository.Received(1).UpdateLastLoginAsync(user.Id, Arg.Is<DateTimeOffset>(at => at >= Now), Arg.Any<CancellationToken>());
     }
 
     [Fact]

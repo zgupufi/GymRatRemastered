@@ -1,4 +1,3 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Chat;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
@@ -18,8 +17,8 @@ public class ChatService(
     IWorkoutsService workoutsService,
     ISplitService splitService,
     IExercisesService exercisesService,
+    IInputValidator inputValidator,
     IChatUsageLimiter usageLimiter,
-    IValidator<ChatMessageRequest> requestValidator,
     IOptions<AiCoachSettings> options,
     ILogger<ChatService> logger) : IChatService
 {
@@ -33,12 +32,10 @@ public class ChatService(
 
     public async Task<ChatMessageResponse> SendMessageAsync(Guid userId, ChatMessageRequest request, CancellationToken cancellationToken)
     {
-        await requestValidator.ValidateAndThrowAsync(request, cancellationToken);
-
         usageLimiter.EnsureAllowed(userId);
 
         var settings = options.Value;
-        var tools = new ChatTools(userId, workoutsService, splitService, exercisesService, cancellationToken);
+        var tools = new ChatTools(userId, workoutsService, splitService, exercisesService, inputValidator, cancellationToken);
 
         var messages = new List<ChatMessage> { new(AiChatRole.System, SystemPrompt) };
         messages.AddRange((request.History ?? [])

@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\GymRatService.Service\GymRatService.Service.csproj" />
+    <ProjectReference Include="..\..\src\GymRatService.API\GymRatService.API.csproj" />
   </ItemGroup>
 
 </Project>

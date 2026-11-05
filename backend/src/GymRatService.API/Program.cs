@@ -1,5 +1,6 @@
 using System.Text;
 using GymRatService.API.Extensions;
+using GymRatService.API.Filters;
 using GymRatService.API.Middleware;
 using GymRatService.Common.Settings;
 using GymRatService.Service;
@@ -44,7 +45,8 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddAiCoach(builder.Configuration);
 
-builder.Services.AddControllers();
+builder.Services.AddRequestValidation();
+builder.Services.AddControllers(options => options.Filters.AddService<ValidationActionFilter>());
 builder.Services.AddOpenApi();
 
 builder.Services.AddServiceLayer(builder.Configuration.GetConnectionString("DefaultConnection"));

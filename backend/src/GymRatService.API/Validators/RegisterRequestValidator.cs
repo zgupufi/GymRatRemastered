@@ -1,7 +1,7 @@
 using FluentValidation;
 using GymRatService.Common.DTOs.Auth;
 
-namespace GymRatService.Service.Validators;
+namespace GymRatService.API.Validators;
 
 public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {
