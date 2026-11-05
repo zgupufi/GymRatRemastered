@@ -2,7 +2,7 @@ using FluentValidation;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Filtering;
 
-namespace GymRatService.Service.Validators;
+namespace GymRatService.API.Validators;
 
 public class ExerciseFilterValidator : FilterValidator<ExerciseFilter, ExerciseSortField>
 {

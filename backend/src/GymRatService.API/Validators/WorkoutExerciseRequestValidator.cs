@@ -1,7 +1,7 @@
 using FluentValidation;
 using GymRatService.Common.DTOs.Workouts;
 
-namespace GymRatService.Service.Validators;
+namespace GymRatService.API.Validators;
 
 public class WorkoutExerciseRequestValidator : AbstractValidator<WorkoutExerciseRequest>
 {

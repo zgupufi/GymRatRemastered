@@ -1,4 +1,3 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Auth;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
@@ -7,7 +6,6 @@ using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Security;
 using GymRatService.Service.Services;
-using GymRatService.Service.Validators;
 using NSubstitute;
 
 namespace GymRatService.BLL.Tests.Services;
@@ -27,7 +25,7 @@ public class AuthServiceTests
         timeProvider.GetUtcNow().Returns(Now);
 
         _passwordHasher.Hash(Arg.Any<string>()).Returns(new HashedPassword("hashed", "salt"));
-        _service = new AuthService(_repository, _passwordHasher, _tokenGenerator, new RegisterRequestValidator(), timeProvider);
+        _service = new AuthService(_repository, _passwordHasher, _tokenGenerator, timeProvider);
     }
 
     [Fact]
@@ -84,22 +82,6 @@ public class AuthServiceTests
 
         // Assert
         Assert.Equal(ErrorCodes.EmailAlreadyExists, exception.Code);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task RegisterAsync_ThrowsEveryValidationError_WhenTheRequestIsInvalid()
-    {
-        // Act
-        var exception = await Assert.ThrowsAsync<ValidationException>(() => _service.RegisterAsync(
-            new RegisterRequest("not-an-email", "short", "", null, (WeightUnit)5),
-            CancellationToken.None));
-
-        // Assert
-        Assert.Equal(
-            ["Email", "Password", "FirstName", "WeightUnit"],
-            exception.Errors.Select(error => error.PropertyName));
-        await _repository.DidNotReceive().EmailExistsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await _repository.DidNotReceive().AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 

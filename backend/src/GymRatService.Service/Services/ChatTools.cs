@@ -1,4 +1,3 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Workouts;
 using GymRatService.Common.Filtering;
 using GymRatService.Service.Exceptions;
@@ -101,10 +100,6 @@ public sealed class ChatTools(
         catch (BusinessLogicException exception)
         {
             return new { error = exception.Code };
-        }
-        catch (ValidationException exception)
-        {
-            return new { error = exception.Errors.Select(error => $"{error.PropertyName}: {error.ErrorMessage}") };
         }
     }
 }

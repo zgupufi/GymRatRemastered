@@ -455,7 +455,6 @@ public sealed class ChatEndpointsTests : IDisposable
         var chat = UseChatClient((messages, _) => ToolCount(messages) switch
         {
             0 => ScriptedChatClient.CallTool("get_workout", new { workoutId = missing }),
-            1 => ScriptedChatClient.CallTool("create_workout", new { name = "" }),
             _ => ScriptedChatClient.Reply("That failed."),
         });
 
@@ -467,7 +466,6 @@ public sealed class ChatEndpointsTests : IDisposable
         Assert.Equal(new ChatMessageResponse("That failed.", false), body);
         var results = ScriptedChatClient.ToolResultElements(chat.Calls[^1]);
         Assert.Equal(ErrorCodes.WorkoutNotFound, results[0].GetProperty("error").GetString());
-        Assert.Contains("Name", results[1].GetProperty("error")[0].GetString());
     }
 
     [Fact]

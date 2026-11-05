@@ -1,4 +1,5 @@
 using GymRatService.API.Extensions;
+using GymRatService.API.Requests;
 using GymRatService.Common.DTOs.Split;
 using GymRatService.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -22,11 +23,11 @@ public class SplitController(ISplitService splitService) : ControllerBase
     }
 
     [HttpPut("{day}")]
-    public async Task<IActionResult> AssignSplitDayAsync(int day, AssignSplitDayRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> AssignSplitDayAsync(SplitDayRoute route, AssignSplitDayRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 
-        await splitService.AssignSplitDayAsync(userId, day, request, cancellationToken);
+        await splitService.AssignSplitDayAsync(userId, route.Day, request, cancellationToken);
 
         return NoContent();
     }

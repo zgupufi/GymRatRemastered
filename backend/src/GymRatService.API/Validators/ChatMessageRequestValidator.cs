@@ -3,7 +3,7 @@ using GymRatService.Common.DTOs.Chat;
 using GymRatService.Common.Settings;
 using Microsoft.Extensions.Options;
 
-namespace GymRatService.Service.Validators;
+namespace GymRatService.API.Validators;
 
 public class ChatMessageRequestValidator : AbstractValidator<ChatMessageRequest>
 {

@@ -1,4 +1,3 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Sessions;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
@@ -13,16 +12,12 @@ public class SessionsService(
     ISessionsRepository sessionsRepository,
     IWorkoutsRepository workoutsRepository,
     IExerciseCardsRepository exerciseCardsRepository,
-    IValidator<StartSessionRequest> startValidator,
-    IValidator<SaveExerciseSetsRequest> saveSetsValidator,
     TimeProvider timeProvider) : ISessionsService
 {
     private const decimal EpleyRepsDivisor = 30m;
 
     public async Task<StartSessionResponse> StartSessionAsync(Guid userId, StartSessionRequest request, CancellationToken cancellationToken)
     {
-        await startValidator.ValidateAndThrowAsync(request, cancellationToken);
-
         await EnsureWorkoutOwnedAsync(userId, request.WorkoutId, cancellationToken);
 
         var session = new WorkoutSession
@@ -39,8 +34,6 @@ public class SessionsService(
 
     public async Task SaveExerciseSetsAsync(Guid userId, Guid id, Guid exerciseId, SaveExerciseSetsRequest request, CancellationToken cancellationToken)
     {
-        await saveSetsValidator.ValidateAndThrowAsync(request, cancellationToken);
-
         var session = await GetOpenSessionAsync(userId, id, cancellationToken);
 
         await EnsureExerciseExistsAsync(exerciseId, cancellationToken);

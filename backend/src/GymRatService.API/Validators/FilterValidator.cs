@@ -1,7 +1,7 @@
 using FluentValidation;
 using GymRatService.Common.Filtering;
 
-namespace GymRatService.Service.Validators;
+namespace GymRatService.API.Validators;
 
 public abstract class FilterValidator<TFilter, TSortField> : AbstractValidator<TFilter>
     where TFilter : Filter<TSortField>

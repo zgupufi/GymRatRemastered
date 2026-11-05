@@ -1,5 +1,5 @@
 using GymRatService.Common.DTOs.Sessions;
-using GymRatService.Service.Validators;
+using GymRatService.API.Validators;
 
 namespace GymRatService.BLL.Tests.Validators;
 

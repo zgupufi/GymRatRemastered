@@ -1,11 +1,9 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Sessions;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Services;
-using GymRatService.Service.Validators;
 using NSubstitute;
 
 namespace GymRatService.BLL.Tests.Services;
@@ -31,8 +29,6 @@ public class SessionsServiceTests
             _sessions,
             _workouts,
             _exercises,
-            new StartSessionRequestValidator(),
-            new SaveExerciseSetsRequestValidator(),
             timeProvider);
     }
 
@@ -49,17 +45,6 @@ public class SessionsServiceTests
         await _sessions.Received(1).AddAsync(
             Arg.Is<WorkoutSession>(session => session.UserId == _userId && session.WorkoutId == _workoutId && session.StartedAt == Now),
             Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task StartSessionAsync_ThrowsAValidationException_WhenTheWorkoutIdIsEmpty()
-    {
-        // Act
-        var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.StartSessionAsync(_userId, new StartSessionRequest(Guid.Empty), CancellationToken.None));
-
-        // Assert
-        Assert.Equal("WorkoutId", Assert.Single(exception.Errors).PropertyName);
     }
 
     [Fact]
@@ -100,20 +85,6 @@ public class SessionsServiceTests
                 && sets[0].SetNumber == 1 && sets[0].Reps == 8 && sets[0].WeightKg == 60 && sets[0].SessionId == session.Id && sets[0].ExerciseId == _exerciseId
                 && sets[1].SetNumber == 2 && sets[1].Reps == 6 && sets[1].WeightKg == 62.5m),
             Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task SaveExerciseSetsAsync_ThrowsAValidationException_WhenASetIsInvalid()
-    {
-        // Arrange
-        var session = ArrangeOpenSession();
-
-        // Act
-        var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.SaveExerciseSetsAsync(_userId, session.Id, _exerciseId, new SaveExerciseSetsRequest([new SessionSetRequest(0, 60)]), CancellationToken.None));
-
-        // Assert
-        Assert.Equal("Sets[0].Reps", Assert.Single(exception.Errors).PropertyName);
     }
 
     [Fact]

@@ -1,4 +1,3 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Users;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
@@ -6,7 +5,6 @@ using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Services;
-using GymRatService.Service.Validators;
 using NSubstitute;
 
 namespace GymRatService.BLL.Tests.Services;
@@ -18,7 +16,7 @@ public class UsersServiceTests
 
     public UsersServiceTests()
     {
-        _service = new UsersService(_repository, new UpdateUserSettingsRequestValidator());
+        _service = new UsersService(_repository);
     }
 
     [Fact]
@@ -120,24 +118,4 @@ public class UsersServiceTests
             Arg.Any<CancellationToken>());
     }
 
-    [Fact]
-    public async Task UpdateSettingsAsync_ThrowsEveryValidationError_WhenTheRequestIsInvalid()
-    {
-        // Act
-        var exception = await Assert.ThrowsAsync<ValidationException>(() => _service.UpdateSettingsAsync(
-            Guid.CreateVersion7(),
-            new UpdateUserSettingsRequest((WeightUnit)5, 1000),
-            CancellationToken.None));
-
-        // Assert
-        Assert.Equal(
-            ["WeightUnit", "DefaultRestTimeSeconds"],
-            exception.Errors.Select(error => error.PropertyName));
-        await _repository.DidNotReceive().GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
-        await _repository.DidNotReceive().UpdateSettingsAsync(
-            Arg.Any<Guid>(),
-            Arg.Any<WeightUnit>(),
-            Arg.Any<int>(),
-            Arg.Any<CancellationToken>());
-    }
 }

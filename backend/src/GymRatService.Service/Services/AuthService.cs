@@ -1,4 +1,3 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Auth;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
@@ -14,13 +13,10 @@ public class AuthService(
     IUsersRepository usersRepository,
     IPasswordHasher passwordHasher,
     ITokenGenerator tokenGenerator,
-    IValidator<RegisterRequest> registerValidator,
     TimeProvider timeProvider) : IAuthService
 {
     public async Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
     {
-        await registerValidator.ValidateAndThrowAsync(request, cancellationToken);
-
         var email = request.Email.NormalizeEmail();
 
         if (await usersRepository.EmailExistsAsync(email, cancellationToken))

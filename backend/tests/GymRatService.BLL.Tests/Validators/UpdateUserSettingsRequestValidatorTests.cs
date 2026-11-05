@@ -1,7 +1,7 @@
 using System.Globalization;
 using GymRatService.Common.DTOs.Users;
 using GymRatService.Common.Enums;
-using GymRatService.Service.Validators;
+using GymRatService.API.Validators;
 
 namespace GymRatService.BLL.Tests.Validators;
 

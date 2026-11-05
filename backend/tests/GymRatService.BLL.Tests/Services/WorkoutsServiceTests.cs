@@ -1,4 +1,3 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Exercises;
 using GymRatService.Common.DTOs.Workouts;
 using GymRatService.Common.Errors;
@@ -7,7 +6,6 @@ using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Services;
-using GymRatService.Service.Validators;
 using NSubstitute;
 
 namespace GymRatService.BLL.Tests.Services;
@@ -29,10 +27,6 @@ public class WorkoutsServiceTests
         _service = new WorkoutsService(
             _workouts,
             _exercises,
-            new WorkoutFilterValidator(),
-            new CreateWorkoutRequestValidator(),
-            new RenameWorkoutRequestValidator(),
-            new ReplaceWorkoutExercisesRequestValidator(),
             timeProvider);
     }
 
@@ -66,20 +60,6 @@ public class WorkoutsServiceTests
         Assert.Equal("Push", summary.Name);
         Assert.Equal(3, summary.ExerciseCount);
         Assert.Equal(["Chest", "Legs"], summary.MainMuscles);
-    }
-
-    [Fact]
-    public async Task GetWorkoutSummariesAsync_ThrowsAValidationException_WhenThePageIsZero()
-    {
-        // Arrange
-        var filter = new WorkoutFilter { Pagination = new PaginationFilter { Page = 0 } };
-
-        // Act
-        var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.GetWorkoutSummariesAsync(_userId, filter, CancellationToken.None));
-
-        // Assert
-        Assert.Equal("Pagination.Page", Assert.Single(exception.Errors).PropertyName);
     }
 
     [Fact]
@@ -165,18 +145,6 @@ public class WorkoutsServiceTests
         Assert.Equal(_userId, stored.UserId);
         Assert.Equal(Now, stored.CreatedAt);
         Assert.Equal(stored.Id, response.Id);
-    }
-
-    [Fact]
-    public async Task CreateWorkoutAsync_ThrowsAValidationException_WhenTheNameIsEmpty()
-    {
-        // Act
-        var exception = await Assert.ThrowsAsync<ValidationException>(
-            () => _service.CreateWorkoutAsync(_userId, new CreateWorkoutRequest(""), CancellationToken.None));
-
-        // Assert
-        Assert.Equal("Name", Assert.Single(exception.Errors).PropertyName);
-        await _workouts.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 
     [Fact]

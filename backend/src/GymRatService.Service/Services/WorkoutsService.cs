@@ -1,4 +1,3 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Workouts;
 using GymRatService.Common.Errors;
 using GymRatService.Common.Filtering;
@@ -13,16 +12,10 @@ namespace GymRatService.Service.Services;
 public class WorkoutsService(
     IWorkoutsRepository workoutsRepository,
     IExerciseCardsRepository exerciseCardsRepository,
-    IValidator<WorkoutFilter> filterValidator,
-    IValidator<CreateWorkoutRequest> createValidator,
-    IValidator<RenameWorkoutRequest> renameValidator,
-    IValidator<ReplaceWorkoutExercisesRequest> replaceExercisesValidator,
     TimeProvider timeProvider) : IWorkoutsService
 {
     public async Task<PagedResult<WorkoutSummaryDto>> GetWorkoutSummariesAsync(Guid userId, WorkoutFilter filter, CancellationToken cancellationToken)
     {
-        await filterValidator.ValidateAndThrowAsync(filter, cancellationToken);
-
         var workouts = await workoutsRepository.GetByUserAsync(userId, filter, cancellationToken);
 
         return workouts.Map(workout => workout.ToSummaryDto());
@@ -37,8 +30,6 @@ public class WorkoutsService(
 
     public async Task<CreateWorkoutResponse> CreateWorkoutAsync(Guid userId, CreateWorkoutRequest request, CancellationToken cancellationToken)
     {
-        await createValidator.ValidateAndThrowAsync(request, cancellationToken);
-
         var workout = new Workout
         {
             UserId = userId,
@@ -53,8 +44,6 @@ public class WorkoutsService(
 
     public async Task RenameWorkoutAsync(Guid userId, Guid id, RenameWorkoutRequest request, CancellationToken cancellationToken)
     {
-        await renameValidator.ValidateAndThrowAsync(request, cancellationToken);
-
         await GetOwnedWorkoutAsync(userId, id, cancellationToken);
 
         await workoutsRepository.RenameAsync(id, request.Name.Trim(), cancellationToken);
@@ -62,8 +51,6 @@ public class WorkoutsService(
 
     public async Task ReplaceWorkoutExercisesAsync(Guid userId, Guid id, ReplaceWorkoutExercisesRequest request, CancellationToken cancellationToken)
     {
-        await replaceExercisesValidator.ValidateAndThrowAsync(request, cancellationToken);
-
         await GetOwnedWorkoutAsync(userId, id, cancellationToken);
 
         var exerciseIds = request.Exercises.Select(entry => entry.ExerciseId).Distinct().ToList();

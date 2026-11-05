@@ -1,4 +1,5 @@
-using GymRatService.Service.Validators;
+using GymRatService.API.Requests;
+using GymRatService.API.Validators;
 
 namespace GymRatService.BLL.Tests.Validators;
 
@@ -11,7 +12,7 @@ public class SplitDayValidatorTests
     public async Task SplitDayValidator_Passes_WhenTheDayIsBetweenOneAndSeven(int day)
     {
         // Act
-        var result = await new SplitDayValidator().ValidateAsync(day);
+        var result = await new SplitDayValidator().ValidateAsync(new SplitDayRoute { Day = day });
 
         // Assert
         Assert.True(result.IsValid);
@@ -24,7 +25,7 @@ public class SplitDayValidatorTests
     public async Task SplitDayValidator_Fails_WhenTheDayIsOutsideTheWeek(int day)
     {
         // Act
-        var result = await new SplitDayValidator().ValidateAsync(day);
+        var result = await new SplitDayValidator().ValidateAsync(new SplitDayRoute { Day = day });
 
         // Assert
         Assert.False(result.IsValid);
