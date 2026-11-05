@@ -12,7 +12,7 @@ namespace GymRatService.BLL.Tests.Services;
 
 public class AuthServiceTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 10, 28, 12, 0, 0, TimeSpan.Zero);
+    private readonly DateTimeOffset Now = DateTimeOffset.UtcNow;
 
     private readonly IUsersRepository _repository = Substitute.For<IUsersRepository>();
     private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
@@ -21,11 +21,8 @@ public class AuthServiceTests
 
     public AuthServiceTests()
     {
-        var timeProvider = Substitute.For<TimeProvider>();
-        timeProvider.GetUtcNow().Returns(Now);
-
         _passwordHasher.Hash(Arg.Any<string>()).Returns(new HashedPassword("hashed", "salt"));
-        _service = new AuthService(_repository, _passwordHasher, _tokenGenerator, timeProvider);
+        _service = new AuthService(_repository, _passwordHasher, _tokenGenerator);
     }
 
     [Fact]
@@ -48,7 +45,7 @@ public class AuthServiceTests
         Assert.Equal("Pop", stored.LastName);
         Assert.Equal(WeightUnit.Pounds, stored.WeightUnit);
         Assert.Equal(90, stored.DefaultRestTimeSeconds);
-        Assert.Equal(Now, stored.CreatedAt);
+        Assert.InRange(stored.CreatedAt, Now, DateTimeOffset.UtcNow);
         _passwordHasher.Received(1).Hash("password123");
     }
 
@@ -100,7 +97,7 @@ public class AuthServiceTests
 
         // Assert
         Assert.Equal(token, response);
-        await _repository.Received(1).UpdateLastLoginAsync(user.Id, Now, Arg.Any<CancellationToken>());
+        await _repository.Received(1).UpdateLastLoginAsync(user.Id, Arg.Is<DateTimeOffset>(at => at >= Now), Arg.Any<CancellationToken>());
     }
 
     [Fact]

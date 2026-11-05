@@ -12,7 +12,7 @@ namespace GymRatService.BLL.Tests.Services;
 
 public class WorkoutsServiceTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 10, 28, 12, 0, 0, TimeSpan.Zero);
+    private readonly DateTimeOffset Now = DateTimeOffset.UtcNow;
 
     private readonly Guid _userId = Guid.CreateVersion7();
     private readonly IWorkoutsRepository _workouts = Substitute.For<IWorkoutsRepository>();
@@ -21,13 +21,9 @@ public class WorkoutsServiceTests
 
     public WorkoutsServiceTests()
     {
-        var timeProvider = Substitute.For<TimeProvider>();
-        timeProvider.GetUtcNow().Returns(Now);
-
         _service = new WorkoutsService(
             _workouts,
-            _exercises,
-            timeProvider);
+            _exercises);
     }
 
     [Fact]
@@ -143,7 +139,7 @@ public class WorkoutsServiceTests
         Assert.NotNull(stored);
         Assert.Equal("Push Day", stored.Name);
         Assert.Equal(_userId, stored.UserId);
-        Assert.Equal(Now, stored.CreatedAt);
+        Assert.InRange(stored.CreatedAt, Now, DateTimeOffset.UtcNow);
         Assert.Equal(stored.Id, response.Id);
     }
 

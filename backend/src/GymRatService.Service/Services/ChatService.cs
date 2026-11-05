@@ -17,6 +17,7 @@ public class ChatService(
     IWorkoutsService workoutsService,
     ISplitService splitService,
     IExercisesService exercisesService,
+    IInputValidator inputValidator,
     IChatUsageLimiter usageLimiter,
     IOptions<AiCoachSettings> options,
     ILogger<ChatService> logger) : IChatService
@@ -34,7 +35,7 @@ public class ChatService(
         usageLimiter.EnsureAllowed(userId);
 
         var settings = options.Value;
-        var tools = new ChatTools(userId, workoutsService, splitService, exercisesService, cancellationToken);
+        var tools = new ChatTools(userId, workoutsService, splitService, exercisesService, inputValidator, cancellationToken);
 
         var messages = new List<ChatMessage> { new(AiChatRole.System, SystemPrompt) };
         messages.AddRange((request.History ?? [])

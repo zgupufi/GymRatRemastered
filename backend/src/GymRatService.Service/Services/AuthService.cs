@@ -12,8 +12,7 @@ namespace GymRatService.Service.Services;
 public class AuthService(
     IUsersRepository usersRepository,
     IPasswordHasher passwordHasher,
-    ITokenGenerator tokenGenerator,
-    TimeProvider timeProvider) : IAuthService
+    ITokenGenerator tokenGenerator) : IAuthService
 {
     public async Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
     {
@@ -34,7 +33,7 @@ public class AuthService(
             FirstName = request.FirstName.Trim(),
             LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName.Trim(),
             WeightUnit = request.WeightUnit,
-            CreatedAt = timeProvider.GetUtcNow(),
+            CreatedAt = TimeProvider.System.GetUtcNow(),
         };
 
         await usersRepository.AddAsync(user, cancellationToken);
@@ -49,7 +48,7 @@ public class AuthService(
             throw new BusinessLogicException(ErrorCodes.InvalidCredentials);
         }
 
-        await usersRepository.UpdateLastLoginAsync(user.Id, timeProvider.GetUtcNow(), cancellationToken);
+        await usersRepository.UpdateLastLoginAsync(user.Id, TimeProvider.System.GetUtcNow(), cancellationToken);
 
         return tokenGenerator.Generate(user);
     }

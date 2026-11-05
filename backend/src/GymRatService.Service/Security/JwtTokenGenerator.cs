@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace GymRatService.Service.Security;
 
-public sealed class JwtTokenGenerator(IOptions<JwtSettings> options, TimeProvider timeProvider) : ITokenGenerator
+public sealed class JwtTokenGenerator(IOptions<JwtSettings> options) : ITokenGenerator
 {
     private readonly JsonWebTokenHandler _tokenHandler = new();
 
@@ -22,7 +22,7 @@ public sealed class JwtTokenGenerator(IOptions<JwtSettings> options, TimeProvide
             throw new InvalidOperationException($"{JwtSettings.SectionName}:{nameof(JwtSettings.Key)} is not configured.");
         }
 
-        var issuedAt = timeProvider.GetUtcNow();
+        var issuedAt = TimeProvider.System.GetUtcNow();
         var expiresAt = issuedAt.AddMinutes(settings.ExpiryMinutes);
 
         var descriptor = new SecurityTokenDescriptor

@@ -1,3 +1,4 @@
+using FluentValidation;
 using GymRatService.Common.DTOs.Workouts;
 using GymRatService.Common.Filtering;
 using GymRatService.Service.Exceptions;
@@ -11,6 +12,7 @@ public sealed class ChatTools(
     IWorkoutsService workoutsService,
     ISplitService splitService,
     IExercisesService exercisesService,
+    IInputValidator inputValidator,
     CancellationToken cancellationToken)
 {
     private const int SearchResultLimit = 20;
@@ -32,6 +34,8 @@ public sealed class ChatTools(
     {
         var filter = new WorkoutFilter { Pagination = new PaginationFilter { PageSize = PaginationFilter.MaximumPageSize } };
 
+        await inputValidator.ValidateAsync(filter, cancellationToken);
+
         return (await workoutsService.GetWorkoutSummariesAsync(userId, filter, cancellationToken)).Items;
     });
 
@@ -40,12 +44,17 @@ public sealed class ChatTools(
 
     private Task<object> CreateWorkoutAsync(string name, IReadOnlyList<WorkoutExerciseRequest>? exercises = null) => RunAsync(async () =>
     {
-        var created = await workoutsService.CreateWorkoutAsync(userId, new CreateWorkoutRequest(name), cancellationToken);
+        var createRequest = new CreateWorkoutRequest(name);
+        await inputValidator.ValidateAsync(createRequest, cancellationToken);
+
+        var created = await workoutsService.CreateWorkoutAsync(userId, createRequest, cancellationToken);
         WorkoutsChanged = true;
 
         if (exercises is { Count: > 0 })
         {
-            await workoutsService.ReplaceWorkoutExercisesAsync(userId, created.Id, new ReplaceWorkoutExercisesRequest(exercises), cancellationToken);
+            var replaceRequest = new ReplaceWorkoutExercisesRequest(exercises);
+            await inputValidator.ValidateAsync(replaceRequest, cancellationToken);
+            await workoutsService.ReplaceWorkoutExercisesAsync(userId, created.Id, replaceRequest, cancellationToken);
         }
 
         return created;
@@ -55,13 +64,17 @@ public sealed class ChatTools(
     {
         if (name is not null)
         {
-            await workoutsService.RenameWorkoutAsync(userId, workoutId, new RenameWorkoutRequest(name), cancellationToken);
+            var renameRequest = new RenameWorkoutRequest(name);
+            await inputValidator.ValidateAsync(renameRequest, cancellationToken);
+            await workoutsService.RenameWorkoutAsync(userId, workoutId, renameRequest, cancellationToken);
             WorkoutsChanged = true;
         }
 
         if (exercises is not null)
         {
-            await workoutsService.ReplaceWorkoutExercisesAsync(userId, workoutId, new ReplaceWorkoutExercisesRequest(exercises), cancellationToken);
+            var replaceRequest = new ReplaceWorkoutExercisesRequest(exercises);
+            await inputValidator.ValidateAsync(replaceRequest, cancellationToken);
+            await workoutsService.ReplaceWorkoutExercisesAsync(userId, workoutId, replaceRequest, cancellationToken);
             WorkoutsChanged = true;
         }
 
@@ -88,6 +101,8 @@ public sealed class ChatTools(
             Pagination = new PaginationFilter { PageSize = SearchResultLimit },
         };
 
+        await inputValidator.ValidateAsync(filter, cancellationToken);
+
         return (await exercisesService.GetExercisesAsync(filter, cancellationToken)).Items;
     });
 
@@ -100,6 +115,10 @@ public sealed class ChatTools(
         catch (BusinessLogicException exception)
         {
             return new { error = exception.Code };
+        }
+        catch (ValidationException exception)
+        {
+            return new { error = exception.Errors.Select(error => $"{error.PropertyName}: {error.ErrorMessage}") };
         }
     }
 }

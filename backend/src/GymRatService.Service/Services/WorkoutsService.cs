@@ -11,8 +11,7 @@ namespace GymRatService.Service.Services;
 
 public class WorkoutsService(
     IWorkoutsRepository workoutsRepository,
-    IExerciseCardsRepository exerciseCardsRepository,
-    TimeProvider timeProvider) : IWorkoutsService
+    IExerciseCardsRepository exerciseCardsRepository) : IWorkoutsService
 {
     public async Task<PagedResult<WorkoutSummaryDto>> GetWorkoutSummariesAsync(Guid userId, WorkoutFilter filter, CancellationToken cancellationToken)
     {
@@ -34,7 +33,7 @@ public class WorkoutsService(
         {
             UserId = userId,
             Name = request.Name.Trim(),
-            CreatedAt = timeProvider.GetUtcNow(),
+            CreatedAt = TimeProvider.System.GetUtcNow(),
         };
 
         await workoutsRepository.AddAsync(workout, cancellationToken);

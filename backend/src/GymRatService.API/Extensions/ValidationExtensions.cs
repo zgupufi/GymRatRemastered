@@ -1,5 +1,7 @@
 using FluentValidation;
 using GymRatService.API.Filters;
+using GymRatService.API.Validators;
+using GymRatService.Service.Interfaces;
 
 namespace GymRatService.API.Extensions;
 
@@ -18,6 +20,7 @@ public static class ValidationExtensions
             services.AddSingleton(contract, implementation);
         }
 
+        services.AddSingleton<IInputValidator, InputValidator>();
         services.AddScoped<ValidationActionFilter>();
 
         return services;

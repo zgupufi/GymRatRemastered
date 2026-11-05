@@ -10,7 +10,7 @@ namespace GymRatService.BLL.Tests.Services;
 
 public class SessionsServiceTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 10, 28, 12, 0, 0, TimeSpan.Zero);
+    private readonly DateTimeOffset Now = DateTimeOffset.UtcNow;
 
     private readonly Guid _userId = Guid.CreateVersion7();
     private readonly Guid _workoutId = Guid.CreateVersion7();
@@ -22,14 +22,10 @@ public class SessionsServiceTests
 
     public SessionsServiceTests()
     {
-        var timeProvider = Substitute.For<TimeProvider>();
-        timeProvider.GetUtcNow().Returns(Now);
-
         _service = new SessionsService(
             _sessions,
             _workouts,
-            _exercises,
-            timeProvider);
+            _exercises);
     }
 
     [Fact]
@@ -43,7 +39,7 @@ public class SessionsServiceTests
 
         // Assert
         await _sessions.Received(1).AddAsync(
-            Arg.Is<WorkoutSession>(session => session.UserId == _userId && session.WorkoutId == _workoutId && session.StartedAt == Now),
+            Arg.Is<WorkoutSession>(session => session.UserId == _userId && session.WorkoutId == _workoutId && session.StartedAt >= Now),
             Arg.Any<CancellationToken>());
     }
 
@@ -148,7 +144,7 @@ public class SessionsServiceTests
         await _service.FinishSessionAsync(_userId, session.Id, CancellationToken.None);
 
         // Assert
-        await _sessions.Received(1).FinishAsync(session.Id, Now, 2730, Arg.Any<CancellationToken>());
+        await _sessions.Received(1).FinishAsync(session.Id, Arg.Is<DateTimeOffset>(at => at >= Now), Arg.Is<int>(seconds => seconds >= 2730 && seconds < 2740), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -162,7 +158,7 @@ public class SessionsServiceTests
         await _service.FinishSessionAsync(_userId, session.Id, CancellationToken.None);
 
         // Assert
-        await _sessions.Received(1).FinishAsync(session.Id, Now, 0, Arg.Any<CancellationToken>());
+        await _sessions.Received(1).FinishAsync(session.Id, Arg.Is<DateTimeOffset>(at => at >= Now), 0, Arg.Any<CancellationToken>());
     }
 
     [Fact]

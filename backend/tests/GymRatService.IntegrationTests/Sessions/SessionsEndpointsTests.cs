@@ -216,7 +216,7 @@ public sealed class SessionsEndpointsTests : IDisposable
         var client = await CreateClientAsync("ana@example.com");
         var workoutId = await CreateWorkoutAsync(client, "Push");
         var sessionId = await StartSessionAsync(client, workoutId);
-        _factory.Clock.Advance(TimeSpan.FromMinutes(45));
+        await _factory.SeedAsync(context => context.WorkoutSessions.Single(session => session.Id == sessionId).StartedAt = DateTimeOffset.UtcNow.AddMinutes(-45));
 
         // Act
         var response = await client.PostAsync($"/api/sessions/{sessionId}/finish", null);
@@ -336,7 +336,7 @@ public sealed class SessionsEndpointsTests : IDisposable
         await ana.PostAsync($"/api/sessions/{dayOne}/finish", null);
         var otherSession = await StartSessionAsync(other, otherWorkoutId);
         await SaveSetsAsync(other, otherSession, bench.Id, new SessionSetRequest(1, 300));
-        _factory.Clock.Advance(TimeSpan.FromDays(2));
+        await _factory.SeedAsync(context => context.WorkoutSessions.Single(session => session.Id == dayOne).StartedAt = DateTimeOffset.UtcNow.AddDays(-2));
         var dayTwo = await StartSessionAsync(ana, workoutId);
         await SaveSetsAsync(ana, dayTwo, bench.Id, new SessionSetRequest(1, 105));
 

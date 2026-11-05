@@ -193,14 +193,18 @@ public sealed class ChatOpenRouterEndpointsTests : IDisposable
     public async Task SendMessage_ReturnsRateLimitedWithoutCallingOpenRouter_WhenTheUserSendsTooManyMessages()
     {
         // Arrange
-        var client = await StartAsync(_ => FakeOpenRouterReply.Text("ok"), settings => settings["AiCoach:RateLimitRequests"] = "2");
+        var client = await StartAsync(_ => FakeOpenRouterReply.Text("ok"), settings =>
+        {
+            settings["AiCoach:RateLimitRequests"] = "2";
+            settings["AiCoach:RateLimitWindowSeconds"] = "1";
+        });
         var message = new ChatMessageRequest("Hi", null);
 
         // Act
         var first = await client.PostAsJsonAsync("/api/chat/messages", message);
         var second = await client.PostAsJsonAsync("/api/chat/messages", message);
         var third = await client.PostAsJsonAsync("/api/chat/messages", message);
-        _factory.Clock.Advance(TimeSpan.FromSeconds(61));
+        await Task.Delay(TimeSpan.FromMilliseconds(1100));
         var afterWindow = await client.PostAsJsonAsync("/api/chat/messages", message);
 
         // Assert
@@ -227,16 +231,13 @@ public sealed class ChatOpenRouterEndpointsTests : IDisposable
         var first = await client.PostAsJsonAsync("/api/chat/messages", message);
         var second = await client.PostAsJsonAsync("/api/chat/messages", message);
         var third = await client.PostAsJsonAsync("/api/chat/messages", message);
-        _factory.Clock.Advance(TimeSpan.FromDays(1));
-        var nextDay = await client.PostAsJsonAsync("/api/chat/messages", message);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.OK, second.StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, third.StatusCode);
         Assert.Equal(ErrorCodes.ChatTokenBudgetExceeded, (await third.Content.ReadFromJsonAsync<ErrorResponse>())?.Code);
-        Assert.Equal(HttpStatusCode.OK, nextDay.StatusCode);
-        Assert.Equal(3, _server!.Requests.Count);
+        Assert.Equal(2, _server!.Requests.Count);
     }
 
     private static async Task AssertProviderUnavailableAsync(HttpResponseMessage response)

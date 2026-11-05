@@ -11,8 +11,7 @@ namespace GymRatService.Service.Services;
 public class SessionsService(
     ISessionsRepository sessionsRepository,
     IWorkoutsRepository workoutsRepository,
-    IExerciseCardsRepository exerciseCardsRepository,
-    TimeProvider timeProvider) : ISessionsService
+    IExerciseCardsRepository exerciseCardsRepository) : ISessionsService
 {
     private const decimal EpleyRepsDivisor = 30m;
 
@@ -24,7 +23,7 @@ public class SessionsService(
         {
             UserId = userId,
             WorkoutId = request.WorkoutId,
-            StartedAt = timeProvider.GetUtcNow(),
+            StartedAt = TimeProvider.System.GetUtcNow(),
         };
 
         await sessionsRepository.AddAsync(session, cancellationToken);
@@ -56,7 +55,7 @@ public class SessionsService(
     {
         var session = await GetOpenSessionAsync(userId, id, cancellationToken);
 
-        var finishedAt = timeProvider.GetUtcNow();
+        var finishedAt = TimeProvider.System.GetUtcNow();
         var durationSeconds = (int)Math.Max(0, (finishedAt - session.StartedAt).TotalSeconds);
 
         await sessionsRepository.FinishAsync(session.Id, finishedAt, durationSeconds, cancellationToken);
