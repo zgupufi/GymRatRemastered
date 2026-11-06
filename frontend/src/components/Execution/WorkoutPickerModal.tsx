@@ -25,7 +25,7 @@ export function WorkoutPickerModal({ open, workouts, selectedId, onSelect, onClo
                 onClick={() => onSelect(workout)}
               >
                 <span>{workout.name}</span>
-                <small>{workout.exerciseCount} exercises</small>
+                
               </button>
             </li>
           ))}

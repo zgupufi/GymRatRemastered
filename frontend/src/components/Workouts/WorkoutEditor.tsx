@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Reorder, useDragControls } from 'motion/react'
 import { GripVertical, Trash2 } from 'lucide-react'
 import { replaceWorkoutExercises, getWorkout } from '../../api/workouts'
@@ -6,7 +6,6 @@ import type { Exercise } from '../../api/exercises'
 import { Button } from '../ui/Button'
 import { NumberInput } from '../ui/NumberInput'
 import { Spinner } from '../ui/Spinner'
-import { useToast } from '../ui/ToastContext'
 import { ExercisePicker } from './ExercisePicker'
 
 const DEFAULT_SETS = 3
@@ -25,7 +24,17 @@ type State =
 
 interface WorkoutEditorProps {
   workoutId: string
-  onSaved: () => void
+}
+
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+
+const AUTOSAVE_DELAY_MS = 600
+
+const STATUS_TEXT: Record<SaveStatus, string> = {
+  idle: '',
+  saving: 'Saving…',
+  saved: 'Saved',
+  error: 'Could not save',
 }
 
 function isValidSets(value: string): boolean {
@@ -99,22 +108,23 @@ function ExerciseRow({ item, index, count, onSetsChange, onRemove, onMove }: Row
   )
 }
 
-export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
-  const { showToast } = useToast()
+export function WorkoutEditor({ workoutId }: WorkoutEditorProps) {
   const [state, setState] = useState<State>({ status: 'loading' })
-  const [saving, setSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const dirty = useRef(false)
+  const latest = useRef<EditItem[]>([])
+  const saveTimer = useRef<number | undefined>(undefined)
 
   useEffect(() => {
     const controller = new AbortController()
     getWorkout(workoutId, controller.signal)
-      .then((workout) =>
-        setState({
-          status: 'ready',
-          items: [...workout.exercises]
-            .sort((a, b) => a.order - b.order)
-            .map((entry) => ({ exercise: entry.exercise, targetSets: String(entry.targetSets) })),
-        }),
-      )
+      .then((workout) => {
+        const loaded = [...workout.exercises]
+          .sort((a, b) => a.order - b.order)
+          .map((entry) => ({ exercise: entry.exercise, targetSets: String(entry.targetSets) }))
+        latest.current = loaded
+        setState({ status: 'ready', items: loaded })
+      })
       .catch(() => {
         if (!controller.signal.aborted) {
           setState({ status: 'error' })
@@ -125,31 +135,53 @@ export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
 
   const items = useMemo(() => (state.status === 'ready' ? state.items : []), [state])
   const selectedIds = useMemo(() => new Set(items.map((item) => item.exercise.id)), [items])
-  const allValid = items.every((item) => isValidSets(item.targetSets))
 
-  const setItems = (next: EditItem[]) => setState({ status: 'ready', items: next })
+  const persist = useCallback(
+    async (entries: EditItem[]) => {
+      dirty.current = false
+      setSaveStatus('saving')
+      try {
+        await replaceWorkoutExercises(
+          workoutId,
+          entries.map((item) => ({ exerciseId: item.exercise.id, targetSets: Number(item.targetSets) })),
+        )
+        setSaveStatus(dirty.current ? 'saving' : 'saved')
+      } catch {
+        dirty.current = true
+        setSaveStatus('error')
+      }
+    },
+    [workoutId],
+  )
+
+  const setItems = (next: EditItem[]) => {
+    latest.current = next
+    dirty.current = true
+    window.clearTimeout(saveTimer.current)
+    if (next.every((item) => isValidSets(item.targetSets))) {
+      saveTimer.current = window.setTimeout(() => void persist(next), AUTOSAVE_DELAY_MS)
+    }
+    setState({ status: 'ready', items: next })
+  }
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(saveTimer.current)
+      if (dirty.current && latest.current.every((item) => isValidSets(item.targetSets))) {
+        void replaceWorkoutExercises(
+          workoutId,
+          latest.current.map((item) => ({ exerciseId: item.exercise.id, targetSets: Number(item.targetSets) })),
+        ).catch(() => undefined)
+      }
+    },
+    [workoutId],
+  )
 
   const move = (index: number, direction: -1 | 1) => {
     const next = [...items]
     const target = index + direction
     ;[next[index], next[target]] = [next[target], next[index]]
     setItems(next)
-  }
-
-  const save = async () => {
-    setSaving(true)
-    try {
-      await replaceWorkoutExercises(
-        workoutId,
-        items.map((item) => ({ exerciseId: item.exercise.id, targetSets: Number(item.targetSets) })),
-      )
-      showToast('success', 'Workout saved successfully!')
-      onSaved()
-    } catch {
-      showToast('error', 'Save failed. Try again.')
-    } finally {
-      setSaving(false)
-    }
   }
 
   if (state.status === 'loading') {
@@ -184,9 +216,14 @@ export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
       )}
       <div className="workout-editor__footer">
         <span>Drag the handle to reorder · sets {MIN_SETS}–{MAX_SETS}</span>
-        <Button size="sm" loading={saving} disabled={!allValid} onClick={save}>
-          {saving ? 'Saving…' : 'Save changes'}
-        </Button>
+        <span className="workout-editor__status" role="status" data-status={saveStatus}>
+          {STATUS_TEXT[saveStatus]}
+        </span>
+        {saveStatus === 'error' ? (
+          <Button size="sm" variant="secondary" onClick={() => void persist(latest.current)}>
+            Try again
+          </Button>
+        ) : null}
       </div>
     </div>
   )

@@ -7,6 +7,7 @@ export type AuthStatus = 'loading' | 'authenticated' | 'anonymous'
 export interface AuthApi {
   status: AuthStatus
   user: UserProfile | null
+  sessionExpired: boolean
   login: (email: string, password: string) => Promise<void>
   register: (request: RegisterRequest) => Promise<void>
   logout: () => void

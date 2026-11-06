@@ -91,11 +91,7 @@ function WorkoutChoices({ exerciseId, onClose }: Omit<AddToWorkoutModalProps, 'o
                   <Check size={16} aria-hidden="true" />
                   Added
                 </span>
-              ) : (
-                <span className="add-to-workout__meta">
-                  {workout.exerciseCount} {workout.exerciseCount === 1 ? 'exercise' : 'exercises'}
-                </span>
-              )}
+              ) : null}
             </button>
           </li>
         )

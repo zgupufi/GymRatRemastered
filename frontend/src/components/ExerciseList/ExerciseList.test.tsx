@@ -45,7 +45,8 @@ describe('ExerciseList', () => {
     expect(screen.getByText('Showing 3 of 3 exercises')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Chest' })).toHaveTextContent('Push-up')
     expect(screen.getByRole('region', { name: 'Legs' })).toHaveTextContent('Squat')
-    expect(screen.getByRole('link', { name: 'View details for Squat' })).toHaveAttribute('href', '/exercises/3')
+    expect(screen.getByRole('link', { name: 'Squat' })).toHaveAttribute('href', '/exercises/3')
+    expect(screen.getByRole('button', { name: 'Add Squat to a workout' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
   })
 
@@ -93,7 +94,7 @@ describe('ExerciseList', () => {
 
     renderList()
     await screen.findByText('Bench Press')
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Muscle group' }), 'Chest')
+    await userEvent.click(screen.getByRole('button', { name: 'Chest' }))
 
     await waitFor(() => expect(vi.mocked(searchExercises).mock.calls.at(-1)?.[0]).toMatchObject({ muscle: 'Chest' }))
   })

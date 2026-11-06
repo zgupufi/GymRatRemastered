@@ -26,5 +26,7 @@ public static class ErrorCodes
 
     public const string ChatProviderUnavailable = "BLException_ChatService_ProviderUnavailable";
 
+    public const string ChatInvalidReply = "BLException_ChatService_InvalidReply";
+
     public const string InvalidRequest = "BLException_Validation_InvalidRequest";
 }

@@ -34,6 +34,7 @@ const workout: Workout = {
 function authValue(weightUnit: WeightUnit): AuthApi {
   return {
     status: 'authenticated',
+    sessionExpired: false,
     user: { firstName: 'Rafael', lastName: null, email: 'r@example.com', weightUnit, defaultRestTimeSeconds: 60 },
     login: vi.fn(),
     register: vi.fn(),
@@ -71,6 +72,12 @@ async function fillSet(user: ReturnType<typeof userEvent.setup>, set: number, we
   await user.click(screen.getByRole('button', { name: `Complete set ${set}` }))
 }
 
+async function endWorkout(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: 'End' }))
+  const dialog = await screen.findByRole('dialog', { name: 'End this workout?' })
+  await user.click(within(dialog).getByRole('button', { name: 'End workout' }))
+}
+
 async function startToday(user: ReturnType<typeof userEvent.setup>) {
   await user.click(await screen.findByRole('button', { name: 'Start workout' }))
   await screen.findByText('Exercise 1 of 2')
@@ -105,7 +112,7 @@ describe('WorkoutExecutionPage', () => {
     renderPage()
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Push day' })).toBeInTheDocument()
-    expect(screen.getByText('2 exercises planned')).toBeInTheDocument()
+    expect(screen.queryByText(/exercises planned/)).not.toBeInTheDocument()
   })
 
   it('shows the rest day state and links to the split', async () => {
@@ -354,12 +361,13 @@ describe('WorkoutExecutionPage', () => {
     await user.click(screen.getByRole('button', { name: /Finish/ }))
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Workout finished' })).toBeInTheDocument()
-    expect(screen.getByText('Great work today. Total time 00:00')).toBeInTheDocument()
+    expect(screen.getByText('Push day')).toBeInTheDocument()
+    expect(screen.getByRole('list', { name: 'Best set per exercise' })).toHaveTextContent('Cable Fly20 kg × 12')
     expect(saveExerciseSets).toHaveBeenCalledWith('s1', 'e2', [{ reps: 12, weightKg: 20 }])
     expect(finishSession).toHaveBeenCalledWith('s1')
     expect(screen.queryByRole('timer')).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('link', { name: 'Return to menu' }))
+    await user.click(screen.getByRole('link', { name: 'Done' }))
     expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument()
   })
 
@@ -369,7 +377,7 @@ describe('WorkoutExecutionPage', () => {
     await startToday(user)
     await fillSet(user, 1, '60', '8')
 
-    await user.click(screen.getByRole('button', { name: 'Stop workout' }))
+    await endWorkout(user)
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Workout finished' })).toBeInTheDocument()
     expect(saveExerciseSets).toHaveBeenCalledWith('s1', 'e1', [{ reps: 8, weightKg: 60 }])
@@ -381,7 +389,7 @@ describe('WorkoutExecutionPage', () => {
     renderPage()
     await startToday(user)
 
-    await user.click(screen.getByRole('button', { name: 'Stop workout' }))
+    await endWorkout(user)
 
     expect(await screen.findByText('Could not finish the workout. Try again.')).toBeInTheDocument()
     expect(screen.getByText('Exercise 1 of 2')).toBeInTheDocument()
@@ -421,16 +429,41 @@ describe('WorkoutExecutionPage', () => {
     expect(saveExerciseSets).not.toHaveBeenCalled()
   })
 
-  it('offers a back button on the finish screen', async () => {
+  it('asks before ending and keeps going when asked to', async () => {
     const user = userEvent.setup()
     renderPage()
     await startToday(user)
-    await user.click(screen.getByRole('button', { name: 'Stop workout' }))
+    await fillSet(user, 1, '60', '8')
+
+    await user.click(screen.getByRole('button', { name: 'End' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'End this workout?' })
+    expect(dialog).toHaveTextContent('1 of 2 exercises started')
+    await user.click(within(dialog).getByRole('button', { name: 'Keep going' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(finishSession).not.toHaveBeenCalled()
+    expect(screen.getByText('Exercise 1 of 2')).toBeInTheDocument()
+  })
+
+  it('asks before leaving through the back arrow', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await startToday(user)
+
+    await user.click(screen.getByRole('button', { name: 'Leave workout' }))
+
+    expect(await screen.findByRole('dialog', { name: 'End this workout?' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Home' })).not.toBeInTheDocument()
+  })
+
+  it('links the finish summary to progression', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await startToday(user)
+    await endWorkout(user)
     await screen.findByRole('heading', { level: 1, name: 'Workout finished' })
 
-    await user.click(screen.getByRole('button', { name: 'Back' }))
-
-    expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'View progression' })).toHaveAttribute('href', '/progress')
   })
 
   it('works without a previous session', async () => {

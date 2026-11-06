@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Check, Square } from 'lucide-react'
+import { ArrowRight, Check, ChevronLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { WeightUnit } from '../../api/auth'
 import { finishSession, saveExerciseSets, type LastSession } from '../../api/sessions'
@@ -7,11 +7,12 @@ import type { Workout } from '../../api/workouts'
 import { useRestTimer } from '../../hooks/useRestTimer'
 import { useStopwatch } from '../../hooks/useStopwatch'
 import { formatClock } from '../../lib/clock'
-import { BackButton } from '../ui/BackButton'
+import { fromKilograms, unitLabel } from '../../lib/weight'
 import { Button } from '../ui/Button'
+import { Modal } from '../ui/Modal'
 import { useToast } from '../ui/ToastContext'
 import { RestTimerPill } from './RestTimerPill'
-import { emptyDrafts, toEntries, type SetDraft } from './sets'
+import { emptyDrafts, summarize, toEntries, type SetDraft, type WorkoutResult } from './sets'
 import { SetsCard } from './SetsCard'
 
 const ADVANCE_DELAY_MS = 500
@@ -22,7 +23,7 @@ interface RunningWorkoutProps {
   last: LastSession
   unit: WeightUnit
   restSeconds: number
-  onFinished: (seconds: number) => void
+  onFinished: (seconds: number, result: WorkoutResult) => void
 }
 
 function initialDrafts(workout: Workout): Record<string, SetDraft[]> {
@@ -38,6 +39,7 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
   const [index, setIndex] = useState(0)
   const [drafts, setDrafts] = useState(() => initialDrafts(workout))
   const [busy, setBusy] = useState(false)
+  const [confirmingEnd, setConfirmingEnd] = useState(false)
   const advanceTimer = useRef<number | undefined>(undefined)
   const rest = useRestTimer()
   const elapsed = useStopwatch(true)
@@ -48,6 +50,9 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
   const exercise = workout.exercises[index].exercise
   const isLast = index === total - 1
   const previous = last.exercises.find((item) => item.exerciseId === exercise.id)?.sets
+  const startedCount = workout.exercises.filter((entry) => drafts[entry.exercise.id].some((draft) => draft.done)).length
+  const lastTime = previous && previous.length > 0 ? [...previous].sort((a, b) => a.setNumber - b.setNumber) : null
+  const detail = [exercise.mainMuscle, exercise.equipment].filter(Boolean).join(' · ')
 
   const saveExercise = async (position: number, current: Record<string, SetDraft[]>) => {
     const exerciseId = workout.exercises[position].exercise.id
@@ -77,7 +82,14 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
       await saveExercise(index, drafts)
       await finishSession(sessionId)
       rest.skip()
-      onFinished(elapsed)
+      onFinished(
+        elapsed,
+        summarize(
+          workout.exercises.map((entry) => entry.exercise),
+          drafts,
+          unit,
+        ),
+      )
     } catch {
       showToast('error', 'Could not finish the workout. Try again.')
       setBusy(false)
@@ -127,7 +139,9 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
         <i style={{ width: `${((index + 1) / total) * 100}%` }} />
       </div>
       <header className="execution__top">
-        <BackButton />
+        <button type="button" className="execution__back" aria-label="Leave workout" onClick={() => setConfirmingEnd(true)}>
+          <ChevronLeft size={20} aria-hidden="true" />
+        </button>
         <span className="execution__clock" aria-label="Elapsed time">
           {formatClock(elapsed)}
         </span>
@@ -138,11 +152,17 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
       <h2 className="execution__exercise">
         <Link to={`/exercises/${exercise.id}`}>{exercise.name}</Link>
       </h2>
+      {detail ? <p className="execution__detail">{detail}</p> : null}
+      {lastTime ? (
+        <p className="execution__last">
+          Last time ({unitLabel(unit)}): {lastTime.map((set) => `${fromKilograms(set.weightKg, unit)} × ${set.reps}`).join(' · ')}
+        </p>
+      ) : null}
       <SetsCard drafts={drafts[exercise.id]} previous={previous} unit={unit} onChange={patchSet} onToggle={toggleSet} />
       <RestTimerPill remaining={rest.remaining} onExtend={rest.extend} onReduce={rest.reduce} onSkip={rest.skip} />
       <div className="execution__controls">
-        <Button variant="danger" aria-label="Stop workout" disabled={busy} onClick={finish}>
-          <Square size={16} aria-hidden="true" />
+        <Button variant="danger" disabled={busy} onClick={() => setConfirmingEnd(true)}>
+          End
         </Button>
         {index > 0 ? (
           <Button variant="secondary" disabled={busy} onClick={() => move(index - 1)}>
@@ -150,17 +170,39 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
           </Button>
         ) : null}
         {isLast ? (
-          <Button variant="blue" className="execution__next" loading={busy} onClick={finish}>
+          <Button className="execution__next" loading={busy} onClick={finish}>
             Finish
             <Check size={18} aria-hidden="true" />
           </Button>
         ) : (
-          <Button variant="blue" className="execution__next" disabled={busy} onClick={() => move(index + 1)}>
+          <Button className="execution__next" disabled={busy} onClick={() => move(index + 1)}>
             Next
             <ArrowRight size={18} aria-hidden="true" />
           </Button>
         )}
       </div>
+      <Modal open={confirmingEnd} title="End this workout?" onClose={() => setConfirmingEnd(false)}>
+        <p className="execution__muted">
+          {startedCount} of {total} {total === 1 ? 'exercise' : 'exercises'} started. Sets you logged will be saved.
+        </p>
+        <div className="execution__confirm">
+          <Button size="lg" fullWidth onClick={() => setConfirmingEnd(false)}>
+            Keep going
+          </Button>
+          <Button
+            variant="danger"
+            size="lg"
+            fullWidth
+            loading={busy}
+            onClick={() => {
+              setConfirmingEnd(false)
+              void finish()
+            }}
+          >
+            End workout
+          </Button>
+        </div>
+      </Modal>
     </main>
   )
 }

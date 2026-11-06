@@ -3,8 +3,8 @@ import { Check } from 'lucide-react'
 import { assignSplitDay, getSplit } from '../../api/split'
 import { getWorkoutSummaries, type WorkoutSummary } from '../../api/workouts'
 import { DayCard } from '../../components/Split/DayCard'
-import { BackButton } from '../../components/ui/BackButton'
 import { Button } from '../../components/ui/Button'
+import { ButtonLink } from '../../components/ui/ButtonLink'
 import { Spinner } from '../../components/ui/Spinner'
 import { useToast } from '../../components/ui/ToastContext'
 import { useWorkoutsChanged } from '../../lib/workoutsChanged'
@@ -91,7 +91,6 @@ export function SplitPage() {
 
   return (
     <main className="page split-page">
-      <BackButton />
       <header className="page__header split-page__header">
         <div>
           <h1>My split</h1>
@@ -111,6 +110,15 @@ export function SplitPage() {
           <Button size="sm" variant="secondary" onClick={() => setReloadKey((key) => key + 1)}>
             Try again
           </Button>
+        </div>
+      ) : null}
+      {state.status === 'loaded' && state.workouts.length === 0 ? (
+        <div className="split-page__empty">
+          <strong>No workouts to assign yet</strong>
+          <p>Create a workout first, then come back to plan your week.</p>
+          <ButtonLink to="/workouts" size="sm" variant="secondary">
+            Create a workout
+          </ButtonLink>
         </div>
       ) : null}
       {state.status === 'loaded' ? (

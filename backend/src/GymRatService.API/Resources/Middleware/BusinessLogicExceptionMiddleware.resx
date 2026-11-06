@@ -48,6 +48,9 @@
   <data name="BLException_ChatService_ProviderUnavailable" xml:space="preserve">
     <value>The AI coach is unavailable right now. Please try again later.</value>
   </data>
+  <data name="BLException_ChatService_InvalidReply" xml:space="preserve">
+    <value>The AI coach could not complete that request. Please try again.</value>
+  </data>
   <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
     <value>The request is not valid.</value>
   </data>

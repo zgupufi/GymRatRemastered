@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { WeightUnit } from '../../api/auth'
-import { emptyDrafts, isValidDraft, previousFor, toEntries } from './sets'
+import { emptyDrafts, isValidDraft, previousFor, summarize, toEntries } from './sets'
 
 describe('sets', () => {
   it('creates the target number of empty drafts', () => {
@@ -45,5 +45,35 @@ describe('sets', () => {
     expect(previousFor(previous, 2)).toEqual(previous[0])
     expect(previousFor(previous, 1)).toBeUndefined()
     expect(previousFor(undefined, 1)).toBeUndefined()
+  })
+
+  it('summarizes sets, volume and the best set per exercise', () => {
+    const exercises = [
+      { id: 'a', name: 'Bench' },
+      { id: 'b', name: 'Row' },
+      { id: 'c', name: 'Skipped' },
+    ]
+    const drafts = {
+      a: [
+        { weight: '60', reps: '10', done: true },
+        { weight: '80', reps: '5', done: true },
+        { weight: '90', reps: '5', done: false },
+      ],
+      b: [{ weight: '50', reps: '8', done: true }],
+      c: [{ weight: '', reps: '', done: false }],
+    }
+
+    const result = summarize(exercises, drafts, WeightUnit.Kilograms)
+
+    expect(result.sets).toBe(3)
+    expect(result.volumeKg).toBe(60 * 10 + 80 * 5 + 50 * 8)
+    expect(result.exercises).toEqual([
+      { name: 'Bench', best: { reps: 5, weightKg: 80 } },
+      { name: 'Row', best: { reps: 8, weightKg: 50 } },
+    ])
+  })
+
+  it('treats exercises without drafts as empty', () => {
+    expect(summarize([{ id: 'x', name: 'X' }], {}, WeightUnit.Kilograms)).toEqual({ sets: 0, volumeKg: 0, exercises: [] })
   })
 })

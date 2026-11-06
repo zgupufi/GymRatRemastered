@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
+import { RequireAuth } from './auth/RequireAuth'
 import { AppShell } from './components/layout/AppShell'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { ProgressionPage } from './pages/ProgressionPage/ProgressionPage'
@@ -18,12 +19,14 @@ export function AppRoutes() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
-        <Route path="exercises" element={<ExercisesPage />} />
-        <Route path="exercises/:id" element={<ExerciseDetailsPage />} />
-        <Route path="workouts" element={<WorkoutsPage />} />
-        <Route path="split" element={<SplitPage />} />
-        <Route path="workout-execution" element={<WorkoutExecutionPage />} />
-        <Route path="progress" element={<ProgressionPage />} />
+        <Route element={<RequireAuth />}>
+          <Route path="exercises" element={<ExercisesPage />} />
+          <Route path="exercises/:id" element={<ExerciseDetailsPage />} />
+          <Route path="workouts" element={<WorkoutsPage />} />
+          <Route path="split" element={<SplitPage />} />
+          <Route path="workout-execution" element={<WorkoutExecutionPage />} />
+          <Route path="progress" element={<ProgressionPage />} />
+        </Route>
         <Route path="*" element={<PlaceholderPage title="Page not found" description="That page does not exist." />} />
       </Route>
     </Routes>
