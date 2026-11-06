@@ -49,8 +49,8 @@ describe('AddToWorkoutModal', () => {
     vi.mocked(replaceWorkoutExercises).mockResolvedValue()
     const onClose = renderModal()
 
-    expect(await screen.findByText('1 exercise')).toBeInTheDocument()
-    expect(screen.getByText('0 exercises')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /Legs/ })).toBeInTheDocument()
+    expect(screen.queryByText(/exercises?$/)).not.toBeInTheDocument()
     vi.useFakeTimers({ shouldAdvanceTime: true })
     await userEvent.click(screen.getByRole('button', { name: /Push Day/ }))
 

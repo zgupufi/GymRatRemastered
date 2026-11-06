@@ -1,54 +1,61 @@
 .exercise-card {
+  position: relative;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
   padding: var(--space-4);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  transition: border-color 160ms ease, transform 160ms ease;
+  transition: border-color 160ms ease;
 }
 
-.exercise-card:hover {
+.exercise-card:hover,
+.exercise-card:focus-within {
   border-color: var(--hairline-strong);
-  transform: translateY(-2px);
 }
 
-.exercise-card__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-3);
-}
-
-.exercise-card__icon {
-  display: grid;
-  place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--blue) 14%, transparent);
-  color: var(--blue);
+.exercise-card__text {
+  flex: 1;
+  min-width: 0;
 }
 
 .exercise-card__name {
   margin-bottom: var(--space-1);
 }
 
+.exercise-card__link {
+  color: var(--text);
+}
+
+.exercise-card__link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+}
+
 .exercise-card__muscles {
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-2);
   font-size: 0.8125rem;
   color: var(--text-3);
 }
 
-.exercise-card__link {
+.exercise-card__add {
+  position: relative;
+  z-index: 1;
   display: grid;
+  flex: none;
   place-items: center;
-  height: 2.25rem;
-  margin-top: auto;
-  border-radius: var(--radius-sm);
-  background: var(--fill-raised);
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: var(--radius-md);
   border: 1px solid var(--hairline-strong);
+  background: var(--fill-raised);
   color: var(--text);
-  font-size: 0.875rem;
-  font-weight: 600;
+}
+
+.exercise-card__add:hover {
+  background: var(--fill-pressed);
 }

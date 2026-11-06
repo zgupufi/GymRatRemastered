@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Check, ChevronDown, Pencil, Trash2 } from 'lucide-react'
+import { Check, ChevronDown, Ellipsis, Pencil, Trash2 } from 'lucide-react'
 import { deleteWorkout, renameWorkout, type WorkoutSummary } from '../../api/workouts'
 import { spring } from '../../lib/motion'
 import { Button } from '../ui/Button'
@@ -25,7 +25,32 @@ export function WorkoutCard({ workout, startExpanded = false, startRenaming = fa
   const [name, setName] = useState(workout.name)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const cardRef = useRef<HTMLLIElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return
+    }
+    const close = (event: MouseEvent | globalThis.KeyboardEvent) => {
+      if (event instanceof KeyboardEvent) {
+        if (event.key === 'Escape') {
+          setMenuOpen(false)
+        }
+        return
+      }
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', close)
+    document.addEventListener('keydown', close)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      document.removeEventListener('keydown', close)
+    }
+  }, [menuOpen])
 
   useEffect(() => {
     if (startExpanded) {
@@ -105,39 +130,54 @@ export function WorkoutCard({ workout, startExpanded = false, startRenaming = fa
               type="button"
               className="workout-card__toggle"
               aria-expanded={expanded}
-              aria-label={`${workout.name}, ${workout.exerciseCount} ${workout.exerciseCount === 1 ? 'exercise' : 'exercises'}`}
               onClick={() => setExpanded((value) => !value)}
             >
               <span className="workout-card__title">
                 <span className="workout-card__name">{workout.name}</span>
-                {workout.mainMuscles.length > 0 ? (
-                  <span className="workout-card__chips">
-                    {workout.mainMuscles.map((muscle) => (
-                      <span key={muscle} className="chip">
-                        {muscle}
-                      </span>
-                    ))}
-                  </span>
-                ) : null}
-              </span>
-              <span className="pill">
-                {workout.exerciseCount} {workout.exerciseCount === 1 ? 'exercise' : 'exercises'}
               </span>
               <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={spring} className="workout-card__chevron">
                 <ChevronDown size={18} aria-hidden="true" />
               </motion.span>
             </button>
-            <button type="button" className="icon-button" aria-label={`Rename ${workout.name}`} onClick={() => setRenaming(true)}>
-              <Pencil size={16} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="icon-button icon-button--danger"
-              aria-label={`Delete ${workout.name}`}
-              onClick={() => setConfirmingDelete(true)}
-            >
-              <Trash2 size={16} aria-hidden="true" />
-            </button>
+            <div className="workout-card__menu" ref={menuRef}>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label={`More actions for ${workout.name}`}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen((value) => !value)}
+              >
+                <Ellipsis size={18} aria-hidden="true" />
+              </button>
+              {menuOpen ? (
+                <div className="workout-card__popover" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      setRenaming(true)
+                    }}
+                  >
+                    <Pencil size={16} aria-hidden="true" />
+                    Rename
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="workout-card__popover-danger"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      setConfirmingDelete(true)
+                    }}
+                  >
+                    <Trash2 size={16} aria-hidden="true" />
+                    Delete
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </>
         )}
       </div>
@@ -167,13 +207,7 @@ export function WorkoutCard({ workout, startExpanded = false, startRenaming = fa
             exit={{ height: 0, opacity: 0 }}
             transition={spring}
           >
-            <WorkoutEditor
-              workoutId={workout.id}
-              onSaved={() => {
-                setExpanded(false)
-                onChanged()
-              }}
-            />
+            <WorkoutEditor workoutId={workout.id} />
           </motion.div>
         ) : null}
       </AnimatePresence>

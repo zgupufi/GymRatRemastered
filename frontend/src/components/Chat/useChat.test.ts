@@ -95,4 +95,19 @@ describe('useChat persistence', () => {
     expect(result.current.entries).toEqual([])
     expect(sessionStorage.getItem('gymrat_chat_history')).toBeNull()
   })
+
+  it.each(['<tool_call><function=create_workout></function></tool_call>', 'Sure <function=create_workout>'])(
+    'shows an error with retry instead of tool call markup',
+    async (reply) => {
+      vi.mocked(sendChatMessage).mockResolvedValue({ reply, workoutsChanged: false })
+      const { result } = renderHook(() => useChat())
+
+      await act(() => result.current.send('Build me a leg day'))
+
+      const last = result.current.entries.at(-1)
+      expect(last?.kind).toBe('error')
+      expect(last?.retryText).toBe('Build me a leg day')
+      expect(result.current.entries.some((item) => item.content.includes('tool_call'))).toBe(false)
+    },
+  )
 })

@@ -1,5 +1,5 @@
 .split-page {
-  --accent: var(--purple);
+  --accent: var(--emerald);
   --on-accent: var(--text);
   max-width: 72rem;
 }
@@ -60,12 +60,12 @@
 }
 
 .day-card--assigned {
-  border-color: color-mix(in srgb, var(--purple) 30%, transparent);
+  border-color: color-mix(in srgb, var(--emerald) 30%, transparent);
 }
 
 .day-card--today {
-  border-color: color-mix(in srgb, var(--purple) 70%, transparent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--purple) 14%, transparent);
+  border-color: color-mix(in srgb, var(--emerald) 70%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--emerald) 14%, transparent);
 }
 
 .day-card__head {
@@ -92,8 +92,8 @@
 .day-card__badge {
   padding: 0.1875rem 0.625rem;
   border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--purple) 14%, transparent);
-  color: var(--purple);
+  background: color-mix(in srgb, var(--emerald) 14%, transparent);
+  color: var(--emerald);
   font-size: 0.6875rem;
   font-weight: 650;
   letter-spacing: 0.06em;
@@ -120,8 +120,8 @@
 }
 
 .chip--blue {
-  background: color-mix(in srgb, var(--blue) 14%, transparent);
-  color: var(--blue);
+  background: color-mix(in srgb, var(--text-2) 14%, transparent);
+  color: var(--text-2);
 }
 
 .workout-select {
@@ -196,6 +196,6 @@
 }
 
 .workout-select__option[aria-selected='true'] {
-  background: color-mix(in srgb, var(--purple) 16%, transparent);
+  background: color-mix(in srgb, var(--emerald) 16%, transparent);
   color: var(--text);
 }

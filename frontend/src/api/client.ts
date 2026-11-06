@@ -35,6 +35,11 @@ function isApiErrorBody(value: unknown): value is ApiErrorBody {
 }
 
 let accessToken: string | null = null
+let unauthorizedHandler: (() => void) | null = null
+
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+  unauthorizedHandler = handler
+}
 
 export function setAccessToken(token: string | null): void {
   accessToken = token
@@ -59,6 +64,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (!response.ok) {
+    if (response.status === 401 && accessToken) {
+      unauthorizedHandler?.()
+    }
     const body: unknown = await response.json().catch(() => null)
     if (isApiErrorBody(body)) {
       throw new ApiError(response.status, body.message, body.code, body.errors ?? [])
