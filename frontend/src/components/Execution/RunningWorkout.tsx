@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Check, Square } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { WeightUnit } from '../../api/auth'
-import { finishSession, saveExerciseSets, type LastSession } from '../../api/sessions'
+import { finishSession, saveExerciseSets, type ExerciseTarget, type LastSession } from '../../api/sessions'
 import type { Workout } from '../../api/workouts'
 import { useRestTimer } from '../../hooks/useRestTimer'
 import { useStopwatch } from '../../hooks/useStopwatch'
@@ -11,8 +11,9 @@ import { BackButton } from '../ui/BackButton'
 import { Button } from '../ui/Button'
 import { useToast } from '../ui/ToastContext'
 import { RestTimerPill } from './RestTimerPill'
-import { emptyDrafts, toEntries, type SetDraft } from './sets'
+import { addDraft, applyTarget, emptyDrafts, removeLastDraft, toEntries, type SetDraft } from './sets'
 import { SetsCard } from './SetsCard'
+import { TargetBanner } from './TargetBanner'
 
 const ADVANCE_DELAY_MS = 500
 
@@ -20,6 +21,7 @@ interface RunningWorkoutProps {
   workout: Workout
   sessionId: string
   last: LastSession
+  targets: ExerciseTarget[]
   unit: WeightUnit
   restSeconds: number
   onFinished: (seconds: number) => void
@@ -33,7 +35,7 @@ function initialDrafts(workout: Workout): Record<string, SetDraft[]> {
   return drafts
 }
 
-export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, onFinished }: RunningWorkoutProps) {
+export function RunningWorkout({ workout, sessionId, last, targets, unit, restSeconds, onFinished }: RunningWorkoutProps) {
   const { showToast } = useToast()
   const [index, setIndex] = useState(0)
   const [drafts, setDrafts] = useState(() => initialDrafts(workout))
@@ -48,12 +50,18 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
   const exercise = workout.exercises[index].exercise
   const isLast = index === total - 1
   const previous = last.exercises.find((item) => item.exerciseId === exercise.id)?.sets
+  const target = targets.find((item) => item.order === index + 1)
 
   const saveExercise = async (position: number, current: Record<string, SetDraft[]>) => {
     const exerciseId = workout.exercises[position].exercise.id
     const entries = toEntries(current[exerciseId], unit)
     if (entries.length > 0) {
-      await saveExerciseSets(sessionId, exerciseId, entries)
+      const served = targets.find((item) => item.order === position + 1)
+      if (served) {
+        await saveExerciseSets(sessionId, exerciseId, entries, { weightKg: served.weightKg, reps: served.reps, reason: served.reason })
+      } else {
+        await saveExerciseSets(sessionId, exerciseId, entries)
+      }
     }
   }
 
@@ -82,6 +90,10 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
       showToast('error', 'Could not finish the workout. Try again.')
       setBusy(false)
     }
+  }
+
+  const updateDrafts = (change: (current: SetDraft[]) => SetDraft[]) => {
+    setDrafts((current) => ({ ...current, [exercise.id]: change(current[exercise.id]) }))
   }
 
   const patchSet = (row: number, patch: Partial<SetDraft>) => {
@@ -138,7 +150,17 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
       <h2 className="execution__exercise">
         <Link to={`/exercises/${exercise.id}`}>{exercise.name}</Link>
       </h2>
-      <SetsCard drafts={drafts[exercise.id]} previous={previous} unit={unit} onChange={patchSet} onToggle={toggleSet} />
+      {target ? <TargetBanner target={target} unit={unit} onUse={() => updateDrafts((current) => applyTarget(current, target, unit))} /> : null}
+      <SetsCard
+        drafts={drafts[exercise.id]}
+        previous={previous}
+        target={target}
+        unit={unit}
+        onChange={patchSet}
+        onToggle={toggleSet}
+        onAdd={() => updateDrafts(addDraft)}
+        onRemove={() => updateDrafts(removeLastDraft)}
+      />
       <RestTimerPill remaining={rest.remaining} onExtend={rest.extend} onReduce={rest.reduce} onSkip={rest.skip} />
       <div className="execution__controls">
         <Button variant="danger" aria-label="Stop workout" disabled={busy} onClick={finish}>

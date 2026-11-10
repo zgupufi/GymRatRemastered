@@ -12,6 +12,9 @@ export interface WorkoutSummary {
 export interface WorkoutExercise {
   order: number
   targetSets: number
+  repsMin: number
+  repsMax: number
+  weightStepKg: number
   exercise: Exercise
 }
 
@@ -24,6 +27,8 @@ export interface Workout {
 export interface WorkoutExerciseEntry {
   exerciseId: string
   targetSets: number
+  repsMin?: number
+  repsMax?: number
 }
 
 export type WorkoutSortField = 'CreatedAt' | 'Name'

@@ -51,7 +51,7 @@ describe('useChat persistence', () => {
   })
 
   it('restores the conversation after a remount and keeps ids unique', async () => {
-    vi.mocked(sendChatMessage).mockResolvedValue({ reply: 'Hello', workoutsChanged: false })
+    vi.mocked(sendChatMessage).mockResolvedValue({ reply: 'Hello', workoutsChanged: false, suggestions: [] })
     const first = renderHook(() => useChat())
     await act(() => first.result.current.send('Hi'))
     first.unmount()
@@ -65,7 +65,7 @@ describe('useChat persistence', () => {
   })
 
   it('shows a reply that lands after the widget was remounted', async () => {
-    let resolve: (value: { reply: string; workoutsChanged: boolean }) => void = () => {}
+    let resolve: (value: { reply: string; workoutsChanged: boolean; suggestions: never[] }) => void = () => {}
     vi.mocked(sendChatMessage).mockReturnValue(new Promise((done) => (resolve = done)))
     const first = renderHook(() => useChat())
     let sending: Promise<void> = Promise.resolve()
@@ -77,7 +77,7 @@ describe('useChat persistence', () => {
     expect(second.result.current.entries.map((item) => item.content)).toEqual(['Hi'])
 
     await act(async () => {
-      resolve({ reply: 'Late reply', workoutsChanged: false })
+      resolve({ reply: 'Late reply', workoutsChanged: false, suggestions: [] })
       await sending
     })
 
@@ -85,7 +85,7 @@ describe('useChat persistence', () => {
   })
 
   it('removes the stored conversation when it is cleared', async () => {
-    vi.mocked(sendChatMessage).mockResolvedValue({ reply: 'Hello', workoutsChanged: false })
+    vi.mocked(sendChatMessage).mockResolvedValue({ reply: 'Hello', workoutsChanged: false, suggestions: [] })
     const { result } = renderHook(() => useChat())
     await act(() => result.current.send('Hi'))
     expect(sessionStorage.getItem('gymrat_chat_history')).not.toBeNull()

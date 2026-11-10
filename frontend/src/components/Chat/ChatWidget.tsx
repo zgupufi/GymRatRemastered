@@ -4,6 +4,7 @@ import { ArrowUp, Check, MessageCircle, Sparkles, Trash2, X } from 'lucide-react
 import { MAX_CHAT_MESSAGE_LENGTH } from '../../api/chat'
 import { press, spring } from '../../lib/motion'
 import { formatReply } from './formatReply'
+import { SuggestionCard } from './SuggestionCard'
 import { useChat } from './useChat'
 import './ChatWidget.css'
 
@@ -21,7 +22,7 @@ const SUGGESTIONS = [
 export function ChatWidget() {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState('')
-  const { entries, pending, send, retry, clear } = useChat()
+  const { entries, pending, send, retry, clear, resolveSuggestion, refreshSuggestions } = useChat()
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -39,6 +40,15 @@ export function ChatWidget() {
       list.scrollTop = list.scrollHeight
     }
   }, [entries, pending, open])
+
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+    const controller = new AbortController()
+    refreshSuggestions(controller.signal).catch(() => undefined)
+    return () => controller.abort()
+  }, [open, refreshSuggestions])
 
   useEffect(() => {
     if (!open) {
@@ -169,7 +179,12 @@ export function ChatWidget() {
                       <span className="coach__avatar coach__avatar--small" aria-hidden="true">
                         <Sparkles size={13} />
                       </span>
-                      <div className="coach__bubble coach__bubble--assistant">{formatReply(entry.content)}</div>
+                      <div className="coach__bubble coach__bubble--assistant">
+                        {formatReply(entry.content)}
+                        {entry.suggestions?.map((suggestion) => (
+                          <SuggestionCard key={suggestion.id} suggestion={suggestion} onResolve={resolveSuggestion} />
+                        ))}
+                      </div>
                     </div>
                     {entry.workoutsChanged ? (
                       <span className="coach__updated">

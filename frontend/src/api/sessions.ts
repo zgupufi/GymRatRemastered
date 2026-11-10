@@ -4,6 +4,7 @@ export interface SessionSet {
   setNumber: number
   reps: number
   weightKg: number
+  repsInReserve?: number | null
 }
 
 export interface LastSessionExercise {
@@ -21,14 +22,36 @@ export interface LastSession {
 export interface SessionSetEntry {
   reps: number
   weightKg: number
+  repsInReserve?: number | null
+}
+
+export type ProgressionReason = 'NoHistory' | 'Hold' | 'Stalled' | 'IncreaseWeight' | 'AddRep'
+
+export interface ExerciseTarget {
+  order: number
+  exerciseId: string
+  sets: number
+  repsMin: number
+  repsMax: number
+  weightKg: number | null
+  reps: number
+  reason: ProgressionReason
+  lastWeightKg: number | null
+  lastReps: number[]
+}
+
+export interface ServedTarget {
+  weightKg: number | null
+  reps: number
+  reason: ProgressionReason
 }
 
 export function startSession(workoutId: string): Promise<{ id: string }> {
   return apiClient.post<{ id: string }>('/api/sessions', { workoutId })
 }
 
-export function saveExerciseSets(sessionId: string, exerciseId: string, sets: SessionSetEntry[]): Promise<void> {
-  return apiClient.put(`/api/sessions/${sessionId}/exercises/${exerciseId}/sets`, { sets })
+export function saveExerciseSets(sessionId: string, exerciseId: string, sets: SessionSetEntry[], target?: ServedTarget): Promise<void> {
+  return apiClient.put(`/api/sessions/${sessionId}/exercises/${exerciseId}/sets`, target ? { sets, target } : { sets })
 }
 
 export function finishSession(sessionId: string): Promise<void> {
@@ -37,4 +60,8 @@ export function finishSession(sessionId: string): Promise<void> {
 
 export function getLastSession(workoutId: string, signal?: AbortSignal): Promise<LastSession> {
   return apiClient.get<LastSession>(`/api/workouts/${workoutId}/last-session`, signal)
+}
+
+export function getTargets(workoutId: string, signal?: AbortSignal): Promise<ExerciseTarget[]> {
+  return apiClient.get<ExerciseTarget[]>(`/api/workouts/${workoutId}/targets`, signal)
 }

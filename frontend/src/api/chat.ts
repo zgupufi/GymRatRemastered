@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import type { CoachSuggestion } from './coach'
 
 export type ChatRole = 'User' | 'Assistant'
 
@@ -10,6 +11,7 @@ export interface ChatHistoryItem {
 export interface ChatReply {
   reply: string
   workoutsChanged: boolean
+  suggestions: CoachSuggestion[]
 }
 
 export const MAX_CHAT_MESSAGE_LENGTH = 1000

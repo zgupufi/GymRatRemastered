@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError } from '../../api/client'
 import { sendChatMessage, type ChatHistoryItem } from '../../api/chat'
+import { applySuggestion, dismissSuggestion, getPendingSuggestions, type CoachSuggestion, type SuggestionStatus } from '../../api/coach'
 import { friendlyErrorMessage } from '../../api/errors'
 import { announceWorkoutsChanged } from '../../lib/workoutsChanged'
 import { clearChatEntries, loadChatEntries, saveChatEntries } from './chatStorage'
@@ -9,12 +10,23 @@ export const HISTORY_LIMIT = 10
 
 const CHANGED_EVENT = 'gymrat:chat-changed'
 
+export type SuggestionAction = 'apply' | 'dismiss'
+
 export interface ChatEntry {
   id: number
   kind: 'user' | 'assistant' | 'error'
   content: string
   workoutsChanged?: boolean
   retryText?: string
+  suggestions?: CoachSuggestion[]
+}
+
+function withSuggestionStatus(entries: ChatEntry[], statusFor: (suggestion: CoachSuggestion) => SuggestionStatus): ChatEntry[] {
+  return entries.map((entry) =>
+    entry.suggestions
+      ? { ...entry, suggestions: entry.suggestions.map((suggestion) => ({ ...suggestion, status: statusFor(suggestion) })) }
+      : entry,
+  )
 }
 
 function nextIdAfter(entries: ChatEntry[]): number {
@@ -84,7 +96,13 @@ export function useChat() {
         const result = await sendChatMessage(text, history)
         commit([
           ...entriesRef.current,
-          { id: nextId.current++, kind: 'assistant', content: result.reply, workoutsChanged: result.workoutsChanged },
+          {
+            id: nextId.current++,
+            kind: 'assistant',
+            content: result.reply,
+            workoutsChanged: result.workoutsChanged,
+            ...(result.suggestions?.length ? { suggestions: result.suggestions } : {}),
+          },
         ])
         if (result.workoutsChanged) {
           announceWorkoutsChanged()
@@ -117,5 +135,37 @@ export function useChat() {
 
   const clear = useCallback(() => commit([]), [commit])
 
-  return { entries, pending, send, retry, clear }
+  const resolveSuggestion = useCallback(
+    async (suggestionId: string, action: SuggestionAction) => {
+      if (action === 'apply') {
+        await applySuggestion(suggestionId)
+      } else {
+        await dismissSuggestion(suggestionId)
+      }
+      const status: SuggestionStatus = action === 'apply' ? 'Applied' : 'Dismissed'
+      commit(withSuggestionStatus(entriesRef.current, (suggestion) => (suggestion.id === suggestionId ? status : suggestion.status)))
+      if (action === 'apply') {
+        announceWorkoutsChanged()
+      }
+    },
+    [commit],
+  )
+
+  const refreshSuggestions = useCallback(
+    async (signal?: AbortSignal) => {
+      if (!entriesRef.current.some((entry) => entry.suggestions?.some((suggestion) => suggestion.status === 'Pending'))) {
+        return
+      }
+      const pending = await getPendingSuggestions(signal)
+      const pendingIds = new Set(pending.items.map((suggestion) => suggestion.id))
+      commit(
+        withSuggestionStatus(entriesRef.current, (suggestion) =>
+          suggestion.status === 'Pending' && !pendingIds.has(suggestion.id) ? 'Expired' : suggestion.status,
+        ),
+      )
+    },
+    [commit],
+  )
+
+  return { entries, pending, send, retry, clear, resolveSuggestion, refreshSuggestions }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Check, Play, Target } from 'lucide-react'
 import { WeightUnit } from '../../api/auth'
-import { getLastSession, startSession, type LastSession } from '../../api/sessions'
+import { getLastSession, getTargets, startSession, type ExerciseTarget, type LastSession } from '../../api/sessions'
 import { getSplit } from '../../api/split'
 import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } from '../../api/workouts'
 import { useAuth } from '../../auth/AuthContext'
@@ -22,7 +22,7 @@ type Phase =
   | { name: 'loading' }
   | { name: 'error' }
   | { name: 'idle'; workout: WorkoutSummary | null }
-  | { name: 'running'; workout: Workout; sessionId: string; last: LastSession }
+  | { name: 'running'; workout: Workout; sessionId: string; last: LastSession; targets: ExerciseTarget[] }
   | { name: 'finished'; seconds: number }
 
 function todayNumber(): number {
@@ -64,8 +64,13 @@ export function WorkoutExecutionPage() {
   const begin = async (summary: WorkoutSummary) => {
     setStarting(true)
     try {
-      const [workout, last, session] = await Promise.all([getWorkout(summary.id), getLastSession(summary.id), startSession(summary.id)])
-      setPhase({ name: 'running', workout, sessionId: session.id, last })
+      const [workout, last, targets, session] = await Promise.all([
+        getWorkout(summary.id),
+        getLastSession(summary.id),
+        getTargets(summary.id).catch((): ExerciseTarget[] => []),
+        startSession(summary.id),
+      ])
+      setPhase({ name: 'running', workout, sessionId: session.id, last, targets })
     } catch {
       showToast('error', 'Could not start the workout. Try again.')
     } finally {
@@ -100,6 +105,7 @@ export function WorkoutExecutionPage() {
         workout={phase.workout}
         sessionId={phase.sessionId}
         last={phase.last}
+        targets={phase.targets}
         unit={unit}
         restSeconds={restSeconds}
         onFinished={(seconds) => setPhase({ name: 'finished', seconds })}

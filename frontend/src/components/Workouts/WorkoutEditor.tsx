@@ -12,10 +12,16 @@ import { ExercisePicker } from './ExercisePicker'
 const DEFAULT_SETS = 3
 const MIN_SETS = 1
 const MAX_SETS = 20
+const DEFAULT_REPS_MIN = 8
+const DEFAULT_REPS_MAX = 12
+const MIN_REPS = 1
+const MAX_REPS = 30
 
 interface EditItem {
   exercise: Exercise
   targetSets: string
+  repsMin: string
+  repsMax: string
 }
 
 type State =
@@ -33,16 +39,26 @@ function isValidSets(value: string): boolean {
   return Number.isInteger(sets) && sets >= MIN_SETS && sets <= MAX_SETS
 }
 
+function isValidReps(value: string): boolean {
+  const reps = Number(value)
+  return value !== '' && Number.isInteger(reps) && reps >= MIN_REPS && reps <= MAX_REPS
+}
+
+function isValidRange(item: Pick<EditItem, 'repsMin' | 'repsMax'>): boolean {
+  return isValidReps(item.repsMin) && isValidReps(item.repsMax) && Number(item.repsMin) <= Number(item.repsMax)
+}
+
 interface RowProps {
   item: EditItem
   index: number
   count: number
   onSetsChange: (value: string) => void
+  onRangeChange: (patch: Partial<Pick<EditItem, 'repsMin' | 'repsMax'>>) => void
   onRemove: () => void
   onMove: (direction: -1 | 1) => void
 }
 
-function ExerciseRow({ item, index, count, onSetsChange, onRemove, onMove }: RowProps) {
+function ExerciseRow({ item, index, count, onSetsChange, onRangeChange, onRemove, onMove }: RowProps) {
   const controls = useDragControls()
   const { exercise } = item
 
@@ -92,6 +108,26 @@ function ExerciseRow({ item, index, count, onSetsChange, onRemove, onMove }: Row
           onValueChange={onSetsChange}
         />
       </label>
+      <fieldset className="workout-editor__reps">
+        <legend>Reps</legend>
+        <NumberInput
+          aria-label={`Minimum reps for ${exercise.name}`}
+          min={MIN_REPS}
+          max={MAX_REPS}
+          value={item.repsMin}
+          aria-invalid={isValidRange(item) ? undefined : true}
+          onValueChange={(repsMin) => onRangeChange({ repsMin })}
+        />
+        <span aria-hidden="true">–</span>
+        <NumberInput
+          aria-label={`Maximum reps for ${exercise.name}`}
+          min={MIN_REPS}
+          max={MAX_REPS}
+          value={item.repsMax}
+          aria-invalid={isValidRange(item) ? undefined : true}
+          onValueChange={(repsMax) => onRangeChange({ repsMax })}
+        />
+      </fieldset>
       <button type="button" className="icon-button icon-button--danger" aria-label={`Remove ${exercise.name}`} onClick={onRemove}>
         <Trash2 size={16} aria-hidden="true" />
       </button>
@@ -112,7 +148,12 @@ export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
           status: 'ready',
           items: [...workout.exercises]
             .sort((a, b) => a.order - b.order)
-            .map((entry) => ({ exercise: entry.exercise, targetSets: String(entry.targetSets) })),
+            .map((entry) => ({
+              exercise: entry.exercise,
+              targetSets: String(entry.targetSets),
+              repsMin: String(entry.repsMin),
+              repsMax: String(entry.repsMax),
+            })),
         }),
       )
       .catch(() => {
@@ -125,7 +166,7 @@ export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
 
   const items = useMemo(() => (state.status === 'ready' ? state.items : []), [state])
   const selectedIds = useMemo(() => new Set(items.map((item) => item.exercise.id)), [items])
-  const allValid = items.every((item) => isValidSets(item.targetSets))
+  const allValid = items.every((item) => isValidSets(item.targetSets) && isValidRange(item))
 
   const setItems = (next: EditItem[]) => setState({ status: 'ready', items: next })
 
@@ -141,7 +182,12 @@ export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
     try {
       await replaceWorkoutExercises(
         workoutId,
-        items.map((item) => ({ exerciseId: item.exercise.id, targetSets: Number(item.targetSets) })),
+        items.map((item) => ({
+          exerciseId: item.exercise.id,
+          targetSets: Number(item.targetSets),
+          repsMin: Number(item.repsMin),
+          repsMax: Number(item.repsMax),
+        })),
       )
       showToast('success', 'Workout saved successfully!')
       onSaved()
@@ -163,7 +209,12 @@ export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
     <div className="workout-editor">
       <ExercisePicker
         selectedIds={selectedIds}
-        onAdd={(exercise) => setItems([...items, { exercise, targetSets: String(DEFAULT_SETS) }])}
+        onAdd={(exercise) =>
+          setItems([
+            ...items,
+            { exercise, targetSets: String(DEFAULT_SETS), repsMin: String(DEFAULT_REPS_MIN), repsMax: String(DEFAULT_REPS_MAX) },
+          ])
+        }
       />
       {items.length === 0 ? (
         <p className="workout-editor__empty">You haven’t added any exercises yet.</p>
@@ -176,6 +227,7 @@ export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
               index={index}
               count={items.length}
               onSetsChange={(value) => setItems(items.map((entry, i) => (i === index ? { ...entry, targetSets: value } : entry)))}
+              onRangeChange={(patch) => setItems(items.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)))}
               onRemove={() => setItems(items.filter((_, i) => i !== index))}
               onMove={(direction) => move(index, direction)}
             />
@@ -183,7 +235,9 @@ export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
         </Reorder.Group>
       )}
       <div className="workout-editor__footer">
-        <span>Drag the handle to reorder · sets {MIN_SETS}–{MAX_SETS}</span>
+        <span>
+          Drag the handle to reorder · sets {MIN_SETS}–{MAX_SETS} · reps {MIN_REPS}–{MAX_REPS}
+        </span>
         <Button size="sm" loading={saving} disabled={!allValid} onClick={save}>
           {saving ? 'Saving…' : 'Save changes'}
         </Button>

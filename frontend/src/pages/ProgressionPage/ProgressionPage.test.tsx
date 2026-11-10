@@ -30,8 +30,8 @@ const workout: Workout = {
   id: 'w1',
   name: 'Push day',
   exercises: [
-    { order: 1, targetSets: 3, exercise: bench },
-    { order: 2, targetSets: 3, exercise: fly },
+    { order: 1, targetSets: 3, repsMin: 8, repsMax: 12, weightStepKg: 2.5, exercise: bench },
+    { order: 2, targetSets: 3, repsMin: 8, repsMax: 12, weightStepKg: 2.5, exercise: fly },
   ],
 }
 

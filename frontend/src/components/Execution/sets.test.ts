@@ -5,7 +5,7 @@ import { emptyDrafts, isValidDraft, previousFor, toEntries } from './sets'
 describe('sets', () => {
   it('creates the target number of empty drafts', () => {
     expect(emptyDrafts(4)).toHaveLength(4)
-    expect(emptyDrafts(4)[0]).toEqual({ weight: '', reps: '', done: false })
+    expect(emptyDrafts(4)[0]).toEqual({ weight: '', reps: '', done: false, effort: null })
   })
 
   it('defaults to three sets', () => {
@@ -23,15 +23,15 @@ describe('sets', () => {
     ['0', '5', true],
     ['50', '8', true],
   ])('validates weight %s and reps %s', (weight, reps, expected) => {
-    expect(isValidDraft({ weight, reps, done: true }, WeightUnit.Kilograms)).toBe(expected)
+    expect(isValidDraft({ weight, reps, done: true, effort: null }, WeightUnit.Kilograms)).toBe(expected)
   })
 
   it('only sends completed valid sets converted to kilograms', () => {
     const entries = toEntries(
       [
-        { weight: '220', reps: '5', done: true },
-        { weight: '100', reps: '5', done: false },
-        { weight: '', reps: '5', done: true },
+        { weight: '220', reps: '5', done: true, effort: null },
+        { weight: '100', reps: '5', done: false, effort: null },
+        { weight: '', reps: '5', done: true, effort: null },
       ],
       WeightUnit.Pounds,
     )
