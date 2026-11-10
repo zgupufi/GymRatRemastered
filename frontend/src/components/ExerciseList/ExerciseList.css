@@ -15,29 +15,32 @@
   flex: 1;
 }
 
-.exercise-list__select {
-  position: relative;
+.exercise-list__chips {
   display: flex;
-  align-items: center;
-  width: 12.5rem;
-  color: var(--text-3);
-}
-
-.exercise-list__select select {
-  appearance: none;
+  gap: var(--space-2);
   width: 100%;
-  height: 3.125rem;
-  padding: 0 2.25rem 0 0.875rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--hairline);
-  background: var(--surface);
-  color: var(--text-2);
+  max-width: 47.5rem;
+  margin: 0 auto var(--space-4);
+  padding-bottom: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.exercise-list__select svg {
-  position: absolute;
-  right: 0.875rem;
-  pointer-events: none;
+.exercise-list__chip {
+  flex: none;
+  padding: 0.4375rem 0.875rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hairline);
+  background: var(--fill-subtle);
+  color: var(--text-2);
+  font-size: 0.875rem;
+}
+
+.exercise-list__chip[aria-pressed='true'] {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+  font-weight: 700;
 }
 
 .exercise-list__count {
@@ -98,7 +101,4 @@
     flex-direction: column;
   }
 
-  .exercise-list__select {
-    width: 100%;
-  }
 }

@@ -1,13 +1,17 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MotionGlobalConfig } from 'motion/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { login, WeightUnit } from '../../api/auth'
 import { ApiError, setAccessToken } from '../../api/client'
+import { getLastSession } from '../../api/sessions'
+import { getSplit } from '../../api/split'
 import { getUserProfile, updateUserSettings, type UserProfile } from '../../api/users'
+import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } from '../../api/workouts'
 import { AuthProvider } from '../../auth/AuthProvider'
 import { saveSession } from '../../auth/sessionStorage'
+import { AppNav } from '../../components/layout/AppNav'
 import { ToastProvider } from '../../components/ui/Toast'
 import { HomePage } from '../HomePage'
 import { SettingsModal } from './SettingsModal'
@@ -17,6 +21,42 @@ vi.mock('../../api/auth', async (importOriginal) => ({
   login: vi.fn(),
 }))
 vi.mock('../../api/users')
+vi.mock('../../api/split')
+vi.mock('../../api/sessions')
+vi.mock('../../api/workouts')
+
+const push: WorkoutSummary = { id: 'w1', name: 'Push day', exerciseCount: 2, mainMuscles: ['Chest'] }
+const pull: WorkoutSummary = { id: 'w2', name: 'Pull day', exerciseCount: 1, mainMuscles: ['Back'] }
+
+function exercise(id: string, name: string) {
+  return { id, name, mainMuscle: 'Chest', subMuscles: null, equipment: null, difficulty: null, description: null, youtubeLink: null }
+}
+
+const pushDetails: Workout = {
+  id: 'w1',
+  name: 'Push day',
+  exercises: [
+    { order: 2, targetSets: 1, exercise: exercise('e2', 'Cable Fly') },
+    { order: 1, targetSets: 3, exercise: exercise('e1', 'Bench Press') },
+  ],
+}
+
+function todayNumber() {
+  const jsDay = new Date().getDay()
+  return jsDay === 0 ? 7 : jsDay
+}
+
+function splitWith(assignments: Record<number, WorkoutSummary>) {
+  return [1, 2, 3, 4, 5, 6, 7].map((day) => ({ day, workout: assignments[day] ?? null }))
+}
+
+function otherDay() {
+  return (todayNumber() % 7) + 1
+}
+
+function mockWorkouts(total: number) {
+  vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: total > 0 ? [push] : [], page: 1, pageSize: 1, totalCount: total })
+}
 
 const PROFILE: UserProfile = {
   firstName: 'Rafael',
@@ -33,9 +73,18 @@ function renderHome() {
       <AuthProvider>
         <ToastProvider>
           <Routes>
-            <Route index element={<HomePage />} />
-            <Route path="workouts" element={<h1>Workouts page</h1>} />
-            <Route path="workout-execution" element={<h1>Execution page</h1>} />
+            <Route
+              element={
+                <>
+                  <AppNav />
+                  <Outlet />
+                </>
+              }
+            >
+              <Route index element={<HomePage />} />
+              <Route path="workouts" element={<h1>Workouts page</h1>} />
+              <Route path="workout-execution" element={<h1>Execution page</h1>} />
+            </Route>
           </Routes>
         </ToastProvider>
       </AuthProvider>
@@ -60,6 +109,10 @@ describe('DashboardPage', () => {
   beforeEach(() => {
     vi.mocked(getUserProfile).mockResolvedValue(PROFILE)
     vi.mocked(updateUserSettings).mockResolvedValue(undefined)
+    mockWorkouts(0)
+    vi.mocked(getSplit).mockResolvedValue(splitWith({}))
+    vi.mocked(getWorkout).mockResolvedValue(pushDetails)
+    vi.mocked(getLastSession).mockResolvedValue({ sessionId: null, startedAt: null, durationSeconds: null, exercises: [] })
   })
 
   afterEach(() => {
@@ -68,21 +121,97 @@ describe('DashboardPage', () => {
     vi.resetAllMocks()
   })
 
-  it('shows the hero and the four core modules', async () => {
+  it('guides a new account through setting up the first week', async () => {
     renderHome()
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Ready to crush your goals?' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Start Workout/ })).toHaveAttribute('href', '/workout-execution')
-    expect(screen.getByRole('link', { name: /Workouts/ })).toHaveAttribute('href', '/workouts')
-    expect(screen.getByRole('link', { name: /Training Split/ })).toHaveAttribute('href', '/split')
-    expect(screen.getByRole('link', { name: /Progression/ })).toHaveAttribute('href', '/progress')
-    expect(screen.getByRole('link', { name: /Exercise DB/ })).toHaveAttribute('href', '/exercises')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Let’s set up your first week' })).toBeInTheDocument()
+    expect(screen.getByText('Welcome, Rafael')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Create your first workout' })).toHaveAttribute('href', '/workouts')
   })
 
-  it('navigates when a module is clicked', async () => {
+  it('shows today’s workout with its exercises in order', async () => {
+    mockWorkouts(2)
+    vi.mocked(getSplit).mockResolvedValue(splitWith({ [todayNumber()]: push }))
+    vi.mocked(getLastSession).mockResolvedValue({
+      sessionId: 's1',
+      startedAt: '2026-11-04T10:00:00Z',
+      durationSeconds: 100,
+      exercises: [],
+    })
     renderHome()
 
-    await userEvent.click(await screen.findByRole('link', { name: /Workouts/ }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Push day' })).toBeInTheDocument()
+    const items = within(screen.getByRole('list', { name: 'Exercises in today’s workout' })).getAllByRole('listitem')
+    expect(items[0]).toHaveTextContent('Bench Press3 sets')
+    expect(items[1]).toHaveTextContent('Cable Fly1 set')
+    expect(screen.getByRole('link', { name: /Start workout/ })).toHaveAttribute('href', '/workout-execution')
+    expect(screen.getByText(/Last session:/)).toBeInTheDocument()
+  })
+
+  it('still shows today’s workout when the last session cannot be loaded', async () => {
+    mockWorkouts(2)
+    vi.mocked(getSplit).mockResolvedValue(splitWith({ [todayNumber()]: push }))
+    vi.mocked(getLastSession).mockRejectedValue(new ApiError(500, 'Boom'))
+    renderHome()
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Push day' })).toBeInTheDocument()
+    expect(screen.queryByText(/Last session:/)).not.toBeInTheDocument()
+  })
+
+  it('omits the last session line before the first session', async () => {
+    mockWorkouts(2)
+    vi.mocked(getSplit).mockResolvedValue(splitWith({ [todayNumber()]: push }))
+    renderHome()
+
+    await screen.findByRole('heading', { level: 1, name: 'Push day' })
+
+    expect(screen.queryByText(/Last session:/)).not.toBeInTheDocument()
+  })
+
+  it('shows the next scheduled workout on a rest day', async () => {
+    mockWorkouts(2)
+    vi.mocked(getSplit).mockResolvedValue(splitWith({ [otherDay()]: pull }))
+    renderHome()
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Rest day' })).toBeInTheDocument()
+    expect(screen.getByText(/Pull day/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Start a workout anyway' })).toHaveAttribute('href', '/workout-execution')
+    expect(screen.queryByRole('link', { name: 'Plan your week' })).not.toBeInTheDocument()
+  })
+
+  it('suggests planning the week when nothing is scheduled', async () => {
+    mockWorkouts(2)
+    renderHome()
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Rest day' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Plan your week' })).toHaveAttribute('href', '/split')
+  })
+
+  it('offers a retry when the day cannot be loaded', async () => {
+    vi.mocked(getSplit).mockRejectedValueOnce(new ApiError(500, 'Boom'))
+    renderHome()
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Could not load your day' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Let’s set up your first week' })).toBeInTheDocument()
+  })
+
+  it('links to the main areas', async () => {
+    renderHome()
+    await screen.findByRole('heading', { level: 1 })
+
+    const jump = within(screen.getByRole('region', { name: 'Jump to' }))
+    expect(jump.getByRole('link', { name: 'Workouts' })).toHaveAttribute('href', '/workouts')
+    expect(jump.getByRole('link', { name: 'Training split' })).toHaveAttribute('href', '/split')
+    expect(jump.getByRole('link', { name: 'Progression' })).toHaveAttribute('href', '/progress')
+    expect(jump.getByRole('link', { name: 'Exercise library' })).toHaveAttribute('href', '/exercises')
+  })
+
+  it('navigates when a link is clicked', async () => {
+    renderHome()
+
+    await userEvent.click(within(await screen.findByRole('region', { name: 'Jump to' })).getByRole('link', { name: 'Workouts' }))
 
     expect(await screen.findByRole('heading', { name: 'Workouts page' })).toBeInTheDocument()
   })
@@ -91,14 +220,13 @@ describe('DashboardPage', () => {
     renderHome()
     await screen.findByRole('heading', { level: 1 })
 
-    expect(screen.queryByText('Database Mastery')).not.toBeInTheDocument()
+    expect(screen.queryByText('Build a workout')).not.toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: 'How to use GymRat' }))
+    await userEvent.click(screen.getByRole('button', { name: 'How to use' }))
 
     const dialog = await screen.findByRole('dialog', { name: 'How to use GymRat' })
     expect(dialog).toBeInTheDocument()
-    expect(screen.getAllByRole('heading', { level: 4 })).toHaveLength(7)
-    expect(screen.queryByText(/GymRat Mode/)).not.toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { level: 4 })).toHaveLength(4)
 
     await userEvent.click(screen.getByRole('button', { name: 'Close' }))
 

@@ -14,12 +14,6 @@
   margin-bottom: var(--space-2);
 }
 
-.exercise-details__header h1 {
-  background: linear-gradient(180deg, var(--text), var(--text-3));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
 
 .exercise-details__body {
   display: grid;
@@ -29,6 +23,7 @@
 }
 
 .exercise-details__video {
+  position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 16 / 9;
@@ -41,6 +36,8 @@
 }
 
 .exercise-details__video iframe {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   border: 0;
@@ -66,20 +63,8 @@
   font-size: 1.125rem;
 }
 
-.exercise-details__fact:nth-child(1) strong {
-  color: var(--blue);
-}
-
-.exercise-details__fact:nth-child(2) strong {
-  color: var(--emerald);
-}
-
 .exercise-details__fact--wide {
   grid-column: span 2;
-}
-
-.exercise-details__fact--wide strong {
-  color: var(--purple);
 }
 
 .exercise-details__how {

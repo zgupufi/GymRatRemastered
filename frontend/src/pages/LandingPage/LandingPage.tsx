@@ -134,7 +134,7 @@ export function LandingPage() {
             <Link to="/login" className="landing-nav__link">
               Log in
             </Link>
-            <ButtonLink to="/register" variant="blue" size="sm" className="landing-nav__signup">
+            <ButtonLink to="/register" size="sm" className="landing-nav__signup">
               Sign up
             </ButtonLink>
           </div>

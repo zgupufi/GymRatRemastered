@@ -5,7 +5,6 @@ import { getExerciseProgress, type ProgressPoint } from '../../api/progress'
 import { getSplit } from '../../api/split'
 import { getWorkout } from '../../api/workouts'
 import { ProgressChart } from '../../components/Progression/ProgressChart'
-import { BackButton } from '../../components/ui/BackButton'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Input } from '../../components/ui/Input'
@@ -112,7 +111,6 @@ export function ProgressionPage() {
 
   return (
     <main className="page progression-page">
-      <BackButton />
       <header className="page__header">
         <h1>Progression</h1>
         <p>Track your evolution and break plateaus.</p>
@@ -168,6 +166,8 @@ export function ProgressionPage() {
         ) : null}
       </Card>
 
+      {!selected ? <p className="progression-page__hint">Search for an exercise to see how your estimated one-rep max has changed.</p> : null}
+
       {selected ? (
         <Card tone="material" className="progression-page__panel">
           <header className="progression-page__result-header">
@@ -201,8 +201,13 @@ export function ProgressionPage() {
               <span className="progression-page__icon" aria-hidden="true">
                 <ChartNoAxesColumn size={22} />
               </span>
-              <strong>Not enough data</strong>
-              <p>You need at least two sessions with this exercise to see a progression chart.</p>
+              <strong>
+                {Math.round(progress.points[0].bestSet.weightKg)} kg × {progress.points[0].bestSet.reps}
+              </strong>
+              <p>
+                Estimated 1 rep max {Math.round(progress.points[0].estimatedOneRepMax)} kg. Log one more session with this exercise to
+                see your trend.
+              </p>
             </div>
           ) : null}
           {progress.status === 'loaded' && progress.points.length > 1 ? (

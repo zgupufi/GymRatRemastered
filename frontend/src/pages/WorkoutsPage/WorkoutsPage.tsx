@@ -3,7 +3,6 @@ import { Plus, Search } from 'lucide-react'
 import { createWorkout, getWorkoutSummaries, type WorkoutSortField, type WorkoutSummary } from '../../api/workouts'
 import type { PagedResult, SortDirection } from '../../api/pagination'
 import { WorkoutCard } from '../../components/Workouts/WorkoutCard'
-import { BackButton } from '../../components/ui/BackButton'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { SegmentedControl } from '../../components/ui/SegmentedControl'
@@ -101,7 +100,6 @@ export function WorkoutsPage() {
 
   return (
     <main className="page workouts-page">
-      <BackButton />
       <header className="page__header workouts-page__header">
         <div>
           <h1>My workouts</h1>
@@ -166,12 +164,12 @@ export function WorkoutsPage() {
                 key={workout.id}
                 workout={workout}
                 startExpanded={workout.id === createdId}
-                startRenaming={workout.id === createdId}
                 onChanged={reload}
                 onDeleted={reload}
               />
             ))}
           </ul>
+          {result.totalCount > result.pageSize ? (
           <nav className="workouts-page__pager" aria-label="Workouts pages">
             <span>
               Showing {firstShown}–{lastShown} of {result.totalCount} {result.totalCount === 1 ? 'workout' : 'workouts'}
@@ -185,6 +183,7 @@ export function WorkoutsPage() {
               </Button>
             </div>
           </nav>
+          ) : null}
         </>
       ) : null}
     </main>

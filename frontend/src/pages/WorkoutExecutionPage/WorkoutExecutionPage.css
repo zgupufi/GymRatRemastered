@@ -74,7 +74,7 @@
   display: block;
   height: 100%;
   border-radius: 0 4px 4px 0;
-  background: linear-gradient(90deg, var(--blue), var(--emerald));
+  background: var(--emerald);
   transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -227,8 +227,7 @@
 }
 
 .rest-pill .rest-pill__skip {
-  color: var(--danger);
-  background: var(--danger-bg);
+  color: var(--text-2);
 }
 
 .picker {
@@ -260,11 +259,98 @@
 }
 
 .picker__item--active {
-  border-color: var(--blue);
+  border-color: var(--emerald);
   background: var(--glow-blue-soft);
 }
 
 .execution__badge--neutral {
   color: var(--text-2);
   background: var(--fill-raised);
+}
+
+.execution__back {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  background: var(--fill-subtle);
+  border: 1px solid var(--hairline-strong);
+}
+
+.execution__detail {
+  margin: 0;
+  color: var(--text-2);
+}
+
+.execution__last {
+  margin: var(--space-1) 0 var(--space-4);
+  font-size: 0.875rem;
+  color: var(--text-3);
+}
+
+.execution__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.execution__card--summary {
+  align-items: stretch;
+  text-align: left;
+}
+
+.execution__card--summary .execution__badge {
+  align-self: flex-start;
+}
+
+.execution__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.execution__stats div {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--fill-subtle);
+}
+
+.execution__stats dt {
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.execution__stats dd {
+  margin: 0.125rem 0 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.execution__results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--radius-md);
+  background: var(--fill-subtle);
+}
+
+.execution__results li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0.75rem var(--space-4);
+}
+
+.execution__results li + li {
+  border-top: 1px solid var(--hairline);
+}
+
+.execution__results li span:last-child {
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
 }
