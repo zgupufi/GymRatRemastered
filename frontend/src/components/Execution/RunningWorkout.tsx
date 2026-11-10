@@ -52,7 +52,7 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
 
   useEffect(() => {
     window.clearTimeout(closeTimer.current)
-    return () => {
+    const abandon = () => {
       closeTimer.current = window.setTimeout(() => {
         if (finished.current) {
           return
@@ -63,6 +63,7 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
           .catch(() => undefined)
       }, 0)
     }
+    return () => abandon()
   }, [sessionId])
 
   useEffect(() => {
