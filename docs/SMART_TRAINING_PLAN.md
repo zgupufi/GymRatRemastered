@@ -2,7 +2,7 @@
 
 Source: the research doc "GymRat UX priorities and niches research", ranked shortlist items 1, 2 and 3. Positioning: the free, web-first lifting log that tells you exactly what to lift next and why.
 
-Three features ship together in one PR as three commit series, each one building and passing its tests on its own, so it can be reviewed separately:
+Three features ship together in one PR. They share one migration and one set of DTOs, so the code landed as one backend commit and one frontend commit; each feature section below is the review map:
 
 1. Effort per set, add/remove sets mid-workout, copy last set (item 2, feeds the others)
 2. Today's target per exercise by double progression (item 1)
@@ -126,7 +126,7 @@ Integration with `ScriptedChatClient`: a proposal returns a card and appears in 
 
 | Topic | Outcome |
 | --- | --- |
-| Split into 3 PRs | One PR as asked, three self-contained commit series |
+| Split into 3 PRs | One PR as asked; backend and frontend commits, reviewed per feature section |
 | Working weight | Mode of weights, ties to heavier (was heaviest) |
 | Deload | `Stalled` after two holds; coach proposes, no auto deload |
 | Step | Default by equipment; reset to RepsMin kept (standard double progression) |
