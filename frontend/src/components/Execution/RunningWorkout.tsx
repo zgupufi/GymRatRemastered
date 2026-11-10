@@ -54,12 +54,13 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
     window.clearTimeout(closeTimer.current)
     return () => {
       closeTimer.current = window.setTimeout(() => {
-        if (!finished.current) {
-          finished.current = true
-          void Promise.resolve()
-            .then(() => finishSession(sessionId))
-            .catch(() => undefined)
+        if (finished.current) {
+          return
         }
+        finished.current = true
+        void saveQueue.current
+          .then(() => (savedExercises.current.size > 0 ? finishSession(sessionId) : undefined))
+          .catch(() => undefined)
       }, 0)
     }
   }, [sessionId])

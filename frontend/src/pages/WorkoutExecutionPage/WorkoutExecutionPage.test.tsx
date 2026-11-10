@@ -297,10 +297,51 @@ describe('WorkoutExecutionPage', () => {
     expect(saveExerciseSets).toHaveBeenCalledTimes(2)
   })
 
+  it('does not finish an empty session when the running workout is left', async () => {
+    const user = userEvent.setup()
+    const view = renderPage()
+    await startToday(user)
+
+    view.unmount()
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    expect(finishSession).not.toHaveBeenCalled()
+  })
+
+  it('finishes the session only after pending set saves complete', async () => {
+    const order: string[] = []
+    let release: () => void = () => undefined
+    vi.mocked(saveExerciseSets).mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          release = () => {
+            order.push('saved')
+            resolve()
+          }
+        }),
+    )
+    vi.mocked(finishSession).mockImplementation(async () => {
+      order.push('finished')
+    })
+    const user = userEvent.setup()
+    const view = renderPage()
+    await startToday(user)
+    await fillSet(user, 1, '60', '8')
+
+    view.unmount()
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(finishSession).not.toHaveBeenCalled()
+    release()
+
+    await waitFor(() => expect(finishSession).toHaveBeenCalledWith('s1'))
+    expect(order).toEqual(['saved', 'finished'])
+  })
+
   it('finishes the session when the running workout is left without ending it', async () => {
     const user = userEvent.setup()
     const view = renderPage()
     await startToday(user)
+    await fillSet(user, 1, '60', '8')
 
     view.unmount()
 
