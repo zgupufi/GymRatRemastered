@@ -86,3 +86,40 @@ export function toEntries(drafts: SetDraft[], unit: WeightUnit): SessionSetEntry
 export function previousFor(previous: SessionSet[] | undefined, setNumber: number): SessionSet | undefined {
   return previous?.find((set) => set.setNumber === setNumber)
 }
+
+export interface ExerciseResult {
+  name: string
+  best: { weightKg: number; reps: number } | null
+}
+
+export interface WorkoutResult {
+  sets: number
+  volumeKg: number
+  exercises: ExerciseResult[]
+}
+
+function estimatedOneRepMax(entry: SessionSetEntry): number {
+  return entry.weightKg * (1 + entry.reps / 30)
+}
+
+export function summarize(
+  exercises: { id: string; name: string }[],
+  drafts: Record<string, SetDraft[]>,
+  unit: WeightUnit,
+): WorkoutResult {
+  let sets = 0
+  let volumeKg = 0
+  const results = exercises.map((exercise) => {
+    const entries = toEntries(drafts[exercise.id] ?? [], unit)
+    let best: SessionSetEntry | null = null
+    for (const entry of entries) {
+      sets += 1
+      volumeKg += entry.weightKg * entry.reps
+      if (best === null || estimatedOneRepMax(entry) > estimatedOneRepMax(best)) {
+        best = entry
+      }
+    }
+    return { name: exercise.name, best }
+  })
+  return { sets, volumeKg, exercises: results.filter((result) => result.best !== null) }
+}

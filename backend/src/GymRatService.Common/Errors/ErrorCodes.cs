@@ -26,6 +26,8 @@ public static class ErrorCodes
 
     public const string ChatProviderUnavailable = "BLException_ChatService_ProviderUnavailable";
 
+    public const string ChatInvalidReply = "BLException_ChatService_InvalidReply";
+
     public const string CoachSuggestionNotFound = "BLException_CoachService_SuggestionNotFound";
 
     public const string CoachSuggestionNotPending = "BLException_CoachService_SuggestionNotPending";

@@ -219,6 +219,22 @@ public sealed class ChatEndpointsTests : IDisposable
         await AssertBadRequestAsync(response, ErrorCodes.ChatProviderUnavailable);
     }
 
+    [Theory]
+    [InlineData("<tool_call><function=create_workout><parameter=name>Leg Day</parameter></function></tool_call>")]
+    [InlineData("Sure. <function=create_workout>")]
+    public async Task SendMessage_ReturnsInvalidReply_WhenTheModelReturnsToolCallMarkup(string reply)
+    {
+        // Arrange
+        UseChatClient((_, _) => ScriptedChatClient.Reply(reply));
+        var client = await CreateClientAsync("ana@example.com");
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("Build me a leg day", null));
+
+        // Assert
+        await AssertBadRequestAsync(response, ErrorCodes.ChatInvalidReply);
+    }
+
     [Fact]
     public async Task SendMessage_ReturnsRateLimited_WhenTheUserSendsTooManyMessagesInTheWindow()
     {

@@ -190,3 +190,9 @@
   max-width: 25rem;
   color: var(--text-3);
 }
+
+.progression-page__hint {
+  margin-top: var(--space-4);
+  text-align: center;
+  color: var(--text-3);
+}

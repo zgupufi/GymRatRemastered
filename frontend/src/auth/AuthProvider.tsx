@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { login as loginRequest, register as registerRequest, type RegisterRequest } from '../api/auth'
-import { ApiError, setAccessToken } from '../api/client'
+import { ApiError, setAccessToken, setUnauthorizedHandler } from '../api/client'
 import { getUserProfile, updateUserSettings, type UserProfile, type UserSettings } from '../api/users'
 import { AuthContext, LoginAfterRegisterError, type AuthApi, type AuthStatus } from './AuthContext'
 import { clearSession, loadSession, saveSession } from './sessionStorage'
@@ -14,6 +14,7 @@ function restoreToken(): boolean {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>(() => (restoreToken() ? 'loading' : 'anonymous'))
   const [user, setUser] = useState<UserProfile | null>(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
 
   const endSession = useCallback(() => {
     clearSession()
@@ -21,6 +22,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
     setStatus('anonymous')
   }, [])
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      endSession()
+      setSessionExpired(true)
+    })
+    return () => setUnauthorizedHandler(null)
+  }, [endSession])
 
   useEffect(() => {
     if (status !== 'loading') {
@@ -49,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     const { accessToken, expiresAt } = await loginRequest({ email, password })
     setAccessToken(accessToken)
+    setSessionExpired(false)
     try {
       setUser(await getUserProfile())
     } catch (error) {
@@ -77,8 +87,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo<AuthApi>(
-    () => ({ status, user, login, register, logout: endSession, updateSettings }),
-    [status, user, login, register, endSession, updateSettings],
+    () => ({ status, user, sessionExpired, login, register, logout: endSession, updateSettings }),
+    [status, user, sessionExpired, login, register, endSession, updateSettings],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -13,7 +13,9 @@ type Field = 'email' | 'password'
 export function LoginPage() {
   const { status, login } = useAuth()
   const location = useLocation()
-  const notice = (location.state as { notice?: string } | null)?.notice
+  const routeState = location.state as { notice?: string; from?: string } | null
+  const notice = routeState?.notice
+  const destination = routeState?.from?.startsWith('/') && !routeState.from.startsWith('//') ? routeState.from : '/'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [touched, setTouched] = useState<Record<Field, boolean>>({ email: false, password: false })
@@ -21,7 +23,7 @@ export function LoginPage() {
   const [failure, setFailure] = useState<string | null>(null)
 
   if (status === 'authenticated') {
-    return <Navigate to="/" replace />
+    return <Navigate to={destination} replace />
   }
 
   const errors: Record<Field, string | undefined> = {
@@ -49,7 +51,7 @@ export function LoginPage() {
 
   return (
     <AuthLayout
-      accent="blue"
+      accent="emerald"
       title="Welcome back"
       subtitle="Log in to your account to continue your progress."
       footer={
@@ -88,7 +90,7 @@ export function LoginPage() {
             onBlur={() => touch('password')}
           />
         </fieldset>
-        <Button type="submit" variant="blue" size="lg" fullWidth loading={loading} className="auth__submit">
+        <Button type="submit" size="lg" fullWidth loading={loading} className="auth__submit">
           {loading ? null : <LogIn size={20} aria-hidden="true" />}
           {loading ? 'Logging in…' : 'Log in'}
         </Button>

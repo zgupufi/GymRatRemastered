@@ -8,6 +8,12 @@ import { clearChatEntries, loadChatEntries, saveChatEntries } from './chatStorag
 
 export const HISTORY_LIMIT = 10
 
+const UNUSABLE_REPLY_MESSAGE = 'The coach could not complete that request. Try again.'
+
+function isUnusableReply(reply: string): boolean {
+  return /<tool_call|<function=/i.test(reply)
+}
+
 const CHANGED_EVENT = 'gymrat:chat-changed'
 
 export type SuggestionAction = 'apply' | 'dismiss'
@@ -94,6 +100,10 @@ export function useChat() {
       setPending(true)
       try {
         const result = await sendChatMessage(text, history)
+        if (isUnusableReply(result.reply)) {
+          commit([...entriesRef.current, { id: nextId.current++, kind: 'error', content: UNUSABLE_REPLY_MESSAGE, retryText: text }])
+          return
+        }
         commit([
           ...entriesRef.current,
           {

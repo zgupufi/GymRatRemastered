@@ -29,6 +29,7 @@ function placeholders(target: ExerciseTarget | undefined, last: SessionSet | und
 }
 
 export function SetsCard({ drafts, previous, target, unit, onChange, onToggle, onAdd, onRemove }: SetsCardProps) {
+  const firstOpen = drafts.findIndex((draft) => !draft.done)
   return (
     <section className="sets-card" aria-label="Sets">
       <div className="sets-card__columns" aria-hidden="true">
@@ -73,7 +74,7 @@ export function SetsCard({ drafts, previous, target, unit, onChange, onToggle, o
                 <Check size={18} aria-hidden="true" />
               </motion.button>
             </div>
-            {draft.done ? (
+            {draft.done || index === firstOpen ? (
               <div className="sets-card__effort" role="group" aria-label={`Effort for set ${number}`}>
                 <small aria-hidden="true">Effort</small>
                 {EFFORT_OPTIONS.map((option) => (

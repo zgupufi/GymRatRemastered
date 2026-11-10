@@ -72,6 +72,17 @@ public class ChatService(
 
         usageLimiter.RecordTokens(userId, response.Usage?.TotalTokenCount ?? 0);
 
+        if (ContainsToolCallMarkup(response.Text))
+        {
+            logger.LogWarning("AI coach returned tool call markup instead of a reply");
+
+            throw new BusinessLogicException(ErrorCodes.ChatInvalidReply);
+        }
+
         return new ChatMessageResponse(response.Text, tools.WorkoutsChanged, tools.Suggestions);
     }
+
+    private static bool ContainsToolCallMarkup(string text) =>
+        text.Contains("<tool_call", StringComparison.OrdinalIgnoreCase) ||
+        text.Contains("<function=", StringComparison.OrdinalIgnoreCase);
 }

@@ -41,6 +41,15 @@ function page(items: WorkoutSummary[], overrides: Partial<{ page: number; totalC
   return { items, page: 1, pageSize: 10, totalCount: items.length, ...overrides }
 }
 
+async function openMenu(name: string, item: 'Rename' | 'Delete') {
+  await userEvent.click(await screen.findByRole('button', { name: 'More actions for ' + name }))
+  await userEvent.click(screen.getByRole('menuitem', { name: item }))
+}
+
+async function expand(name = 'Push day') {
+  await userEvent.click(await screen.findByRole('button', { name }))
+}
+
 function renderPage() {
   return render(
     <MemoryRouter>
@@ -85,14 +94,14 @@ describe('WorkoutsPage', () => {
     expect(getWorkoutSummaries).toHaveBeenCalledTimes(2)
   })
 
-  it('lists workouts with their muscles and exercise count', async () => {
+  it('lists workout names without counts, muscles or a pager', async () => {
     renderPage()
 
     expect(await screen.findByText('Push day')).toBeInTheDocument()
-    expect(screen.getByText('Shoulders')).toBeInTheDocument()
-    expect(screen.getByText('2 exercises')).toBeInTheDocument()
-    expect(screen.getByText('1 exercise')).toBeInTheDocument()
-    expect(screen.getByText('Showing 1–2 of 2 workouts')).toBeInTheDocument()
+    expect(screen.getByText('Pull day')).toBeInTheDocument()
+    expect(screen.queryByText('Shoulders')).not.toBeInTheDocument()
+    expect(screen.queryByText(/[0-9]+ exercises?/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Workouts pages' })).not.toBeInTheDocument()
     expect(getWorkoutSummaries).toHaveBeenCalledWith(
       { term: '', sortBy: 'CreatedAt', direction: 'Descending', page: 1, pageSize: 10 },
       expect.any(AbortSignal),
@@ -145,6 +154,7 @@ describe('WorkoutsPage', () => {
     vi.mocked(getWorkoutSummaries).mockResolvedValue(page([push], { totalCount: 12 }))
     renderPage()
     await screen.findByText('Push day')
+    expect(screen.getByText('Showing 1–1 of 12 workouts')).toBeInTheDocument()
 
     vi.mocked(getWorkoutSummaries).mockResolvedValue(page([push], { page: 2, totalCount: 12 }))
     await userEvent.click(screen.getByRole('button', { name: 'Next' }))
@@ -168,7 +178,7 @@ describe('WorkoutsPage', () => {
     expect(getWorkoutSummaries).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }), expect.any(AbortSignal))
   })
 
-  it('creates a workout and opens it for renaming', async () => {
+  it('creates a workout and opens its editor', async () => {
     const created: WorkoutSummary = { id: 'w3', name: 'New workout - Oct 29', exerciseCount: 0, mainMuscles: [] }
     vi.mocked(createWorkout).mockResolvedValue({ id: 'w3' })
     vi.mocked(getWorkout).mockResolvedValue({ id: 'w3', name: created.name, exercises: [] })
@@ -178,7 +188,8 @@ describe('WorkoutsPage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Create workout' }))
 
-    expect(await screen.findByRole('textbox', { name: 'Workout name' })).toHaveValue('New workout - Oct 29')
+    expect(await screen.findByRole('textbox', { name: 'Search exercises' })).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'Workout name' })).not.toBeInTheDocument()
     expect(createWorkout).toHaveBeenCalledWith(expect.stringMatching(/^New workout - /))
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' })
   })
@@ -196,7 +207,7 @@ describe('WorkoutsPage', () => {
   it('renames a workout with Enter', async () => {
     vi.mocked(renameWorkout).mockResolvedValue()
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Rename Push day' }))
+    await openMenu('Push day', 'Rename')
 
     const input = screen.getByRole('textbox', { name: 'Workout name' })
     await userEvent.clear(input)
@@ -208,9 +219,9 @@ describe('WorkoutsPage', () => {
 
   it('leaves the name alone when it is unchanged or the rename is cancelled', async () => {
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Rename Push day' }))
+    await openMenu('Push day', 'Rename')
     await userEvent.click(screen.getByRole('button', { name: 'Save name' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Rename Push day' }))
+    await openMenu('Push day', 'Rename')
     await userEvent.type(screen.getByRole('textbox', { name: 'Workout name' }), 'x{Escape}')
 
     expect(renameWorkout).not.toHaveBeenCalled()
@@ -220,7 +231,7 @@ describe('WorkoutsPage', () => {
   it('does not rename to an empty name and reports a failed rename', async () => {
     vi.mocked(renameWorkout).mockRejectedValue(new Error('boom'))
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Rename Push day' }))
+    await openMenu('Push day', 'Rename')
     const input = screen.getByRole('textbox', { name: 'Workout name' })
 
     await userEvent.clear(input)
@@ -236,12 +247,12 @@ describe('WorkoutsPage', () => {
   it('asks for confirmation before deleting', async () => {
     vi.mocked(deleteWorkout).mockResolvedValue()
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Delete Push day' }))
+    await openMenu('Push day', 'Delete')
 
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(deleteWorkout).not.toHaveBeenCalled()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Delete Push day' }))
+    await openMenu('Push day', 'Delete')
     await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
 
     await waitFor(() => expect(deleteWorkout).toHaveBeenCalledWith('w1'))
@@ -250,7 +261,7 @@ describe('WorkoutsPage', () => {
   it('reports a failed deletion', async () => {
     vi.mocked(deleteWorkout).mockRejectedValue(new Error('boom'))
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Delete Push day' }))
+    await openMenu('Push day', 'Delete')
 
     await userEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
 
@@ -259,7 +270,7 @@ describe('WorkoutsPage', () => {
 
   it('loads the exercises in order when a card expands and collapses again', async () => {
     renderPage()
-    const toggle = await screen.findByRole('button', { name: 'Push day, 2 exercises' })
+    const toggle = await screen.findByRole('button', { name: 'Push day' })
 
     await userEvent.click(toggle)
 
@@ -282,42 +293,44 @@ describe('WorkoutsPage', () => {
     vi.mocked(getWorkout).mockRejectedValue(new Error('boom'))
     renderPage()
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Push day, 2 exercises' }))
+    await expand()
 
     expect(await screen.findByText('Could not load this workout.')).toBeInTheDocument()
   })
 
-  it('edits the rep range and blocks saving an inverted range', async () => {
+  it('autosaves an edited rep range but never an inverted one', async () => {
     vi.mocked(replaceWorkoutExercises).mockResolvedValue()
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Push day, 2 exercises' }))
+    await expand()
     const minimum = await screen.findByRole('spinbutton', { name: 'Minimum reps for Bench Press' })
     const maximum = screen.getByRole('spinbutton', { name: 'Maximum reps for Bench Press' })
 
     await userEvent.clear(minimum)
     await userEvent.type(minimum, '14')
+    await new Promise((resolve) => setTimeout(resolve, 800))
 
     expect(minimum).toHaveAttribute('aria-invalid', 'true')
-    expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled()
+    expect(replaceWorkoutExercises).not.toHaveBeenCalled()
 
     await userEvent.clear(minimum)
     await userEvent.type(minimum, '6')
     await userEvent.clear(maximum)
     await userEvent.type(maximum, '10')
-    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
 
-    await waitFor(() =>
-      expect(replaceWorkoutExercises).toHaveBeenCalledWith('w1', [
-        { exerciseId: 'e1', targetSets: 4, repsMin: 6, repsMax: 10 },
-        { exerciseId: 'e2', targetSets: 3, repsMin: 8, repsMax: 12 },
-      ]),
+    await waitFor(
+      () =>
+        expect(replaceWorkoutExercises).toHaveBeenLastCalledWith('w1', [
+          { exerciseId: 'e1', targetSets: 4, repsMin: 6, repsMax: 10 },
+          { exerciseId: 'e2', targetSets: 3, repsMin: 8, repsMax: 12 },
+        ]),
+      { timeout: 3000 },
     )
   })
 
   it('adds, edits, removes and saves exercises', async () => {
     vi.mocked(replaceWorkoutExercises).mockResolvedValue()
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Push day, 2 exercises' }))
+    await expand()
     await screen.findAllByRole('spinbutton')
 
     await userEvent.type(screen.getByRole('textbox', { name: 'Search exercises' }), 'sq')
@@ -329,43 +342,62 @@ describe('WorkoutsPage', () => {
     await userEvent.clear(squatSets)
     await userEvent.type(squatSets, '5')
     await userEvent.click(screen.getByRole('button', { name: 'Remove Barbell Row' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
 
-    await waitFor(() =>
-      expect(replaceWorkoutExercises).toHaveBeenCalledWith('w1', [
-        { exerciseId: 'e1', targetSets: 4, repsMin: 8, repsMax: 12 },
-        { exerciseId: 'e3', targetSets: 5, repsMin: 8, repsMax: 12 },
-      ]),
+    await waitFor(
+      () =>
+        expect(replaceWorkoutExercises).toHaveBeenLastCalledWith('w1', [
+          { exerciseId: 'e1', targetSets: 4, repsMin: 8, repsMax: 12 },
+          { exerciseId: 'e3', targetSets: 5, repsMin: 8, repsMax: 12 },
+        ]),
+      { timeout: 3000 },
     )
-    expect(await screen.findByText('Workout saved successfully!')).toBeInTheDocument()
+    expect(await screen.findByText('Saved')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument()
   })
 
-  it('blocks saving while a set count is out of range', async () => {
+  it('does not save while a set count is out of range', async () => {
+    vi.mocked(replaceWorkoutExercises).mockResolvedValue()
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Push day, 2 exercises' }))
+    await expand()
     const [first] = await screen.findAllByRole('spinbutton')
 
     await userEvent.clear(first)
     await userEvent.type(first, '21')
+    await new Promise((resolve) => setTimeout(resolve, 900))
 
-    expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled()
+    expect(replaceWorkoutExercises).not.toHaveBeenCalled()
   })
 
   it('reports a failed save', async () => {
     vi.mocked(replaceWorkoutExercises).mockRejectedValue(new Error('boom'))
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Push day, 2 exercises' }))
+    await expand()
     await screen.findAllByRole('spinbutton')
 
-    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Barbell Row' }))
 
-    expect(await screen.findByText('Save failed. Try again.')).toBeInTheDocument()
+    expect(await screen.findByText('Could not save', undefined, { timeout: 3000 })).toBeInTheDocument()
+    vi.mocked(replaceWorkoutExercises).mockResolvedValue()
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(await screen.findByText('Saved')).toBeInTheDocument()
+  })
+
+  it('saves pending edits when the editor closes', async () => {
+    vi.mocked(replaceWorkoutExercises).mockResolvedValue()
+    renderPage()
+    await expand()
+    await screen.findAllByRole('spinbutton')
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Barbell Row' }))
+
+    await expand()
+
+    await waitFor(() => expect(replaceWorkoutExercises).toHaveBeenCalledWith('w1', [{ exerciseId: 'e1', targetSets: 4, repsMin: 8, repsMax: 12 }]))
   })
 
   it('reorders with the keyboard', async () => {
     vi.mocked(replaceWorkoutExercises).mockResolvedValue()
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Push day, 2 exercises' }))
+    await expand()
     await screen.findAllByRole('spinbutton')
 
     const handle = screen.getByRole('button', { name: /Reorder Bench Press/ })
@@ -376,20 +408,21 @@ describe('WorkoutsPage', () => {
     fireEvent.keyDown(screen.getByRole('button', { name: /Reorder Barbell Row/ }), { key: 'ArrowUp' })
     fireEvent.keyDown(screen.getByRole('button', { name: /Reorder Bench Press/ }), { key: 'ArrowUp' })
     fireEvent.keyDown(screen.getByRole('button', { name: /Reorder Bench Press/ }), { key: 'ArrowDown' })
-    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
 
-    await waitFor(() =>
-      expect(replaceWorkoutExercises).toHaveBeenCalledWith('w1', [
-        { exerciseId: 'e2', targetSets: 3, repsMin: 8, repsMax: 12 },
-        { exerciseId: 'e1', targetSets: 4, repsMin: 8, repsMax: 12 },
-      ]),
+    await waitFor(
+      () =>
+        expect(replaceWorkoutExercises).toHaveBeenLastCalledWith('w1', [
+          { exerciseId: 'e2', targetSets: 3, repsMin: 8, repsMax: 12 },
+          { exerciseId: 'e1', targetSets: 4, repsMin: 8, repsMax: 12 },
+        ]),
+      { timeout: 3000 },
     )
   })
 
   it('shows an empty list message and exercise search states', async () => {
     vi.mocked(getWorkout).mockResolvedValue({ id: 'w1', name: 'Push day', exercises: [] })
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Push day, 2 exercises' }))
+    await expand()
     expect(await screen.findByText('You haven’t added any exercises yet.')).toBeInTheDocument()
     const search = screen.getByRole('textbox', { name: 'Search exercises' })
 

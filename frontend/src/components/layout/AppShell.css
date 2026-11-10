@@ -44,7 +44,17 @@
 .page {
   max-width: 72rem;
   margin: 0 auto;
-  padding: 5rem var(--space-4) var(--space-12);
+  padding: var(--space-8) var(--space-4) var(--space-12);
+}
+
+.app-shell--nav .page {
+  padding-bottom: calc(var(--space-12) + 4.5rem);
+}
+
+@media (min-width: 48rem) {
+  .app-shell--nav .page {
+    padding-bottom: var(--space-12);
+  }
 }
 
 .page__header {
@@ -56,4 +66,15 @@
 
 .page__header p {
   color: var(--text-2);
+}
+
+@media (max-width: 47.99rem) {
+  .app-shell--nav .coach__fab {
+    right: var(--space-4);
+    bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
+}
+
+.page__header h1 {
+  padding-bottom: 0.1em;
 }

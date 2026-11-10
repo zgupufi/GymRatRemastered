@@ -45,6 +45,7 @@ const benchTarget: ExerciseTarget = {
 
 const authValue: AuthApi = {
   status: 'authenticated',
+  sessionExpired: false,
   user: { firstName: 'Rafael', lastName: null, email: 'r@example.com', weightUnit: WeightUnit.Kilograms, defaultRestTimeSeconds: 60 },
   login: vi.fn(),
   register: vi.fn(),
@@ -145,6 +146,31 @@ describe('WorkoutExecutionPage targets and effort', () => {
 
     await user.click(screen.getByRole('button', { name: 'Remove last' }))
     expect(screen.getByRole('button', { name: 'Remove last' })).toBeDisabled()
+  })
+
+  it('saves an effort picked before completing a set and an effort changed afterwards', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await startToday(user)
+
+    await user.type(screen.getByLabelText('Set 1 weight'), '60')
+    await user.type(screen.getByLabelText('Set 1 reps'), '8')
+    await user.click(within(screen.getByRole('group', { name: 'Effort for set 1' })).getByRole('button', { name: 'Good' }))
+    await user.click(screen.getByRole('button', { name: 'Complete set 1' }))
+
+    await vi.waitFor(() =>
+      expect(saveExerciseSets).toHaveBeenLastCalledWith('s1', 'e1', [{ reps: 8, weightKg: 60, repsInReserve: 2 }], {
+        weightKg: 62.5,
+        reps: 8,
+        reason: 'IncreaseWeight',
+      }),
+    )
+
+    await user.click(within(screen.getByRole('group', { name: 'Effort for set 1' })).getByRole('button', { name: 'Max' }))
+
+    await vi.waitFor(() =>
+      expect(saveExerciseSets).toHaveBeenLastCalledWith('s1', 'e1', [{ reps: 8, weightKg: 60, repsInReserve: 0 }], expect.anything()),
+    )
   })
 
   it('starts without targets when they cannot be loaded', async () => {

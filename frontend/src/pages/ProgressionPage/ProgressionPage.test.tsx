@@ -161,7 +161,7 @@ describe('ProgressionPage', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Bench Press' }))
 
-    expect(await screen.findByText('Not enough data')).toBeInTheDocument()
+    expect(await screen.findByText(/Log one more session/)).toBeInTheDocument()
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 

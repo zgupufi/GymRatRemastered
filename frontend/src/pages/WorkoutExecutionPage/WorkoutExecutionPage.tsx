@@ -12,7 +12,9 @@ import { Button } from '../../components/ui/Button'
 import { ButtonLink } from '../../components/ui/ButtonLink'
 import { Spinner } from '../../components/ui/Spinner'
 import { useToast } from '../../components/ui/ToastContext'
+import type { WorkoutResult } from '../../components/Execution/sets'
 import { formatClock } from '../../lib/clock'
+import { fromKilograms, unitLabel } from '../../lib/weight'
 import './WorkoutExecutionPage.css'
 
 const MAX_WORKOUTS = 100
@@ -22,8 +24,8 @@ type Phase =
   | { name: 'loading' }
   | { name: 'error' }
   | { name: 'idle'; workout: WorkoutSummary | null }
+  | { name: 'finished'; seconds: number; workoutName: string; result: WorkoutResult }
   | { name: 'running'; workout: Workout; sessionId: string; last: LastSession; targets: ExerciseTarget[] }
-  | { name: 'finished'; seconds: number }
 
 function todayNumber(): number {
   const jsDay = new Date().getDay()
@@ -108,7 +110,7 @@ export function WorkoutExecutionPage() {
         targets={phase.targets}
         unit={unit}
         restSeconds={restSeconds}
-        onFinished={(seconds) => setPhase({ name: 'finished', seconds })}
+        onFinished={(seconds, result) => setPhase({ name: 'finished', seconds, workoutName: phase.workout.name, result })}
       />
     )
   }
@@ -116,15 +118,45 @@ export function WorkoutExecutionPage() {
   if (phase.name === 'finished') {
     return (
       <main className="page execution">
-        <BackButton />
-        <div className="execution__card">
+        <div className="execution__card execution__card--summary">
           <span className="execution__badge" aria-hidden="true">
             <Check size={32} />
           </span>
           <h1>Workout finished</h1>
-          <p className="execution__muted">Great work today. Total time {formatClock(phase.seconds)}</p>
+          <p className="execution__muted">{phase.workoutName}</p>
+          <dl className="execution__stats">
+            <div>
+              <dt>Time</dt>
+              <dd>{formatClock(phase.seconds)}</dd>
+            </div>
+            <div>
+              <dt>Sets</dt>
+              <dd>{phase.result.sets}</dd>
+            </div>
+            <div>
+              <dt>Volume</dt>
+              <dd>
+                {fromKilograms(phase.result.volumeKg, unit).toLocaleString('en-US')} {unitLabel(unit).toLowerCase()}
+              </dd>
+            </div>
+          </dl>
+          {phase.result.exercises.length > 0 ? (
+            <ul className="execution__results" aria-label="Best set per exercise">
+              {phase.result.exercises.map((item) => (
+                <li key={item.name}>
+                  <span>{item.name}</span>
+                  <span>
+                    {item.best ? `${fromKilograms(item.best.weightKg, unit)} ${unitLabel(unit).toLowerCase()} × ${item.best.reps}` : null}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
           <ButtonLink to="/" size="lg" fullWidth>
-            Return to menu
+            Done
+          </ButtonLink>
+          <ButtonLink to="/progress" variant="secondary" fullWidth>
+            View progression
           </ButtonLink>
         </div>
       </main>
@@ -140,7 +172,6 @@ export function WorkoutExecutionPage() {
           <>
             <p className="execution__eyebrow">Today</p>
             <h1>{selected.name}</h1>
-            <p className="execution__muted">{selected.exerciseCount} exercises planned</p>
             <Button size="lg" fullWidth loading={starting} onClick={() => begin(selected)}>
               {starting ? null : <Play size={18} aria-hidden="true" />}
               {starting ? 'Loading' : 'Start workout'}

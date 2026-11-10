@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ChevronDown, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { friendlyErrorMessage } from '../../api/errors'
 import { MUSCLE_GROUPS, searchExercises, type Exercise } from '../../api/exercises'
+import { AddToWorkoutModal } from '../AddToWorkoutModal/AddToWorkoutModal'
 import { ExerciseCard } from '../ExerciseCard/ExerciseCard'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
@@ -56,6 +57,7 @@ export function ExerciseList() {
   const [loaded, setLoaded] = useState<Loaded | null>(null)
   const [failure, setFailure] = useState<Failure | null>(null)
   const [more, setMore] = useState<MoreState | null>(null)
+  const [addingId, setAddingId] = useState<string | null>(null)
   const controller = useRef<AbortController | null>(null)
 
   const queryKey = [term, muscle, reloadKey].join('|')
@@ -123,17 +125,19 @@ export function ExerciseList() {
           value={input}
           onChange={(event) => setInput(event.target.value)}
         />
-        <div className="exercise-list__select">
-          <select aria-label="Muscle group" value={muscle} onChange={(event) => setMuscle(event.target.value)}>
-            <option value="">All muscles</option>
-            {MUSCLE_GROUPS.map((group) => (
-              <option key={group} value={group}>
-                {group}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={16} aria-hidden="true" />
-        </div>
+      </div>
+      <div className="exercise-list__chips" role="group" aria-label="Muscle group">
+        {['', ...MUSCLE_GROUPS].map((group) => (
+          <button
+            key={group || 'all'}
+            type="button"
+            className="exercise-list__chip"
+            aria-pressed={muscle === group}
+            onClick={() => setMuscle(group)}
+          >
+            {group || 'All'}
+          </button>
+        ))}
       </div>
 
       {status === 'loading' ? <Spinner label="Loading exercises…" /> : null}
@@ -166,13 +170,15 @@ export function ExerciseList() {
           </p>
           {groups.map((group) => (
             <section key={group.muscle} className="exercise-list__group" aria-label={group.muscle}>
-              <div className="exercise-list__heading">
-                <h3>{group.muscle}</h3>
-                <span aria-hidden="true" />
-              </div>
+              {muscle === '' ? (
+                <div className="exercise-list__heading">
+                  <h3>{group.muscle}</h3>
+                  <span aria-hidden="true" />
+                </div>
+              ) : null}
               <div className="exercise-list__grid">
                 {group.exercises.map((exercise) => (
-                  <ExerciseCard key={exercise.id} exercise={exercise} />
+                  <ExerciseCard key={exercise.id} exercise={exercise} onAdd={(chosen) => setAddingId(chosen.id)} />
                 ))}
               </div>
             </section>
@@ -187,6 +193,7 @@ export function ExerciseList() {
           ) : null}
         </>
       ) : null}
+      {addingId ? <AddToWorkoutModal key={addingId} open exerciseId={addingId} onClose={() => setAddingId(null)} /> : null}
     </section>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Reorder, useDragControls } from 'motion/react'
 import { GripVertical, Trash2 } from 'lucide-react'
 import { replaceWorkoutExercises, getWorkout } from '../../api/workouts'
@@ -6,7 +6,6 @@ import type { Exercise } from '../../api/exercises'
 import { Button } from '../ui/Button'
 import { NumberInput } from '../ui/NumberInput'
 import { Spinner } from '../ui/Spinner'
-import { useToast } from '../ui/ToastContext'
 import { ExercisePicker } from './ExercisePicker'
 
 const DEFAULT_SETS = 3
@@ -31,7 +30,17 @@ type State =
 
 interface WorkoutEditorProps {
   workoutId: string
-  onSaved: () => void
+}
+
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+
+const AUTOSAVE_DELAY_MS = 600
+
+const STATUS_TEXT: Record<SaveStatus, string> = {
+  idle: '',
+  saving: 'Saving…',
+  saved: 'Saved',
+  error: 'Could not save',
 }
 
 function isValidSets(value: string): boolean {
@@ -46,6 +55,19 @@ function isValidReps(value: string): boolean {
 
 function isValidRange(item: Pick<EditItem, 'repsMin' | 'repsMax'>): boolean {
   return isValidReps(item.repsMin) && isValidReps(item.repsMax) && Number(item.repsMin) <= Number(item.repsMax)
+}
+
+function isValidItem(item: EditItem): boolean {
+  return isValidSets(item.targetSets) && isValidRange(item)
+}
+
+function toEntries(items: EditItem[]) {
+  return items.map((item) => ({
+    exerciseId: item.exercise.id,
+    targetSets: Number(item.targetSets),
+    repsMin: Number(item.repsMin),
+    repsMax: Number(item.repsMax),
+  }))
 }
 
 interface RowProps {
@@ -135,27 +157,29 @@ function ExerciseRow({ item, index, count, onSetsChange, onRangeChange, onRemove
   )
 }
 
-export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
-  const { showToast } = useToast()
+export function WorkoutEditor({ workoutId }: WorkoutEditorProps) {
   const [state, setState] = useState<State>({ status: 'loading' })
-  const [saving, setSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const dirty = useRef(false)
+  const latest = useRef<EditItem[]>([])
+  const saveTimer = useRef<number | undefined>(undefined)
+  const saveSequence = useRef(0)
 
   useEffect(() => {
     const controller = new AbortController()
     getWorkout(workoutId, controller.signal)
-      .then((workout) =>
-        setState({
-          status: 'ready',
-          items: [...workout.exercises]
-            .sort((a, b) => a.order - b.order)
-            .map((entry) => ({
-              exercise: entry.exercise,
-              targetSets: String(entry.targetSets),
-              repsMin: String(entry.repsMin),
-              repsMax: String(entry.repsMax),
-            })),
-        }),
-      )
+      .then((workout) => {
+        const loaded = [...workout.exercises]
+          .sort((a, b) => a.order - b.order)
+          .map((entry) => ({
+            exercise: entry.exercise,
+            targetSets: String(entry.targetSets),
+            repsMin: String(entry.repsMin),
+            repsMax: String(entry.repsMax),
+          }))
+        latest.current = loaded
+        setState({ status: 'ready', items: loaded })
+      })
       .catch(() => {
         if (!controller.signal.aborted) {
           setState({ status: 'error' })
@@ -166,36 +190,53 @@ export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
 
   const items = useMemo(() => (state.status === 'ready' ? state.items : []), [state])
   const selectedIds = useMemo(() => new Set(items.map((item) => item.exercise.id)), [items])
-  const allValid = items.every((item) => isValidSets(item.targetSets) && isValidRange(item))
 
-  const setItems = (next: EditItem[]) => setState({ status: 'ready', items: next })
+  const persist = useCallback(
+    async (entries: EditItem[]) => {
+      dirty.current = false
+      saveSequence.current += 1
+      const sequence = saveSequence.current
+      setSaveStatus('saving')
+      try {
+        await replaceWorkoutExercises(workoutId, toEntries(entries))
+        if (sequence === saveSequence.current) {
+          setSaveStatus(dirty.current ? 'saving' : 'saved')
+        }
+      } catch {
+        if (sequence === saveSequence.current) {
+          dirty.current = true
+          setSaveStatus('error')
+        }
+      }
+    },
+    [workoutId],
+  )
+
+  const setItems = (next: EditItem[]) => {
+    latest.current = next
+    dirty.current = true
+    window.clearTimeout(saveTimer.current)
+    if (next.every(isValidItem)) {
+      saveTimer.current = window.setTimeout(() => void persist(next), AUTOSAVE_DELAY_MS)
+    }
+    setState({ status: 'ready', items: next })
+  }
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(saveTimer.current)
+      if (dirty.current && latest.current.every(isValidItem)) {
+        void replaceWorkoutExercises(workoutId, toEntries(latest.current)).catch(() => undefined)
+      }
+    },
+    [workoutId],
+  )
 
   const move = (index: number, direction: -1 | 1) => {
     const next = [...items]
     const target = index + direction
     ;[next[index], next[target]] = [next[target], next[index]]
     setItems(next)
-  }
-
-  const save = async () => {
-    setSaving(true)
-    try {
-      await replaceWorkoutExercises(
-        workoutId,
-        items.map((item) => ({
-          exerciseId: item.exercise.id,
-          targetSets: Number(item.targetSets),
-          repsMin: Number(item.repsMin),
-          repsMax: Number(item.repsMax),
-        })),
-      )
-      showToast('success', 'Workout saved successfully!')
-      onSaved()
-    } catch {
-      showToast('error', 'Save failed. Try again.')
-    } finally {
-      setSaving(false)
-    }
   }
 
   if (state.status === 'loading') {
@@ -238,9 +279,14 @@ export function WorkoutEditor({ workoutId, onSaved }: WorkoutEditorProps) {
         <span>
           Drag the handle to reorder · sets {MIN_SETS}–{MAX_SETS} · reps {MIN_REPS}–{MAX_REPS}
         </span>
-        <Button size="sm" loading={saving} disabled={!allValid} onClick={save}>
-          {saving ? 'Saving…' : 'Save changes'}
-        </Button>
+        <span className="workout-editor__status" role="status" data-status={saveStatus}>
+          {STATUS_TEXT[saveStatus]}
+        </span>
+        {saveStatus === 'error' ? (
+          <Button size="sm" variant="secondary" onClick={() => void persist(latest.current)}>
+            Try again
+          </Button>
+        ) : null}
       </div>
     </div>
   )
