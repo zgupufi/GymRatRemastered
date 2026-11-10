@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUp, Bot, Check, Clock, Dumbbell, Plus, Search, TrendingUp } from 'lucide-react'
+import { ArrowLeft, ArrowUp, Bot, Check, Clock, Dumbbell, Search, TrendingUp } from 'lucide-react'
 
 type SetState = 'done' | 'current' | 'next'
 
@@ -51,10 +51,6 @@ export function PhoneMockup() {
           </div>
         ))}
       </div>
-      <div className="phone__add">
-        <Plus size={14} strokeWidth={2.5} />
-        Add set
-      </div>
       <div className="phone__spacer" />
       <div className="phone__rest">
         <span className="phone__rest-time">
@@ -66,7 +62,7 @@ export function PhoneMockup() {
           <span>+30s</span>
         </span>
       </div>
-      <div className="phone__end">End workout</div>
+      <div className="phone__end">End</div>
     </div>
   )
 }
@@ -84,7 +80,6 @@ export function WorkoutCardMockup() {
     <div className="mock" aria-hidden="true">
       <div className="mock__heading">
         <span className="mock__title">Push day</span>
-        <span className="mock__pill">7 exercises</span>
       </div>
       <div className="mock__search">
         <Search size={16} />
@@ -106,7 +101,7 @@ export function WorkoutCardMockup() {
         ))}
       </div>
       <div className="mock__footer">
-        <span className="button button--primary button--sm">Save changes</span>
+        <span className="mock__saved">Saved</span>
       </div>
     </div>
   )

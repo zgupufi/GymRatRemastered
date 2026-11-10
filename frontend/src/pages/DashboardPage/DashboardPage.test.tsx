@@ -148,6 +148,16 @@ describe('DashboardPage', () => {
     expect(screen.getByText(/Last session:/)).toBeInTheDocument()
   })
 
+  it('still shows today’s workout when the last session cannot be loaded', async () => {
+    mockWorkouts(2)
+    vi.mocked(getSplit).mockResolvedValue(splitWith({ [todayNumber()]: push }))
+    vi.mocked(getLastSession).mockRejectedValue(new ApiError(500, 'Boom'))
+    renderHome()
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Push day' })).toBeInTheDocument()
+    expect(screen.queryByText(/Last session:/)).not.toBeInTheDocument()
+  })
+
   it('omits the last session line before the first session', async () => {
     mockWorkouts(2)
     vi.mocked(getSplit).mockResolvedValue(splitWith({ [todayNumber()]: push }))

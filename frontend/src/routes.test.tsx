@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getExercise, searchExercises } from './api/exercises'
 import { apiClient, setAccessToken } from './api/client'
-import { WeightUnit } from './api/auth'
+import { login, WeightUnit } from './api/auth'
 import { getUserProfile } from './api/users'
 import { AuthProvider } from './auth/AuthProvider'
 import { saveSession } from './auth/sessionStorage'
@@ -16,6 +16,10 @@ vi.mock('./api/split')
 vi.mock('./api/exercises')
 vi.mock('./api/workouts')
 vi.mock('./api/users')
+vi.mock('./api/auth', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./api/auth')>()),
+  login: vi.fn(),
+}))
 
 function renderAt(path: string) {
   return render(
@@ -133,6 +137,19 @@ describe('AppRoutes', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Welcome back' })).toBeInTheDocument()
     expect(screen.queryByText(/session expired/i)).not.toBeInTheDocument()
+  })
+
+  it('returns to the requested page after logging in', async () => {
+    localStorage.clear()
+    setAccessToken(null)
+    vi.mocked(login).mockResolvedValue({ accessToken: 'token', expiresAt: '2999-01-01T00:00:00Z' })
+    renderAt('/split')
+
+    await userEvent.type(await screen.findByLabelText('Email'), 'r@example.com')
+    await userEvent.type(screen.getByLabelText('Password'), 'secret-pass')
+    await userEvent.click(screen.getByRole('button', { name: 'Log in' }))
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'My split' })).toBeInTheDocument()
   })
 
   it('shows the member navigation on member pages', async () => {

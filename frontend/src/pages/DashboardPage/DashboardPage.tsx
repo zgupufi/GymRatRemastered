@@ -73,8 +73,11 @@ async function loadPlan(signal: AbortSignal): Promise<Plan> {
   if (!scheduled) {
     return { kind: 'rest', next: nextScheduled(days, today) }
   }
-  const [workout, last] = await Promise.all([getWorkout(scheduled.id, signal), getLastSession(scheduled.id, signal)])
-  return { kind: 'today', workout, lastSessionAt: last.startedAt }
+  const [workout, last] = await Promise.all([
+    getWorkout(scheduled.id, signal),
+    getLastSession(scheduled.id, signal).catch(() => null),
+  ])
+  return { kind: 'today', workout, lastSessionAt: last?.startedAt ?? null }
 }
 
 export function DashboardPage() {
