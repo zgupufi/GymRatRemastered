@@ -42,10 +42,27 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
   const [confirmingEnd, setConfirmingEnd] = useState(false)
   const advanceTimer = useRef<number | undefined>(undefined)
   const saveQueue = useRef<Promise<void>>(Promise.resolve())
+  const savedExercises = useRef(new Set<string>())
+  const finished = useRef(false)
+  const closeTimer = useRef<number | undefined>(undefined)
   const rest = useRestTimer()
   const elapsed = useStopwatch(true)
 
   useEffect(() => () => window.clearTimeout(advanceTimer.current), [])
+
+  useEffect(() => {
+    window.clearTimeout(closeTimer.current)
+    return () => {
+      closeTimer.current = window.setTimeout(() => {
+        if (!finished.current) {
+          finished.current = true
+          void Promise.resolve()
+            .then(() => finishSession(sessionId))
+            .catch(() => undefined)
+        }
+      }, 0)
+    }
+  }, [sessionId])
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => event.preventDefault()
@@ -64,8 +81,13 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
   const saveExercise = async (position: number, current: Record<string, SetDraft[]>) => {
     const exerciseId = workout.exercises[position].exercise.id
     const entries = toEntries(current[exerciseId], unit)
-    if (entries.length > 0) {
+    if (entries.length > 0 || savedExercises.current.has(exerciseId)) {
       await saveExerciseSets(sessionId, exerciseId, entries)
+      if (entries.length > 0) {
+        savedExercises.current.add(exerciseId)
+      } else {
+        savedExercises.current.delete(exerciseId)
+      }
     }
   }
 
@@ -87,6 +109,7 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
     setBusy(true)
     try {
       await saveExercise(index, drafts)
+      finished.current = true
       await finishSession(sessionId)
       rest.skip()
       onFinished(
@@ -98,6 +121,7 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
         ),
       )
     } catch {
+      finished.current = false
       showToast('error', 'Could not finish the workout. Try again.')
       setBusy(false)
     }

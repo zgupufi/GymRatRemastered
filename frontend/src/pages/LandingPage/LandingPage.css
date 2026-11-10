@@ -165,10 +165,7 @@
 }
 
 .hero__title-accent {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--emerald) 55%, var(--text)), var(--emerald));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--emerald);
 }
 
 .hero__lead {
@@ -260,7 +257,7 @@
   width: 22%;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--emerald), var(--emerald));
+  background: var(--emerald);
 }
 
 .phone__title {

@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MotionGlobalConfig } from 'motion/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -103,7 +103,9 @@ describe('WorkoutExecutionPage', () => {
     vi.mocked(finishSession).mockResolvedValue(undefined)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
+    cleanup()
+    await new Promise((resolve) => setTimeout(resolve, 10))
     vi.resetAllMocks()
     vi.useRealTimers()
   })
@@ -291,7 +293,32 @@ describe('WorkoutExecutionPage', () => {
     await waitFor(() => expect(saveExerciseSets).toHaveBeenLastCalledWith('s1', 'e1', [{ reps: 8, weightKg: 60 }]))
 
     await user.click(screen.getByRole('button', { name: 'Undo set 1' }))
-    await waitFor(() => expect(saveExerciseSets).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(saveExerciseSets).toHaveBeenLastCalledWith('s1', 'e1', []))
+    expect(saveExerciseSets).toHaveBeenCalledTimes(2)
+  })
+
+  it('finishes the session when the running workout is left without ending it', async () => {
+    const user = userEvent.setup()
+    const view = renderPage()
+    await startToday(user)
+
+    view.unmount()
+
+    await waitFor(() => expect(finishSession).toHaveBeenCalledWith('s1'))
+    expect(finishSession).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not finish the session twice when it is ended normally', async () => {
+    const user = userEvent.setup()
+    const view = renderPage()
+    await startToday(user)
+    await endWorkout(user)
+    await screen.findByRole('heading', { level: 1, name: 'Workout finished' })
+
+    view.unmount()
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    expect(finishSession).toHaveBeenCalledTimes(1)
   })
 
   it('warns before the page is closed while a workout is running', async () => {
