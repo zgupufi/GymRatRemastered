@@ -48,6 +48,24 @@
   <data name="BLException_ChatService_ProviderUnavailable" xml:space="preserve">
     <value>Antrenorul AI nu este disponibil momentan. Te rugăm să încerci din nou mai târziu.</value>
   </data>
+  <data name="BLException_CoachService_SuggestionNotFound" xml:space="preserve">
+    <value>Sugestia {0} nu există.</value>
+  </data>
+  <data name="BLException_CoachService_SuggestionNotPending" xml:space="preserve">
+    <value>Sugestia {0} a fost deja aplicată, respinsă sau a expirat.</value>
+  </data>
+  <data name="BLException_CoachService_ExerciseNotInWorkout" xml:space="preserve">
+    <value>Exercițiul {0} nu face parte din acest antrenament.</value>
+  </data>
+  <data name="BLException_CoachService_SuggestionStale" xml:space="preserve">
+    <value>Antrenamentul s-a schimbat după sugestia {0}. Întreabă din nou antrenorul.</value>
+  </data>
+  <data name="BLException_CoachService_InvalidChange" xml:space="preserve">
+    <value>Modificarea propusă nu este permisă.</value>
+  </data>
+  <data name="BLException_CoachService_TooManyProposals" xml:space="preserve">
+    <value>Antrenorul poate face cel mult trei propuneri pe răspuns.</value>
+  </data>
   <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
     <value>Cererea nu este validă.</value>
   </data>

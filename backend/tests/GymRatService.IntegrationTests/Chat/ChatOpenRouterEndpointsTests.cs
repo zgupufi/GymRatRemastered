@@ -35,7 +35,7 @@ public sealed class ChatOpenRouterEndpointsTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(new ChatMessageResponse("Lift heavy.", false), await response.Content.ReadFromJsonAsync<ChatMessageResponse>());
+        Assert.Equivalent(new ChatMessageResponse("Lift heavy.", false, []), await response.Content.ReadFromJsonAsync<ChatMessageResponse>());
         var request = Assert.Single(_server!.Requests);
         Assert.Equal("/api/v1/chat/completions", request.Path);
         Assert.Equal("Bearer test-key", request.Authorization);
@@ -46,7 +46,7 @@ public sealed class ChatOpenRouterEndpointsTests : IDisposable
         Assert.Equal("How do I get stronger?", messages[^1].GetProperty("content").GetString());
         var tools = request.Body.GetProperty("tools").EnumerateArray().Select(tool => tool.GetProperty("function").GetProperty("name").GetString());
         Assert.Equal(
-            ["create_workout", "delete_workout", "get_workout", "list_workouts", "read_split", "search_exercises", "update_workout"],
+            ["create_workout", "delete_workout", "get_exercise_history", "get_targets", "get_workout", "list_workouts", "propose_exercise_change", "read_split", "search_exercises", "update_workout"],
             tools.Order());
     }
 
@@ -63,7 +63,7 @@ public sealed class ChatOpenRouterEndpointsTests : IDisposable
         var response = await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("What workouts do I have?", null));
 
         // Assert
-        Assert.Equal(new ChatMessageResponse("You have one workout.", false), await response.Content.ReadFromJsonAsync<ChatMessageResponse>());
+        Assert.Equivalent(new ChatMessageResponse("You have one workout.", false, []), await response.Content.ReadFromJsonAsync<ChatMessageResponse>());
         Assert.Equal(2, _server!.Requests.Count);
         var toolMessage = _server.Requests[1].Body.GetProperty("messages").EnumerateArray().Single(message => message.GetProperty("role").GetString() == "tool");
         Assert.Contains("Push", toolMessage.GetProperty("content").ToString());
@@ -81,7 +81,7 @@ public sealed class ChatOpenRouterEndpointsTests : IDisposable
         var response = await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("Create a pull day", null));
 
         // Assert
-        Assert.Equal(new ChatMessageResponse("Created.", true), await response.Content.ReadFromJsonAsync<ChatMessageResponse>());
+        Assert.Equivalent(new ChatMessageResponse("Created.", true, []), await response.Content.ReadFromJsonAsync<ChatMessageResponse>());
         var workouts = await client.GetFromJsonAsync<JsonElement>("/api/workouts");
         Assert.Equal("Pull day", workouts.GetProperty("items")[0].GetProperty("name").GetString());
     }

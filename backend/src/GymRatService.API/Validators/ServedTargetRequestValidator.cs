@@ -1,0 +1,29 @@
+using FluentValidation;
+using GymRatService.Common.DTOs.Sessions;
+
+namespace GymRatService.API.Validators;
+
+public class ServedTargetRequestValidator : AbstractValidator<ServedTargetRequest>
+{
+    private const int MinimumReps = 1;
+
+    private const int MaximumReps = 1000;
+
+    private const decimal MinimumWeightKg = 0;
+
+    private const decimal MaximumWeightKg = 2000;
+
+    public ServedTargetRequestValidator()
+    {
+        RuleFor(request => request.Reps)
+            .InclusiveBetween(MinimumReps, MaximumReps);
+
+        RuleFor(request => request.WeightKg)
+            .InclusiveBetween(MinimumWeightKg, MaximumWeightKg)
+            .PrecisionScale(7, 2, false)
+            .When(request => request.WeightKg is not null);
+
+        RuleFor(request => request.Reason)
+            .IsInEnum();
+    }
+}

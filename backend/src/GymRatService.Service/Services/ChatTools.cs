@@ -1,5 +1,7 @@
 using FluentValidation;
+using GymRatService.Common.DTOs.Coach;
 using GymRatService.Common.DTOs.Workouts;
+using GymRatService.Common.Errors;
 using GymRatService.Common.Filtering;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Interfaces;
@@ -12,12 +14,22 @@ public sealed class ChatTools(
     IWorkoutsService workoutsService,
     ISplitService splitService,
     IExercisesService exercisesService,
+    ISessionsService sessionsService,
+    ICoachService coachService,
     IInputValidator inputValidator,
     CancellationToken cancellationToken)
 {
     private const int SearchResultLimit = 20;
 
+    private const int MaximumProposalsPerTurn = 3;
+
+    private readonly List<CoachSuggestionDto> _suggestions = [];
+
+    private int _proposalCount;
+
     public bool WorkoutsChanged { get; private set; }
+
+    public IReadOnlyList<CoachSuggestionDto> Suggestions => _suggestions;
 
     public IList<AITool> CreateTools() =>
     [
@@ -28,7 +40,44 @@ public sealed class ChatTools(
         AIFunctionFactory.Create(DeleteWorkoutAsync, "delete_workout", "Deletes a workout of the user."),
         AIFunctionFactory.Create(ReadSplitAsync, "read_split", "Reads the weekly training split of the user, days 1 to 7."),
         AIFunctionFactory.Create(SearchExercisesAsync, "search_exercises", "Searches the exercise catalog by name and/or muscle."),
+        AIFunctionFactory.Create(GetExerciseHistoryAsync, "get_exercise_history", "Gets the last sessions of one exercise with reps, weight in kg and reps in reserve (0 = max effort)."),
+        AIFunctionFactory.Create(GetTargetsAsync, "get_targets", "Gets today's target per exercise of a workout: weight, reps, rep range and reason (Hold, Stalled, IncreaseWeight, AddRep, NoHistory)."),
+        AIFunctionFactory.Create(
+            ProposeExerciseChangeAsync,
+            "propose_exercise_change",
+            "Proposes new target sets (at most 1 more or fewer), rep range (1 to 30) and/or weight step in kg (1, 1.25, 2, 2.5 or 5) for one exercise in a workout of the user, with a short rationale. The user confirms it before anything changes."),
     ];
+
+    private Task<object> GetExerciseHistoryAsync(Guid exerciseId) => RunAsync(async () =>
+        await sessionsService.GetExerciseHistoryAsync(userId, exerciseId, cancellationToken));
+
+    private Task<object> GetTargetsAsync(Guid workoutId) => RunAsync(async () =>
+        await sessionsService.GetTargetsAsync(userId, workoutId, cancellationToken));
+
+    private Task<object> ProposeExerciseChangeAsync(
+        Guid workoutId,
+        Guid exerciseId,
+        string rationale,
+        int? targetSets = null,
+        int? repsMin = null,
+        int? repsMax = null,
+        decimal? weightStepKg = null) => RunAsync(async () =>
+    {
+        if (_proposalCount >= MaximumProposalsPerTurn)
+        {
+            throw new BusinessLogicException(ErrorCodes.CoachTooManyProposals);
+        }
+
+        var request = new ProposeExerciseChangeRequest(workoutId, exerciseId, targetSets, repsMin, repsMax, weightStepKg, rationale);
+        await inputValidator.ValidateAsync(request, cancellationToken);
+
+        var suggestion = await coachService.ProposeExerciseChangeAsync(userId, request, cancellationToken);
+        _proposalCount++;
+        _suggestions.RemoveAll(existing => existing.WorkoutId == suggestion.WorkoutId && existing.ExerciseId == suggestion.ExerciseId);
+        _suggestions.Add(suggestion);
+
+        return new { proposed = true, suggestion.Id };
+    });
 
     private Task<object> ListWorkoutsAsync() => RunAsync(async () =>
     {

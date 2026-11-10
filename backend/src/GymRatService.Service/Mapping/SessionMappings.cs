@@ -1,11 +1,14 @@
 using GymRatService.Common.DTOs.Sessions;
 using GymRatService.Repository.Entities;
+using GymRatService.Service.Progression;
 
 namespace GymRatService.Service.Mapping;
 
 internal static class SessionMappings
 {
-    public static SessionSetDto ToDto(this SessionSet set) => new(set.SetNumber, set.Reps, set.WeightKg);
+    public static SessionSetDto ToDto(this SessionSet set) => new(set.SetNumber, set.Reps, set.WeightKg, set.RepsInReserve);
+
+    public static LoggedSet ToLoggedSet(this SessionSet set) => new(set.Reps, set.WeightKg, set.RepsInReserve);
 
     public static LastSessionDto ToLastSessionDto(this WorkoutSession session) => new(
         session.Id,

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="007-smart-training" author="gymrat">
+        <addColumn tableName="WorkoutExercises">
+            <column name="RepsMin" type="integer" defaultValueNumeric="8">
+                <constraints nullable="false" />
+            </column>
+            <column name="RepsMax" type="integer" defaultValueNumeric="12">
+                <constraints nullable="false" />
+            </column>
+            <column name="WeightStepKg" type="numeric(5,2)" defaultValueNumeric="2.5">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+
+        <sql>ALTER TABLE "WorkoutExercises" ADD CONSTRAINT "CK_WorkoutExercises_RepRange" CHECK ("RepsMin" &lt;= "RepsMax")</sql>
+
+        <addColumn tableName="SessionSets">
+            <column name="RepsInReserve" type="integer" />
+            <column name="TargetWeightKg" type="numeric(7,2)" />
+            <column name="TargetReps" type="integer" />
+            <column name="TargetReason" type="integer" />
+        </addColumn>
+
+        <createTable tableName="CoachSuggestions">
+            <column name="Id" type="uuid" defaultValueComputed="uuid_generate_v7()">
+                <constraints primaryKey="true" primaryKeyName="PK_CoachSuggestions" nullable="false" />
+            </column>
+            <column name="UserId" type="uuid">
+                <constraints nullable="false" foreignKeyName="FK_CoachSuggestions_Users" references="&quot;Users&quot;(&quot;Id&quot;)" deleteCascade="true" />
+            </column>
+            <column name="WorkoutId" type="uuid">
+                <constraints nullable="false" foreignKeyName="FK_CoachSuggestions_Workouts" references="&quot;Workouts&quot;(&quot;Id&quot;)" deleteCascade="true" />
+            </column>
+            <column name="ExerciseId" type="uuid">
+                <constraints nullable="false" foreignKeyName="FK_CoachSuggestions_Exercises" references="&quot;Exercises&quot;(&quot;Id&quot;)" deleteCascade="true" />
+            </column>
+            <column name="TargetSets" type="integer" />
+            <column name="RepsMin" type="integer" />
+            <column name="RepsMax" type="integer" />
+            <column name="WeightStepKg" type="numeric(5,2)" />
+            <column name="BeforeTargetSets" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="BeforeRepsMin" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="BeforeRepsMax" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="BeforeWeightStepKg" type="numeric(5,2)">
+                <constraints nullable="false" />
+            </column>
+            <column name="Rationale" type="varchar(500)">
+                <constraints nullable="false" />
+            </column>
+            <column name="Status" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="CreatedAt" type="timestamp with time zone">
+                <constraints nullable="false" />
+            </column>
+            <column name="ResolvedAt" type="timestamp with time zone" />
+        </createTable>
+
+        <createIndex tableName="CoachSuggestions" indexName="IX_CoachSuggestions_UserId_Status">
+            <column name="UserId" />
+            <column name="Status" />
+        </createIndex>
+
+        <createIndex tableName="CoachSuggestions" indexName="IX_CoachSuggestions_WorkoutId">
+            <column name="WorkoutId" />
+        </createIndex>
+
+        <createIndex tableName="CoachSuggestions" indexName="IX_CoachSuggestions_ExerciseId">
+            <column name="ExerciseId" />
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

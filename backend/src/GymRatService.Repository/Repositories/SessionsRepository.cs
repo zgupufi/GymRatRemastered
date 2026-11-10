@@ -64,4 +64,22 @@ public class SessionsRepository(GymRatDbContext context) : ISessionsRepository
             .Where(set => set.ExerciseId == exerciseId && set.Session!.UserId == userId)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<SessionSet>> GetRecentExerciseSetsAsync(Guid userId, Guid exerciseId, int sessionCount, CancellationToken cancellationToken)
+    {
+        var sessionIds = await context.SessionSets
+            .AsNoTracking()
+            .Where(set => set.ExerciseId == exerciseId && set.Session!.UserId == userId && set.Session.DurationSeconds != null)
+            .Select(set => set.SessionId)
+            .Distinct()
+            .OrderByDescending(sessionId => sessionId)
+            .Take(sessionCount)
+            .ToListAsync(cancellationToken);
+
+        return await context.SessionSets
+            .AsNoTracking()
+            .Include(set => set.Session)
+            .Where(set => set.ExerciseId == exerciseId && sessionIds.Contains(set.SessionId))
+            .ToListAsync(cancellationToken);
+    }
 }

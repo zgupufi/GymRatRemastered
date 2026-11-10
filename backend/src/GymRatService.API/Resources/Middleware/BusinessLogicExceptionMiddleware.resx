@@ -48,6 +48,24 @@
   <data name="BLException_ChatService_ProviderUnavailable" xml:space="preserve">
     <value>The AI coach is unavailable right now. Please try again later.</value>
   </data>
+  <data name="BLException_CoachService_SuggestionNotFound" xml:space="preserve">
+    <value>Suggestion {0} does not exist.</value>
+  </data>
+  <data name="BLException_CoachService_SuggestionNotPending" xml:space="preserve">
+    <value>Suggestion {0} has already been applied, dismissed or has expired.</value>
+  </data>
+  <data name="BLException_CoachService_ExerciseNotInWorkout" xml:space="preserve">
+    <value>Exercise {0} is not part of this workout.</value>
+  </data>
+  <data name="BLException_CoachService_SuggestionStale" xml:space="preserve">
+    <value>The workout changed after suggestion {0} was made. Ask the coach again.</value>
+  </data>
+  <data name="BLException_CoachService_InvalidChange" xml:space="preserve">
+    <value>The proposed change is not allowed.</value>
+  </data>
+  <data name="BLException_CoachService_TooManyProposals" xml:space="preserve">
+    <value>The coach can make at most three proposals per reply.</value>
+  </data>
   <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
     <value>The request is not valid.</value>
   </data>

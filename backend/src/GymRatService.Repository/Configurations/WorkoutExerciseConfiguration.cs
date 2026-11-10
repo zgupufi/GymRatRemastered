@@ -18,6 +18,12 @@ public class WorkoutExerciseConfiguration : IEntityTypeConfiguration<WorkoutExer
 
         builder.Property(entry => entry.TargetSets).IsRequired();
 
+        builder.Property(entry => entry.RepsMin).IsRequired();
+
+        builder.Property(entry => entry.RepsMax).IsRequired();
+
+        builder.Property(entry => entry.WeightStepKg).HasPrecision(5, 2).IsRequired();
+
         builder.HasOne<Workout>().WithMany(workout => workout.Exercises).HasForeignKey(entry => entry.WorkoutId).OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(entry => entry.Exercise).WithMany().HasForeignKey(entry => entry.ExerciseId).OnDelete(DeleteBehavior.Cascade);

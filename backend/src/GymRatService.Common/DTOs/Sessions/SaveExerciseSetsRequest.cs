@@ -1,3 +1,3 @@
 namespace GymRatService.Common.DTOs.Sessions;
 
-public sealed record SaveExerciseSetsRequest(IReadOnlyList<SessionSetRequest> Sets);
+public sealed record SaveExerciseSetsRequest(IReadOnlyList<SessionSetRequest> Sets, ServedTargetRequest? Target = null);

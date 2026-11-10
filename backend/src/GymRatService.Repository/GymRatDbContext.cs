@@ -19,6 +19,8 @@ public class GymRatDbContext(DbContextOptions<GymRatDbContext> options) : DbCont
 
     public DbSet<SessionSet> SessionSets => Set<SessionSet>();
 
+    public DbSet<CoachSuggestion> CoachSuggestions => Set<CoachSuggestion>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(GymRatDbContext).Assembly);
