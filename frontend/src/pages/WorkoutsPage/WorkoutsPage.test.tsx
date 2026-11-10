@@ -178,7 +178,7 @@ describe('WorkoutsPage', () => {
     expect(getWorkoutSummaries).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }), expect.any(AbortSignal))
   })
 
-  it('creates a workout and opens it for renaming', async () => {
+  it('creates a workout and opens its editor', async () => {
     const created: WorkoutSummary = { id: 'w3', name: 'New workout - Oct 29', exerciseCount: 0, mainMuscles: [] }
     vi.mocked(createWorkout).mockResolvedValue({ id: 'w3' })
     vi.mocked(getWorkout).mockResolvedValue({ id: 'w3', name: created.name, exercises: [] })
@@ -188,7 +188,8 @@ describe('WorkoutsPage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Create workout' }))
 
-    expect(await screen.findByRole('textbox', { name: 'Workout name' })).toHaveValue('New workout - Oct 29')
+    expect(await screen.findByRole('textbox', { name: 'Search exercises' })).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'Workout name' })).not.toBeInTheDocument()
     expect(createWorkout).toHaveBeenCalledWith(expect.stringMatching(/^New workout - /))
     expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' })
   })

@@ -227,8 +227,7 @@
 }
 
 .rest-pill .rest-pill__skip {
-  color: var(--danger);
-  background: var(--danger-bg);
+  color: var(--text-2);
 }
 
 .picker {

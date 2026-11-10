@@ -164,7 +164,6 @@ export function WorkoutsPage() {
                 key={workout.id}
                 workout={workout}
                 startExpanded={workout.id === createdId}
-                startRenaming={workout.id === createdId}
                 onChanged={reload}
                 onDeleted={reload}
               />

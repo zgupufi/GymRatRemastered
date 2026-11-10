@@ -279,7 +279,30 @@ describe('WorkoutExecutionPage', () => {
 
     await screen.findByText('Exercise 1 of 2')
     expect(screen.getByLabelText('Set 1 weight')).toHaveValue(60)
-    expect(saveExerciseSets).toHaveBeenCalledTimes(1)
+    expect(saveExerciseSets).toHaveBeenCalledTimes(2)
+  })
+
+  it('saves a set as soon as it is ticked and again when it is undone', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await startToday(user)
+
+    await fillSet(user, 1, '60', '8')
+    await waitFor(() => expect(saveExerciseSets).toHaveBeenLastCalledWith('s1', 'e1', [{ reps: 8, weightKg: 60 }]))
+
+    await user.click(screen.getByRole('button', { name: 'Undo set 1' }))
+    await waitFor(() => expect(saveExerciseSets).toHaveBeenCalledTimes(1))
+  })
+
+  it('warns before the page is closed while a workout is running', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await startToday(user)
+
+    const event = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(event)
+
+    expect(event.defaultPrevented).toBe(true)
   })
 
   it('stays on the exercise when saving fails', async () => {
@@ -426,7 +449,8 @@ describe('WorkoutExecutionPage', () => {
     })
 
     expect(screen.getByText('Exercise 1 of 2')).toBeInTheDocument()
-    expect(saveExerciseSets).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Complete set 2' })).toBeEnabled()
+    expect(saveExerciseSets).toHaveBeenLastCalledWith('s1', 'e1', [{ reps: 8, weightKg: 60 }])
   })
 
   it('asks before ending and keeps going when asked to', async () => {

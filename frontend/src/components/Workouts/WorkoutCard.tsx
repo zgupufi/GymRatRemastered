@@ -13,15 +13,14 @@ const MAX_NAME_LENGTH = 100
 interface WorkoutCardProps {
   workout: WorkoutSummary
   startExpanded?: boolean
-  startRenaming?: boolean
   onChanged: () => void
   onDeleted: () => void
 }
 
-export function WorkoutCard({ workout, startExpanded = false, startRenaming = false, onChanged, onDeleted }: WorkoutCardProps) {
+export function WorkoutCard({ workout, startExpanded = false, onChanged, onDeleted }: WorkoutCardProps) {
   const { showToast } = useToast()
   const [expanded, setExpanded] = useState(startExpanded)
-  const [renaming, setRenaming] = useState(startRenaming)
+  const [renaming, setRenaming] = useState(false)
   const [name, setName] = useState(workout.name)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [busy, setBusy] = useState(false)

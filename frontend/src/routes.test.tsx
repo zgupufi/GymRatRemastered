@@ -152,6 +152,15 @@ describe('AppRoutes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'My split' })).toBeInTheDocument()
   })
 
+  it('explains an expired session on the home page too', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 401 }))
+    vi.mocked(getSplit).mockImplementation(() => apiClient.get('/api/split'))
+    renderAt('/')
+
+    expect(await screen.findByText(/Your session expired/)).toBeInTheDocument()
+    fetchSpy.mockRestore()
+  })
+
   it('shows the member navigation on member pages', async () => {
     renderAt('/workouts')
 

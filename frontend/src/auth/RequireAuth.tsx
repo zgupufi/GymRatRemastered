@@ -16,7 +16,7 @@ export function RequireAuth() {
     )
   }
   if (status === 'anonymous') {
-    return <Navigate to="/login" replace state={{ from: location.pathname, ...(sessionExpired ? { notice: SESSION_EXPIRED_NOTICE } : {}) }} />
+    return <Navigate to="/login" replace state={{ from: location.pathname + location.search, ...(sessionExpired ? { notice: SESSION_EXPIRED_NOTICE } : {}) }} />
   }
   return <Outlet />
 }

@@ -41,10 +41,17 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
   const [busy, setBusy] = useState(false)
   const [confirmingEnd, setConfirmingEnd] = useState(false)
   const advanceTimer = useRef<number | undefined>(undefined)
+  const saveQueue = useRef<Promise<void>>(Promise.resolve())
   const rest = useRestTimer()
   const elapsed = useStopwatch(true)
 
   useEffect(() => () => window.clearTimeout(advanceTimer.current), [])
+
+  useEffect(() => {
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault()
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [])
 
   const total = workout.exercises.length
   const exercise = workout.exercises[index].exercise
@@ -96,6 +103,12 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
     }
   }
 
+  const persistSets = (position: number, current: Record<string, SetDraft[]>) => {
+    saveQueue.current = saveQueue.current
+      .then(() => saveExercise(position, current))
+      .catch(() => showToast('error', 'Could not save your sets. Try again.'))
+  }
+
   const patchSet = (row: number, patch: Partial<SetDraft>) => {
     setDrafts((current) => ({
       ...current,
@@ -109,10 +122,15 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
     window.clearTimeout(advanceTimer.current)
     patchSet(row, { done: completing })
     if (!completing) {
+      persistSets(
+        index,
+        { ...drafts, [exercise.id]: current.map((draft, position) => (position === row ? { ...draft, done: false } : draft)) },
+      )
       return
     }
     rest.start(restSeconds)
     const updated = current.map((draft, position) => (position === row ? { ...draft, done: true } : draft))
+    persistSets(index, { ...drafts, [exercise.id]: updated })
     if (updated.every((draft) => draft.done) && !isLast) {
       const nextDrafts = { ...drafts, [exercise.id]: updated }
       advanceTimer.current = window.setTimeout(async () => {

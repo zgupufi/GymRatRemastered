@@ -114,6 +114,7 @@ export function WorkoutEditor({ workoutId }: WorkoutEditorProps) {
   const dirty = useRef(false)
   const latest = useRef<EditItem[]>([])
   const saveTimer = useRef<number | undefined>(undefined)
+  const saveSequence = useRef(0)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -139,16 +140,22 @@ export function WorkoutEditor({ workoutId }: WorkoutEditorProps) {
   const persist = useCallback(
     async (entries: EditItem[]) => {
       dirty.current = false
+      saveSequence.current += 1
+      const sequence = saveSequence.current
       setSaveStatus('saving')
       try {
         await replaceWorkoutExercises(
           workoutId,
           entries.map((item) => ({ exerciseId: item.exercise.id, targetSets: Number(item.targetSets) })),
         )
-        setSaveStatus(dirty.current ? 'saving' : 'saved')
+        if (sequence === saveSequence.current) {
+          setSaveStatus(dirty.current ? 'saving' : 'saved')
+        }
       } catch {
-        dirty.current = true
-        setSaveStatus('error')
+        if (sequence === saveSequence.current) {
+          dirty.current = true
+          setSaveStatus('error')
+        }
       }
     },
     [workoutId],
