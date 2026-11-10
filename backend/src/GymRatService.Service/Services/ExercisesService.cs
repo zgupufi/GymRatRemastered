@@ -1,4 +1,3 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Exercises;
 using GymRatService.Common.Errors;
 using GymRatService.Common.Filtering;
@@ -10,13 +9,10 @@ using GymRatService.Service.Mapping;
 namespace GymRatService.Service.Services;
 
 public class ExercisesService(
-    IExerciseCardsRepository exerciseCardsRepository,
-    IValidator<ExerciseFilter> filterValidator) : IExercisesService
+    IExerciseCardsRepository exerciseCardsRepository) : IExercisesService
 {
     public async Task<PagedResult<ExerciseDto>> GetExercisesAsync(ExerciseFilter filter, CancellationToken cancellationToken)
     {
-        await filterValidator.ValidateAndThrowAsync(filter, cancellationToken);
-
         var exercises = await exerciseCardsRepository.GetAllAsync(filter, cancellationToken);
 
         return exercises.Map(exercise => exercise.ToDto());

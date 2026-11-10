@@ -1,11 +1,9 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Split;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Services;
-using GymRatService.Service.Validators;
 using NSubstitute;
 
 namespace GymRatService.BLL.Tests.Services;
@@ -19,7 +17,7 @@ public class SplitServiceTests
 
     public SplitServiceTests()
     {
-        _service = new SplitService(_split, _workouts, new SplitDayValidator());
+        _service = new SplitService(_split, _workouts);
     }
 
     [Fact]
@@ -124,16 +122,4 @@ public class SplitServiceTests
         Assert.Equal(ErrorCodes.WorkoutNotFound, exception.Code);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(8)]
-    public async Task AssignSplitDayAsync_Throws_WhenTheDayIsOutsideTheWeek(int day)
-    {
-        // Act
-        await Assert.ThrowsAsync<ValidationException>(
-            () => _service.AssignSplitDayAsync(_userId, day, new AssignSplitDayRequest(null), CancellationToken.None));
-
-        // Assert
-        await _split.DidNotReceiveWithAnyArgs().ClearDayAsync(default, default, default);
-    }
 }

@@ -1,5 +1,5 @@
 using GymRatService.Common.DTOs.Workouts;
-using GymRatService.Service.Validators;
+using GymRatService.API.Validators;
 
 namespace GymRatService.BLL.Tests.Validators;
 

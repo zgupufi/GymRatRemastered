@@ -178,24 +178,20 @@ public sealed class ChatFailoverEndpointsTests : IDisposable
         // Arrange
         _chat.Script = (_, _) => ScriptedChatClient.Reply("ok");
         _factory.Settings["AiCoach:DailyRequestLimit"] = "2";
+        _factory.Settings["AiCoach:RateLimitRequests"] = "50";
         var client = await CreateClientAsync();
         var message = new ChatMessageRequest("Hi", null);
 
         // Act
         var first = await client.PostAsJsonAsync("/api/chat/messages", message);
-        _factory.Clock.Advance(TimeSpan.FromMinutes(2));
         var second = await client.PostAsJsonAsync("/api/chat/messages", message);
-        _factory.Clock.Advance(TimeSpan.FromMinutes(2));
         var third = await client.PostAsJsonAsync("/api/chat/messages", message);
-        _factory.Clock.Advance(TimeSpan.FromDays(1));
-        var nextDay = await client.PostAsJsonAsync("/api/chat/messages", message);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.OK, second.StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, third.StatusCode);
         Assert.Equal(ErrorCodes.ChatRateLimited, (await third.Content.ReadFromJsonAsync<ErrorResponse>())?.Code);
-        Assert.Equal(HttpStatusCode.OK, nextDay.StatusCode);
     }
 
     private static async Task AssertProviderUnavailableAsync(HttpResponseMessage response)

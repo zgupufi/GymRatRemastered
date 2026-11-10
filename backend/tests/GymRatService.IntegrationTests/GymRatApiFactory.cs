@@ -28,8 +28,6 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
     private readonly SqliteConnection _connection = new("DataSource=:memory:");
 
-    public AdvanceableTimeProvider Clock { get; } = new();
-
     public IChatClient? ChatClient { get; set; }
 
     public Dictionary<string, string> Settings { get; } = [];
@@ -55,9 +53,6 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
                 services.RemoveAll<IChatClient>();
                 services.AddSingleton(ChatClient);
             }
-
-            services.RemoveAll<TimeProvider>();
-            services.AddSingleton<TimeProvider>(Clock);
 
             _connection.Open();
             _connection.CreateFunction("uuid_generate_v7", () => Guid.CreateVersion7().ToString().ToUpperInvariant());

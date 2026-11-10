@@ -7,14 +7,14 @@ using Microsoft.Extensions.Options;
 
 namespace GymRatService.Service.Services;
 
-public class ChatUsageLimiter(IOptions<AiCoachSettings> options, TimeProvider timeProvider) : IChatUsageLimiter
+public class ChatUsageLimiter(IOptions<AiCoachSettings> options) : IChatUsageLimiter
 {
     private readonly ConcurrentDictionary<Guid, UserUsage> _usage = new();
 
     public void EnsureAllowed(Guid userId)
     {
         var settings = options.Value;
-        var now = timeProvider.GetUtcNow();
+        var now = TimeProvider.System.GetUtcNow();
         var today = DateOnly.FromDateTime(now.UtcDateTime);
         var usage = _usage.GetOrAdd(userId, _ => new UserUsage());
 

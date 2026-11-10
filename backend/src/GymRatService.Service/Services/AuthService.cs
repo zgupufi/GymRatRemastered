@@ -1,4 +1,3 @@
-using FluentValidation;
 using GymRatService.Common.DTOs.Auth;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
@@ -13,14 +12,10 @@ namespace GymRatService.Service.Services;
 public class AuthService(
     IUsersRepository usersRepository,
     IPasswordHasher passwordHasher,
-    ITokenGenerator tokenGenerator,
-    IValidator<RegisterRequest> registerValidator,
-    TimeProvider timeProvider) : IAuthService
+    ITokenGenerator tokenGenerator) : IAuthService
 {
     public async Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
     {
-        await registerValidator.ValidateAndThrowAsync(request, cancellationToken);
-
         var email = request.Email.NormalizeEmail();
 
         if (await usersRepository.EmailExistsAsync(email, cancellationToken))
@@ -38,7 +33,7 @@ public class AuthService(
             FirstName = request.FirstName.Trim(),
             LastName = string.IsNullOrWhiteSpace(request.LastName) ? null : request.LastName.Trim(),
             WeightUnit = request.WeightUnit,
-            CreatedAt = timeProvider.GetUtcNow(),
+            CreatedAt = TimeProvider.System.GetUtcNow(),
         };
 
         await usersRepository.AddAsync(user, cancellationToken);
@@ -53,7 +48,7 @@ public class AuthService(
             throw new BusinessLogicException(ErrorCodes.InvalidCredentials);
         }
 
-        await usersRepository.UpdateLastLoginAsync(user.Id, timeProvider.GetUtcNow(), cancellationToken);
+        await usersRepository.UpdateLastLoginAsync(user.Id, TimeProvider.System.GetUtcNow(), cancellationToken);
 
         return tokenGenerator.Generate(user);
     }
