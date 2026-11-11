@@ -6,6 +6,8 @@ import { searchExercises, type Exercise } from '../../api/exercises'
 import { getExerciseProgress, type ProgressPoint } from '../../api/progress'
 import { getSplit } from '../../api/split'
 import { getWorkout, type Workout } from '../../api/workouts'
+import { WeightUnit } from '../../api/auth'
+import { AuthContext, type AuthApi } from '../../auth/AuthContext'
 import { ProgressionPage } from './ProgressionPage'
 
 vi.mock('../../api/exercises')
@@ -40,10 +42,24 @@ const twoSessions: ProgressPoint[] = [
   { date: '2026-11-07', bestSet: { reps: 6, weightKg: 90 }, estimatedOneRepMax: 108 },
 ]
 
-function renderPage() {
+function authValue(weightUnit: WeightUnit): AuthApi {
+  return {
+    status: 'authenticated',
+    sessionExpired: false,
+    user: { firstName: 'Rafael', lastName: null, email: 'r@example.com', weightUnit, defaultRestTimeSeconds: 60 },
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn(),
+    updateSettings: vi.fn(),
+  }
+}
+
+function renderPage(unit: WeightUnit = WeightUnit.Kilograms) {
   return render(
     <MemoryRouter>
-      <ProgressionPage />
+      <AuthContext.Provider value={authValue(unit)}>
+        <ProgressionPage />
+      </AuthContext.Provider>
     </MemoryRouter>,
   )
 }
@@ -153,6 +169,32 @@ describe('ProgressionPage', () => {
 
     expect(screen.queryByRole('img', { name: /Bench Press/ })).not.toBeInTheDocument()
     expect(await screen.findByRole('list', { name: 'Matching exercises' })).toBeInTheDocument()
+  })
+
+  it('shows the summary in the chosen unit without rounding to whole numbers', async () => {
+    vi.mocked(getExerciseProgress).mockResolvedValue([
+      { date: '2026-10-10', bestSet: { reps: 6, weightKg: 60 }, estimatedOneRepMax: 60 },
+      { date: '2026-11-07', bestSet: { reps: 6, weightKg: 62.5 }, estimatedOneRepMax: 62.5 },
+    ])
+    renderPage(WeightUnit.Pounds)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Bench Press' }))
+
+    expect(await screen.findByText('138 lbs')).toBeInTheDocument()
+    expect(screen.getByText('+5.5 lbs')).toBeInTheDocument()
+    expect(screen.getByText('Estimated 1 rep max, lbs')).toBeInTheDocument()
+  })
+
+  it('keeps half kilograms in the summary', async () => {
+    vi.mocked(getExerciseProgress).mockResolvedValue([
+      { date: '2026-10-10', bestSet: { reps: 6, weightKg: 60 }, estimatedOneRepMax: 60 },
+      { date: '2026-11-07', bestSet: { reps: 6, weightKg: 62.5 }, estimatedOneRepMax: 62.5 },
+    ])
+    renderPage()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Bench Press' }))
+
+    expect((await screen.findAllByText('62.5 kg')).length).toBeGreaterThan(0)
   })
 
   it('explains a single session', async () => {

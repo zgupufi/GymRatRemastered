@@ -1,5 +1,9 @@
 .execution {
   max-width: 48rem;
+  padding-bottom: var(--space-12);
+}
+
+.execution--running {
   padding-bottom: 12rem;
 }
 
@@ -437,6 +441,7 @@
 
 .execution__card--summary {
   align-items: stretch;
+  gap: var(--space-6);
   text-align: left;
 }
 
@@ -446,7 +451,7 @@
 
 .execution__stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr 1.6fr 1fr;
   gap: var(--space-2);
   margin: 0;
 }
@@ -467,6 +472,7 @@
   font-size: 1.125rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .execution__results {

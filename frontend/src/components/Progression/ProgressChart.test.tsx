@@ -22,7 +22,7 @@ describe('ProgressChart', () => {
   it('moves the tooltip to the focused session', () => {
     render(<ProgressChart exerciseName="Bench Press" points={points} />)
 
-    fireEvent.focus(screen.getByRole('button', { name: '12 Sep 2026, 89 kg estimated one rep max' }))
+    fireEvent.focus(screen.getByRole('button', { name: '12 Sep 2026, 88.75 kg estimated one rep max' }))
 
     expect(screen.getByText('12 Sep 2026')).toBeInTheDocument()
     expect(screen.getByText('70 kg × 8 reps')).toBeInTheDocument()

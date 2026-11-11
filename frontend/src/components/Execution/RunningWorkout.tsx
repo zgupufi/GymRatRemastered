@@ -7,7 +7,7 @@ import type { Workout } from '../../api/workouts'
 import { useRestTimer } from '../../hooks/useRestTimer'
 import { useStopwatch } from '../../hooks/useStopwatch'
 import { formatClock } from '../../lib/clock'
-import { fromKilograms, unitLabel } from '../../lib/weight'
+import { displayWeight, unitLabel } from '../../lib/weight'
 import { Button } from '../ui/Button'
 import { Modal } from '../ui/Modal'
 import { useToast } from '../ui/ToastContext'
@@ -194,7 +194,7 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
   }
 
   return (
-    <main className="page execution">
+    <main className="page execution execution--running">
       <div
         className="execution__progress"
         role="progressbar"
@@ -222,7 +222,7 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
       {detail ? <p className="execution__detail">{detail}</p> : null}
       {lastTime && target?.lastWeightKg == null ? (
         <p className="execution__last">
-          Last time ({unitLabel(unit)}): {lastTime.map((set) => `${fromKilograms(set.weightKg, unit)} × ${set.reps}`).join(' · ')}
+          Last time ({unitLabel(unit)}): {lastTime.map((set) => `${displayWeight(set.weightKg, unit)} × ${set.reps}`).join(' · ')}
         </p>
       ) : null}
       {target ? <TargetBanner target={target} unit={unit} onUse={() => updateDrafts((current) => applyTarget(current, target, unit))} /> : null}

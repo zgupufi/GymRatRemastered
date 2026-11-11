@@ -207,7 +207,7 @@ describe('WorkoutExecutionPage', () => {
 
     await startToday(user)
 
-    expect(screen.getByLabelText('Set 1 weight')).toHaveAttribute('placeholder', '220')
+    expect(screen.getByLabelText('Set 1 weight')).toHaveAttribute('placeholder', '220.5')
     await fillSet(user, 1, '220', '5')
     await user.click(screen.getByRole('button', { name: 'Next' }))
     await screen.findByText('Exercise 2 of 2')

@@ -1,5 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { WeightUnit } from '../../api/auth'
 import type { ProgressPoint } from '../../api/progress'
+import { displayWeight, unitLabel } from '../../lib/weight'
 import { formatDate, formatFullDate, niceDomain, pickLabelIndexes, smoothPath } from './chartMath'
 import './ProgressChart.css'
 
@@ -13,6 +15,7 @@ const MAX_LABELS = 5
 interface ProgressChartProps {
   exerciseName: string
   points: ProgressPoint[]
+  unit?: WeightUnit
 }
 
 function useWidth() {
@@ -35,7 +38,13 @@ function useWidth() {
   return { ref, width }
 }
 
-export function ProgressChart({ exerciseName, points }: ProgressChartProps) {
+export function ProgressChart({ exerciseName, points: rawPoints, unit = WeightUnit.Kilograms }: ProgressChartProps) {
+  const points = rawPoints.map((point) => ({
+    ...point,
+    estimatedOneRepMax: displayWeight(point.estimatedOneRepMax, unit),
+    bestSet: { ...point.bestSet, weightKg: displayWeight(point.bestSet.weightKg, unit) },
+  }))
+  const label = unitLabel(unit).toLowerCase()
   const gradientId = useId()
   const { ref, width } = useWidth()
   const height = width < 520 ? 240 : 320
@@ -64,11 +73,11 @@ export function ProgressChart({ exerciseName, points }: ProgressChartProps) {
       <div className="progress-chart__tooltip" aria-live="polite">
         <span className="progress-chart__tooltip-date">{formatFullDate(current.date)}</span>
         <strong>
-          {Math.round(current.estimatedOneRepMax)} <small>kg</small>
+          {current.estimatedOneRepMax} <small>{label}</small>
         </strong>
         <span className="progress-chart__tooltip-label">Estimated 1RM</span>
         <span className="progress-chart__tooltip-set">
-          {current.bestSet.weightKg} kg × {current.bestSet.reps} reps
+          {current.bestSet.weightKg} {label} × {current.bestSet.reps} reps
         </span>
       </div>
       <svg
@@ -115,7 +124,7 @@ export function ProgressChart({ exerciseName, points }: ProgressChartProps) {
             r={10}
             tabIndex={0}
             role="button"
-            aria-label={`${formatFullDate(point.date)}, ${Math.round(point.estimatedOneRepMax)} kg estimated one rep max`}
+            aria-label={`${formatFullDate(point.date)}, ${point.estimatedOneRepMax} ${label} estimated one rep max`}
             onFocus={() => setActive(index)}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {

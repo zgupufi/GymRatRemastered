@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Activity, ChartNoAxesColumn, Search } from 'lucide-react'
 import { searchExercises, type Exercise } from '../../api/exercises'
+import { WeightUnit } from '../../api/auth'
 import { getExerciseProgress, type ProgressPoint } from '../../api/progress'
 import { getSplit } from '../../api/split'
 import { getWorkout } from '../../api/workouts'
+import { useAuth } from '../../auth/AuthContext'
 import { ProgressChart } from '../../components/Progression/ProgressChart'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Input } from '../../components/ui/Input'
 import { Spinner } from '../../components/ui/Spinner'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { displayWeight, unitLabel } from '../../lib/weight'
 import './ProgressionPage.css'
 
 const SEARCH_DELAY_MS = 300
@@ -33,6 +36,9 @@ function todaySplitDay(): number {
 }
 
 export function ProgressionPage() {
+  const { user } = useAuth()
+  const unit = user?.weightUnit ?? WeightUnit.Kilograms
+  const label = unitLabel(unit).toLowerCase()
   const [term, setTerm] = useState('')
   const [selected, setSelected] = useState<Choice | null>(null)
   const [today, setToday] = useState<Choice[]>([])
@@ -173,9 +179,9 @@ export function ProgressionPage() {
           <header className="progression-page__result-header">
             <div>
               <h2>{selected.name}</h2>
-              <p>Estimated 1 rep max, kg</p>
+              <p>Estimated 1 rep max, {label}</p>
             </div>
-            {progress.status === 'loaded' && progress.points.length > 1 ? <Summary points={progress.points} /> : null}
+            {progress.status === 'loaded' && progress.points.length > 1 ? <Summary points={progress.points} unit={unit} /> : null}
           </header>
           {progress.status === 'loading' ? <Spinner label="Loading progress…" /> : null}
           {progress.status === 'error' ? (
@@ -202,16 +208,16 @@ export function ProgressionPage() {
                 <ChartNoAxesColumn size={22} />
               </span>
               <strong>
-                {Math.round(progress.points[0].bestSet.weightKg)} kg × {progress.points[0].bestSet.reps}
+                {displayWeight(progress.points[0].bestSet.weightKg, unit)} {label} × {progress.points[0].bestSet.reps}
               </strong>
               <p>
-                Estimated 1 rep max {Math.round(progress.points[0].estimatedOneRepMax)} kg. Log one more session with this exercise to
+                Estimated 1 rep max {displayWeight(progress.points[0].estimatedOneRepMax, unit)} {label}. Log one more session with this exercise to
                 see your trend.
               </p>
             </div>
           ) : null}
           {progress.status === 'loaded' && progress.points.length > 1 ? (
-            <ProgressChart key={selected.id} exerciseName={selected.name} points={progress.points} />
+            <ProgressChart key={selected.id} exerciseName={selected.name} points={progress.points} unit={unit} />
           ) : null}
         </Card>
       ) : null}
@@ -219,20 +225,21 @@ export function ProgressionPage() {
   )
 }
 
-function Summary({ points }: { points: ProgressPoint[] }) {
-  const first = Math.round(points[0].estimatedOneRepMax)
-  const last = Math.round(points[points.length - 1].estimatedOneRepMax)
-  const change = last - first
+function Summary({ points, unit }: { points: ProgressPoint[]; unit: WeightUnit }) {
+  const label = unitLabel(unit).toLowerCase()
+  const first = displayWeight(points[0].estimatedOneRepMax, unit)
+  const last = displayWeight(points[points.length - 1].estimatedOneRepMax, unit)
+  const change = Math.round((last - first) * 100) / 100
   return (
     <dl className="progression-page__summary">
       <div>
-        <dd>{last} kg</dd>
+        <dd>{last} {label}</dd>
         <dt>Current</dt>
       </div>
       <div>
         <dd className={change >= 0 ? 'progression-page__gain' : undefined}>
           {change > 0 ? '+' : ''}
-          {change} kg
+          {change} {label}
         </dd>
         <dt>Since first session</dt>
       </div>
