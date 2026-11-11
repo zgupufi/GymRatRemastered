@@ -12,6 +12,28 @@ describe('timers', () => {
     vi.useRealTimers()
   })
 
+  it('continues from the time a session was started', () => {
+    vi.setSystemTime(new Date('2026-01-01T10:10:00Z'))
+    const { result } = renderHook(() => useStopwatch(true, Date.parse('2026-01-01T10:00:00Z')))
+    expect(result.current).toBe(600)
+
+    act(() => {
+      vi.advanceTimersByTime(3000)
+    })
+    expect(result.current).toBe(603)
+  })
+
+  it('never shows a negative time when the clock is behind the session start', () => {
+    vi.setSystemTime(new Date('2026-01-01T10:00:00Z'))
+    const { result } = renderHook(() => useStopwatch(true, Date.parse('2026-01-01T10:00:05Z')))
+    expect(result.current).toBe(0)
+
+    act(() => {
+      vi.advanceTimersByTime(2000)
+    })
+    expect(result.current).toBe(0)
+  })
+
   it('counts elapsed seconds only while running', () => {
     const { result, rerender } = renderHook(({ running }) => useStopwatch(running), { initialProps: { running: false } })
     act(() => {

@@ -29,6 +29,47 @@ public class SessionsServiceTests
     }
 
     [Fact]
+    public async Task GetActiveSessionAsync_ReturnsTheSession_WhenItStartedWithinTheLastHours()
+    {
+        // Arrange
+        var session = new WorkoutSession { Id = Guid.CreateVersion7(), UserId = _userId, WorkoutId = _workoutId, StartedAt = Now.AddHours(-11) };
+        _sessions.GetActiveAsync(_userId, Arg.Any<CancellationToken>()).Returns(session);
+
+        // Act
+        var active = await _service.GetActiveSessionAsync(_userId, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(session.Id, active.SessionId);
+        Assert.Equal(_workoutId, active.WorkoutId);
+    }
+
+    [Fact]
+    public async Task GetActiveSessionAsync_ReturnsAnEmptyResult_WhenTheSessionStartedMoreThanTwelveHoursAgo()
+    {
+        // Arrange
+        var session = new WorkoutSession { Id = Guid.CreateVersion7(), UserId = _userId, WorkoutId = _workoutId, StartedAt = Now.AddHours(-13) };
+        _sessions.GetActiveAsync(_userId, Arg.Any<CancellationToken>()).Returns(session);
+
+        // Act
+        var active = await _service.GetActiveSessionAsync(_userId, CancellationToken.None);
+
+        // Assert
+        Assert.Null(active.SessionId);
+        Assert.Empty(active.Exercises);
+    }
+
+    [Fact]
+    public async Task GetActiveSessionAsync_ReturnsAnEmptyResult_WhenThereIsNoUnfinishedSession()
+    {
+        // Act
+        var active = await _service.GetActiveSessionAsync(_userId, CancellationToken.None);
+
+        // Assert
+        Assert.Null(active.SessionId);
+        Assert.Null(active.StartedAt);
+    }
+
+    [Fact]
     public async Task StartSessionAsync_AddsASessionStartedNowForTheCallersWorkout()
     {
         // Arrange

@@ -19,6 +19,13 @@ export interface LastSession {
   exercises: LastSessionExercise[]
 }
 
+export interface ActiveSession {
+  sessionId: string | null
+  workoutId: string | null
+  startedAt: string | null
+  exercises: LastSessionExercise[]
+}
+
 export interface SessionSetEntry {
   reps: number
   weightKg: number
@@ -48,6 +55,10 @@ export interface ServedTarget {
 
 export function startSession(workoutId: string): Promise<{ id: string }> {
   return apiClient.post<{ id: string }>('/api/sessions', { workoutId })
+}
+
+export function getActiveSession(signal?: AbortSignal): Promise<ActiveSession> {
+  return apiClient.get<ActiveSession>('/api/sessions/active', signal)
 }
 
 export function saveExerciseSets(sessionId: string, exerciseId: string, sets: SessionSetEntry[], target?: ServedTarget): Promise<void> {

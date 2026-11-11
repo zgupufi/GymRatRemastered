@@ -1,11 +1,32 @@
 import { describe, expect, it } from 'vitest'
 import { WeightUnit } from '../../api/auth'
-import { emptyDrafts, isValidDraft, previousFor, summarize, toEntries } from './sets'
+import { draftsFromSaved, emptyDrafts, isValidDraft, previousFor, summarize, toEntries } from './sets'
 
 describe('sets', () => {
   it('creates the target number of empty drafts', () => {
     expect(emptyDrafts(4)).toHaveLength(4)
     expect(emptyDrafts(4)[0]).toEqual({ weight: '', reps: '', done: false, effort: null })
+  })
+
+  it('restores saved sets as completed drafts in the display unit', () => {
+    const drafts = draftsFromSaved(
+      2,
+      [
+        { setNumber: 2, reps: 6, weightKg: 45.3592, repsInReserve: null },
+        { setNumber: 1, reps: 8, weightKg: 45.3592, repsInReserve: 1 },
+        { setNumber: 3, reps: 5, weightKg: 45.3592 },
+      ],
+      WeightUnit.Pounds,
+    )
+
+    expect(drafts).toHaveLength(3)
+    expect(drafts[0]).toEqual({ weight: '100', reps: '8', done: true, effort: 1 })
+    expect(drafts[1]).toEqual({ weight: '100', reps: '6', done: true, effort: null })
+    expect(drafts[2].done).toBe(true)
+  })
+
+  it('keeps the empty drafts when nothing was saved', () => {
+    expect(draftsFromSaved(2, undefined, WeightUnit.Kilograms)).toEqual(emptyDrafts(2))
   })
 
   it('defaults to three sets', () => {

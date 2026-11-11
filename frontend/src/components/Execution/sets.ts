@@ -34,6 +34,23 @@ export function emptyDrafts(targetSets: number): SetDraft[] {
   return Array.from({ length: count }, emptyDraft)
 }
 
+export function draftsFromSaved(targetSets: number, saved: SessionSet[] | undefined, unit: WeightUnit): SetDraft[] {
+  const drafts = emptyDrafts(targetSets)
+  const sets = [...(saved ?? [])].sort((a, b) => a.setNumber - b.setNumber)
+  while (drafts.length < sets.length) {
+    drafts.push(emptyDraft())
+  }
+  sets.forEach((set, position) => {
+    drafts[position] = {
+      weight: String(displayWeight(set.weightKg, unit)),
+      reps: String(set.reps),
+      done: true,
+      effort: set.repsInReserve ?? null,
+    }
+  })
+  return drafts
+}
+
 export function addDraft(drafts: SetDraft[]): SetDraft[] {
   if (drafts.length >= MAX_SETS) {
     return drafts

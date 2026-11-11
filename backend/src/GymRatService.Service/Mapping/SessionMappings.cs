@@ -10,6 +10,17 @@ internal static class SessionMappings
 
     public static LoggedSet ToLoggedSet(this SessionSet set) => new(set.Reps, set.WeightKg, set.RepsInReserve);
 
+    public static ActiveSessionDto ToActiveSessionDto(this WorkoutSession session) => new(
+        session.Id,
+        session.WorkoutId,
+        session.StartedAt,
+        session.Sets
+            .GroupBy(set => set.ExerciseId)
+            .Select(group => new LastSessionExerciseDto(
+                group.Key,
+                group.OrderBy(set => set.SetNumber).Select(set => set.ToDto()).ToList()))
+            .ToList());
+
     public static LastSessionDto ToLastSessionDto(this WorkoutSession session) => new(
         session.Id,
         session.StartedAt,
