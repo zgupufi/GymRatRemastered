@@ -1,7 +1,7 @@
 .split-page {
   --accent: var(--emerald);
   --on-accent: var(--text);
-  max-width: 44rem;
+  max-width: 56rem;
 }
 
 .split-page__header {

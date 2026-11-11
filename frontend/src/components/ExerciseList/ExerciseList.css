@@ -24,6 +24,15 @@
   padding-bottom: var(--space-1);
   overflow-x: auto;
   scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+}
+
+@media (min-width: 640px) {
+  .exercise-list__chips {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
 }
 
 .exercise-list__chip {

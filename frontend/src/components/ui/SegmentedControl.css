@@ -46,3 +46,7 @@
   color: var(--accent);
   box-shadow: 0 6px 20px -8px color-mix(in srgb, var(--accent) 30%, transparent);
 }
+
+.segmented__option {
+  white-space: nowrap;
+}

@@ -48,7 +48,7 @@
 }
 
 .app-shell--nav .page {
-  padding-bottom: calc(var(--space-12) + 4.5rem);
+  padding-bottom: calc(var(--space-12) + 8.5rem);
 }
 
 @media (min-width: 48rem) {

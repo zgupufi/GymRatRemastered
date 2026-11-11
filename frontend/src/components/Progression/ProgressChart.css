@@ -59,19 +59,35 @@
 }
 
 .progress-chart__tooltip {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  width: 11.5rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'date date'
+    'value label'
+    'value set';
+  column-gap: var(--space-3);
+  align-items: baseline;
+  margin-bottom: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  gap: 2px;
-  pointer-events: none;
-  background: var(--material-strong);
-  backdrop-filter: var(--blur);
-  border: 1px solid var(--hairline-strong);
+  background: var(--fill-subtle);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-float);
-  opacity: 0.94;
+}
+
+.progress-chart__tooltip-date {
+  grid-area: date;
+}
+
+.progress-chart__tooltip strong {
+  grid-area: value;
+}
+
+.progress-chart__tooltip-label {
+  grid-area: label;
+}
+
+.progress-chart__tooltip-set {
+  grid-area: set;
 }
 
 .progress-chart__tooltip strong {
@@ -84,13 +100,6 @@
 .progress-chart__tooltip small {
   font-size: 0.875rem;
   font-weight: 500;
-}
-
-.progress-chart__tooltip hr {
-  width: 100%;
-  margin: var(--space-2) 0;
-  border: 0;
-  border-top: 1px solid var(--hairline);
 }
 
 .progress-chart__tooltip-date,
@@ -109,10 +118,6 @@
   .progress-chart__area,
   .progress-chart__line {
     animation: progress-chart-in 0.6s ease-out both;
-  }
-
-  .progress-chart__tooltip {
-    transition: left 0.2s ease-out;
   }
 }
 

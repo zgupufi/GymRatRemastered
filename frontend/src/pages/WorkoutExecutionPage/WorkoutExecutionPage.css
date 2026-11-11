@@ -1,13 +1,13 @@
 .execution {
   max-width: 48rem;
-  padding-bottom: 8rem;
+  padding-bottom: 12rem;
 }
 
 .execution__card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-6);
   margin-top: var(--space-12);
   padding: var(--space-8) var(--space-6);
   text-align: center;
@@ -76,6 +76,10 @@
   border-radius: 0 4px 4px 0;
   background: var(--emerald);
   transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.execution__top {
+  margin-bottom: var(--space-3);
 }
 
 .execution__exercise {
@@ -187,7 +191,7 @@
 }
 
 .target-banner {
-  --tone: var(--blue);
+  --tone: var(--emerald);
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -250,8 +254,8 @@
   font: inherit;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--on-blue);
-  background: var(--blue);
+  color: var(--on-accent);
+  background: var(--tone);
   border: 0;
   border-radius: var(--radius-pill);
 }
@@ -290,6 +294,11 @@
 .sets-card__check:disabled {
   color: var(--text-4);
   opacity: 0.6;
+}
+
+.sets-card__check[aria-pressed='true']:disabled {
+  color: var(--on-accent);
+  opacity: 1;
 }
 
 .execution__controls {
@@ -482,4 +491,21 @@
 .execution__results li span:last-child {
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 479px) {
+  .sets-card__effort {
+    flex-wrap: nowrap;
+    margin-left: 0;
+  }
+
+  .sets-card__effort small {
+    margin-right: 0;
+  }
+
+  .sets-card__effort-option {
+    flex: 1;
+    padding: var(--space-1) var(--space-2);
+    text-align: center;
+  }
 }

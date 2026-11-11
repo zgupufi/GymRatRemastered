@@ -38,11 +38,11 @@ export function AppNav() {
             ))}
           </nav>
           <div className="appnav__actions">
-            <button type="button" className="appnav__action" onClick={() => setHowToOpen(true)}>
+            <button type="button" className="appnav__action" aria-label="How to use" onClick={() => setHowToOpen(true)}>
               <CircleHelp size={16} aria-hidden="true" />
               <span>How to use</span>
             </button>
-            <button type="button" className="appnav__action" onClick={() => setSettingsOpen(true)}>
+            <button type="button" className="appnav__action" aria-label="Settings" onClick={() => setSettingsOpen(true)}>
               <Settings size={16} aria-hidden="true" />
               <span>Settings</span>
             </button>

@@ -1,6 +1,6 @@
 .toast-region {
   position: fixed;
-  top: var(--space-6);
+  top: calc(4.25rem + env(safe-area-inset-top));
   left: 50%;
   z-index: var(--z-toast);
   transform: translateX(-50%);
