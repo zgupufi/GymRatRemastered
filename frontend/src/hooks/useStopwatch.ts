@@ -10,7 +10,7 @@ export function useStopwatch(running: boolean, since?: number) {
     }
     const base = startedAt.current ?? Date.now()
     startedAt.current = base
-    const tick = () => setElapsed(Math.floor((Date.now() - base) / 1000))
+    const tick = () => setElapsed(Math.max(0, Math.floor((Date.now() - base) / 1000)))
     const id = window.setInterval(tick, 1000)
     return () => window.clearInterval(id)
   }, [running])

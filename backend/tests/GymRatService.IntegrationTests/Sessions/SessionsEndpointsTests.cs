@@ -116,17 +116,56 @@ public sealed class SessionsEndpointsTests : IDisposable
     public async Task GetActiveSession_ReturnsTheLatestUnfinishedSession_WhenSeveralAreOpen()
     {
         // Arrange
-        await SeedExercisesAsync();
+        var (bench, _) = await SeedExercisesAsync();
         var client = await CreateClientAsync("ana@example.com");
         var workoutId = await CreateWorkoutAsync(client, "Push");
-        await StartSessionAsync(client, workoutId);
+        var first = await StartSessionAsync(client, workoutId);
+        await SaveSetsAsync(client, first, bench.Id, new SessionSetRequest(8, 60));
+        await Task.Delay(20);
         var latest = await StartSessionAsync(client, workoutId);
+        await SaveSetsAsync(client, latest, bench.Id, new SessionSetRequest(5, 80));
 
         // Act
         var active = await client.GetFromJsonAsync<ActiveSessionDto>("/api/sessions/active");
 
         // Assert
         Assert.Equal(latest, active?.SessionId);
+        Assert.Equal([new SessionSetDto(1, 5, 80)], Assert.Single(active!.Exercises).Sets);
+    }
+
+    [Fact]
+    public async Task GetActiveSession_IgnoresUnfinishedSessionsWithoutSavedSets()
+    {
+        // Arrange
+        await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push");
+        await StartSessionAsync(client, workoutId);
+
+        // Act
+        var active = await client.GetFromJsonAsync<ActiveSessionDto>("/api/sessions/active");
+
+        // Assert
+        Assert.Null(active?.SessionId);
+        Assert.Empty(active!.Exercises);
+    }
+
+    [Fact]
+    public async Task GetActiveSession_ReturnsAnEmptyResult_WhenTheWorkoutWasDeleted()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push");
+        var sessionId = await StartSessionAsync(client, workoutId);
+        await SaveSetsAsync(client, sessionId, bench.Id, new SessionSetRequest(8, 60));
+        (await client.DeleteAsync($"/api/workouts/{workoutId}")).EnsureSuccessStatusCode();
+
+        // Act
+        var active = await client.GetFromJsonAsync<ActiveSessionDto>("/api/sessions/active");
+
+        // Assert
+        Assert.Null(active?.SessionId);
         Assert.Empty(active!.Exercises);
     }
 

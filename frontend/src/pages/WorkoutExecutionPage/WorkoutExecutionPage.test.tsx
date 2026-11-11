@@ -213,6 +213,30 @@ describe('WorkoutExecutionPage', () => {
     ])
   })
 
+  it('shows the error state instead of the start screen when the unfinished session cannot be loaded', async () => {
+    vi.mocked(getActiveSession).mockResolvedValue({ sessionId: 's9', workoutId: 'w1', startedAt: new Date().toISOString(), exercises: [] })
+    vi.mocked(getWorkout).mockRejectedValue(new Error('network'))
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: 'Could not load your workout' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Start workout' })).not.toBeInTheDocument()
+  })
+
+  it('shows the error state when the active session request fails', async () => {
+    vi.mocked(getActiveSession).mockRejectedValue(new Error('network'))
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: 'Could not load your workout' })).toBeInTheDocument()
+  })
+
+  it('shows the start screen when the unfinished session belongs to a workout without exercises', async () => {
+    vi.mocked(getActiveSession).mockResolvedValue({ sessionId: 's9', workoutId: 'w1', startedAt: new Date().toISOString(), exercises: [] })
+    vi.mocked(getWorkout).mockResolvedValue({ ...workout, exercises: [] })
+    renderPage()
+
+    expect(await screen.findByRole('button', { name: 'Start workout' })).toBeInTheDocument()
+  })
+
   it('shows the start screen when there is no unfinished session', async () => {
     renderPage()
 
@@ -609,6 +633,7 @@ describe('WorkoutExecutionPage picker', () => {
   })
 
   beforeEach(() => {
+    vi.mocked(getActiveSession).mockResolvedValue({ sessionId: null, workoutId: null, startedAt: null, exercises: [] })
     vi.mocked(getSplit).mockResolvedValue(todayDays(push))
     vi.mocked(getTargets).mockResolvedValue([])
     vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [push, legs], page: 1, pageSize: 100, totalCount: 2 })

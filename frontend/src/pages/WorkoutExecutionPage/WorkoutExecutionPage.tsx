@@ -47,20 +47,16 @@ export function WorkoutExecutionPage() {
   useEffect(() => {
     const controller = new AbortController()
     const resumeActive = async (): Promise<Phase | null> => {
-      try {
-        const active = await getActiveSession(controller.signal)
-        if (!active.sessionId || !active.workoutId) {
-          return null
-        }
-        const [workout, last, targets] = await Promise.all([
-          getWorkout(active.workoutId, controller.signal),
-          getLastSession(active.workoutId, controller.signal),
-          getTargets(active.workoutId, controller.signal).catch((): ExerciseTarget[] => []),
-        ])
-        return workout.exercises.length > 0 ? { name: 'running', workout, sessionId: active.sessionId, last, targets, resume: active } : null
-      } catch {
+      const active = await getActiveSession(controller.signal)
+      if (!active.sessionId || !active.workoutId) {
         return null
       }
+      const [workout, last, targets] = await Promise.all([
+        getWorkout(active.workoutId, controller.signal),
+        getLastSession(active.workoutId, controller.signal),
+        getTargets(active.workoutId, controller.signal).catch((): ExerciseTarget[] => []),
+      ])
+      return workout.exercises.length > 0 ? { name: 'running', workout, sessionId: active.sessionId, last, targets, resume: active } : null
     }
     Promise.all([
       getSplit(controller.signal),
