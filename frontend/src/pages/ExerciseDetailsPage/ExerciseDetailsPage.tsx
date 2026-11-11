@@ -90,6 +90,8 @@ function ExerciseDetails({ id }: { id: string }) {
               title={`${exercise.name} demo`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
             />
           ) : (
             <p>Demo video unavailable</p>

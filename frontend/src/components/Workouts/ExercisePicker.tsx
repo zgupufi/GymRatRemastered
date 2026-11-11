@@ -127,7 +127,7 @@ export function ExercisePicker({ selectedIds, onAdd }: ExercisePickerProps) {
                   >
                     <span>
                       {exercise.name}
-                      <small>{[exercise.subMuscles, exercise.equipment].filter(Boolean).join(' · ')}</small>
+                      <small>{[exercise.mainMuscle, exercise.subMuscles, exercise.equipment].filter(Boolean).join(' · ')}</small>
                     </span>
                     {added ? (
                       <Check size={18} className="exercise-picker__added" aria-hidden="true" />
