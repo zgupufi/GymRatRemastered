@@ -51,8 +51,11 @@ public class ExerciseCardsRepository(GymRatDbContext context) : IExerciseCardsRe
             .FirstOrDefaultAsync(exercise => exercise.Id == id, cancellationToken);
     }
 
-    public async Task<int> CountExistingAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ExerciseCard>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken)
     {
-        return await context.Exercises.CountAsync(exercise => ids.Contains(exercise.Id), cancellationToken);
+        return await context.Exercises
+            .AsNoTracking()
+            .Where(exercise => ids.Contains(exercise.Id))
+            .ToListAsync(cancellationToken);
     }
 }

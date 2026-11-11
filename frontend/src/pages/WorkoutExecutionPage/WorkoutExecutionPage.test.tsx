@@ -4,7 +4,7 @@ import { MotionGlobalConfig } from 'motion/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WeightUnit } from '../../api/auth'
-import { finishSession, getLastSession, saveExerciseSets, startSession } from '../../api/sessions'
+import { finishSession, getLastSession, getTargets, saveExerciseSets, startSession } from '../../api/sessions'
 import { getSplit } from '../../api/split'
 import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } from '../../api/workouts'
 import { AuthContext, type AuthApi } from '../../auth/AuthContext'
@@ -26,8 +26,8 @@ const workout: Workout = {
   id: 'w1',
   name: 'Push day',
   exercises: [
-    { order: 1, targetSets: 2, exercise: exercise('e1', 'Bench Press') },
-    { order: 2, targetSets: 0, exercise: exercise('e2', 'Cable Fly') },
+    { order: 1, targetSets: 2, repsMin: 8, repsMax: 12, weightStepKg: 2.5, exercise: exercise('e1', 'Bench Press') },
+    { order: 2, targetSets: 0, repsMin: 8, repsMax: 12, weightStepKg: 2.5, exercise: exercise('e2', 'Cable Fly') },
   ],
 }
 
@@ -90,6 +90,7 @@ describe('WorkoutExecutionPage', () => {
 
   beforeEach(() => {
     vi.mocked(getSplit).mockResolvedValue(todayDays(push))
+    vi.mocked(getTargets).mockResolvedValue([])
     vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [push, legs], page: 1, pageSize: 100, totalCount: 2 })
     vi.mocked(getWorkout).mockResolvedValue(workout)
     vi.mocked(getLastSession).mockResolvedValue({
@@ -576,6 +577,7 @@ describe('WorkoutExecutionPage picker', () => {
 
   beforeEach(() => {
     vi.mocked(getSplit).mockResolvedValue(todayDays(push))
+    vi.mocked(getTargets).mockResolvedValue([])
     vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [push, legs], page: 1, pageSize: 100, totalCount: 2 })
   })
 

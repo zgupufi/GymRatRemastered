@@ -10,5 +10,7 @@
     <include file="changes/004-workouts.xml" relativeToChangelogFile="true" />
     <include file="changes/005-split-days.xml" relativeToChangelogFile="true" />
     <include file="changes/006-workout-sessions.xml" relativeToChangelogFile="true" />
+    <include file="changes/007-smart-training.xml" relativeToChangelogFile="true" />
+    <include file="changes/008-backfill-weight-steps.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>

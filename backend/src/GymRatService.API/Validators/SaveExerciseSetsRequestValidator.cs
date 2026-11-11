@@ -15,5 +15,9 @@ public class SaveExerciseSetsRequestValidator : AbstractValidator<SaveExerciseSe
 
         RuleForEach(request => request.Sets)
             .SetValidator(new SessionSetRequestValidator());
+
+        RuleFor(request => request.Target)
+            .SetValidator((IValidator<ServedTargetRequest?>)new ServedTargetRequestValidator())
+            .When(request => request.Target is not null);
     }
 }

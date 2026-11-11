@@ -24,6 +24,7 @@ public static class ServiceLayerExtensions
         services.AddScoped<IWorkoutsService, WorkoutsService>();
         services.AddScoped<ISplitService, SplitService>();
         services.AddScoped<ISessionsService, SessionsService>();
+        services.AddScoped<ICoachService, CoachService>();
         services.AddScoped<IChatService, ChatService>();
 
         return services;

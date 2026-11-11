@@ -72,8 +72,8 @@ describe('WorkoutsPage', () => {
       id: 'w1',
       name: 'Push day',
       exercises: [
-        { order: 2, targetSets: 3, exercise: row },
-        { order: 1, targetSets: 4, exercise: bench },
+        { order: 2, targetSets: 3, repsMin: 8, repsMax: 12, weightStepKg: 2.5, exercise: row },
+        { order: 1, targetSets: 4, repsMin: 8, repsMax: 12, weightStepKg: 2.5, exercise: bench },
       ],
     })
     vi.mocked(searchExercises).mockResolvedValue({ items: [bench, row, squat], page: 1, pageSize: 20, totalCount: 3 })
@@ -275,8 +275,15 @@ describe('WorkoutsPage', () => {
     await userEvent.click(toggle)
 
     const sets = await screen.findAllByRole('spinbutton')
-    expect(sets.map((input) => input.getAttribute('aria-label'))).toEqual(['Sets for Bench Press', 'Sets for Barbell Row'])
-    expect(sets.map((input) => (input as HTMLInputElement).value)).toEqual(['4', '3'])
+    expect(sets.map((input) => input.getAttribute('aria-label'))).toEqual([
+      'Sets for Bench Press',
+      'Minimum reps for Bench Press',
+      'Maximum reps for Bench Press',
+      'Sets for Barbell Row',
+      'Minimum reps for Barbell Row',
+      'Maximum reps for Barbell Row',
+    ])
+    expect(sets.map((input) => (input as HTMLInputElement).value)).toEqual(['4', '8', '12', '3', '8', '12'])
 
     await userEvent.click(toggle)
     await waitFor(() => expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument())
@@ -289,6 +296,35 @@ describe('WorkoutsPage', () => {
     await expand()
 
     expect(await screen.findByText('Could not load this workout.')).toBeInTheDocument()
+  })
+
+  it('autosaves an edited rep range but never an inverted one', async () => {
+    vi.mocked(replaceWorkoutExercises).mockResolvedValue()
+    renderPage()
+    await expand()
+    const minimum = await screen.findByRole('spinbutton', { name: 'Minimum reps for Bench Press' })
+    const maximum = screen.getByRole('spinbutton', { name: 'Maximum reps for Bench Press' })
+
+    await userEvent.clear(minimum)
+    await userEvent.type(minimum, '14')
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    expect(minimum).toHaveAttribute('aria-invalid', 'true')
+    expect(replaceWorkoutExercises).not.toHaveBeenCalled()
+
+    await userEvent.clear(minimum)
+    await userEvent.type(minimum, '6')
+    await userEvent.clear(maximum)
+    await userEvent.type(maximum, '10')
+
+    await waitFor(
+      () =>
+        expect(replaceWorkoutExercises).toHaveBeenLastCalledWith('w1', [
+          { exerciseId: 'e1', targetSets: 4, repsMin: 6, repsMax: 10 },
+          { exerciseId: 'e2', targetSets: 3, repsMin: 8, repsMax: 12 },
+        ]),
+      { timeout: 3000 },
+    )
   })
 
   it('adds, edits, removes and saves exercises', async () => {
@@ -310,8 +346,8 @@ describe('WorkoutsPage', () => {
     await waitFor(
       () =>
         expect(replaceWorkoutExercises).toHaveBeenLastCalledWith('w1', [
-          { exerciseId: 'e1', targetSets: 4 },
-          { exerciseId: 'e3', targetSets: 5 },
+          { exerciseId: 'e1', targetSets: 4, repsMin: 8, repsMax: 12 },
+          { exerciseId: 'e3', targetSets: 5, repsMin: 8, repsMax: 12 },
         ]),
       { timeout: 3000 },
     )
@@ -355,7 +391,7 @@ describe('WorkoutsPage', () => {
 
     await expand()
 
-    await waitFor(() => expect(replaceWorkoutExercises).toHaveBeenCalledWith('w1', [{ exerciseId: 'e1', targetSets: 4 }]))
+    await waitFor(() => expect(replaceWorkoutExercises).toHaveBeenCalledWith('w1', [{ exerciseId: 'e1', targetSets: 4, repsMin: 8, repsMax: 12 }]))
   })
 
   it('reorders with the keyboard', async () => {
@@ -376,8 +412,8 @@ describe('WorkoutsPage', () => {
     await waitFor(
       () =>
         expect(replaceWorkoutExercises).toHaveBeenLastCalledWith('w1', [
-          { exerciseId: 'e2', targetSets: 3 },
-          { exerciseId: 'e1', targetSets: 4 },
+          { exerciseId: 'e2', targetSets: 3, repsMin: 8, repsMax: 12 },
+          { exerciseId: 'e1', targetSets: 4, repsMin: 8, repsMax: 12 },
         ]),
       { timeout: 3000 },
     )

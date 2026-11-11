@@ -20,6 +20,10 @@ public class SessionSetConfiguration : IEntityTypeConfiguration<SessionSet>
 
         builder.Property(set => set.WeightKg).HasPrecision(7, 2).IsRequired();
 
+        builder.Property(set => set.RepsInReserve);
+
+        builder.Property(set => set.TargetWeightKg).HasPrecision(7, 2);
+
         builder.HasOne(set => set.Session).WithMany(session => session.Sets).HasForeignKey(set => set.SessionId).OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne<ExerciseCard>().WithMany().HasForeignKey(set => set.ExerciseId).OnDelete(DeleteBehavior.Cascade);

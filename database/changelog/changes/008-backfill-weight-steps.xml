@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="008-backfill-weight-steps" author="gymrat">
+        <sql>
+            UPDATE "WorkoutExercises" AS entry
+            SET "WeightStepKg" = CASE lower(trim(exercise."Equipment"))
+                WHEN 'barbell' THEN 2.5
+                WHEN 'dumbbell' THEN 2
+                WHEN 'dumbbells' THEN 2
+                ELSE 1.25
+            END
+            FROM "Exercises" AS exercise
+            WHERE exercise."Id" = entry."ExerciseId"
+        </sql>
+        <rollback>
+            <sql>UPDATE "WorkoutExercises" SET "WeightStepKg" = 2.5</sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

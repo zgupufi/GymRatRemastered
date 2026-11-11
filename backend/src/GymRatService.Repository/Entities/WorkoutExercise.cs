@@ -12,5 +12,11 @@ public class WorkoutExercise
 
     public int TargetSets { get; set; }
 
+    public int RepsMin { get; set; } = 8;
+
+    public int RepsMax { get; set; } = 12;
+
+    public decimal WeightStepKg { get; set; } = 2.5m;
+
     public ExerciseCard? Exercise { get; set; }
 }

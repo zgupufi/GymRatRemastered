@@ -59,7 +59,7 @@ public sealed class ChatEndpointsTests : IDisposable
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<ChatMessageResponse>();
-        Assert.Equal(new ChatMessageResponse("Train hard.", false), body);
+        Assert.Equivalent(new ChatMessageResponse("Train hard.", false, []), body);
         var sent = Assert.Single(chat.Calls);
         Assert.Equal(AiChatRole.System, sent[0].Role);
         Assert.Equal(12, sent.Count);
@@ -322,7 +322,7 @@ public sealed class ChatEndpointsTests : IDisposable
 
         // Assert
         var body = await response.Content.ReadFromJsonAsync<ChatMessageResponse>();
-        Assert.Equal(new ChatMessageResponse("Created Push.", true), body);
+        Assert.Equivalent(new ChatMessageResponse("Created Push.", true, []), body);
         var listed = ScriptedChatClient.LastToolResult(chat.Calls[^1]);
         Assert.Equal("Push", listed[0].GetProperty("name").GetString());
         Assert.Equal(2, listed[0].GetProperty("exerciseCount").GetInt32());
@@ -477,7 +477,7 @@ public sealed class ChatEndpointsTests : IDisposable
 
         // Assert
         var body = await response.Content.ReadFromJsonAsync<ChatMessageResponse>();
-        Assert.Equal(new ChatMessageResponse("That failed.", false), body);
+        Assert.Equivalent(new ChatMessageResponse("That failed.", false, []), body);
         var results = ScriptedChatClient.ToolResultElements(chat.Calls[^1]);
         Assert.Equal(ErrorCodes.WorkoutNotFound, results[0].GetProperty("error").GetString());
         Assert.Contains("Name", results[1].GetProperty("error")[0].GetString());

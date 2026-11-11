@@ -42,6 +42,16 @@ public class WorkoutsController(IWorkoutsService workoutsService, ISessionsServi
         return Ok(response);
     }
 
+    [HttpGet("{id}/targets")]
+    public async Task<IActionResult> GetTargetsAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+
+        var response = await sessionsService.GetTargetsAsync(userId, id, cancellationToken);
+
+        return Ok(response);
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateWorkoutAsync(CreateWorkoutRequest request, CancellationToken cancellationToken)
     {

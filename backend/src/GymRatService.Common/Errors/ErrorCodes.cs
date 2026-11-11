@@ -28,5 +28,17 @@ public static class ErrorCodes
 
     public const string ChatInvalidReply = "BLException_ChatService_InvalidReply";
 
+    public const string CoachSuggestionNotFound = "BLException_CoachService_SuggestionNotFound";
+
+    public const string CoachSuggestionNotPending = "BLException_CoachService_SuggestionNotPending";
+
+    public const string CoachSuggestionExerciseNotInWorkout = "BLException_CoachService_ExerciseNotInWorkout";
+
+    public const string CoachSuggestionStale = "BLException_CoachService_SuggestionStale";
+
+    public const string CoachSuggestionInvalidChange = "BLException_CoachService_InvalidChange";
+
+    public const string CoachTooManyProposals = "BLException_CoachService_TooManyProposals";
+
     public const string InvalidRequest = "BLException_Validation_InvalidRequest";
 }

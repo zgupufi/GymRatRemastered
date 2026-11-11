@@ -1,3 +1,4 @@
+using GymRatService.Common.Constants;
 using GymRatService.Common.DTOs.Workouts;
 using GymRatService.Common.Errors;
 using GymRatService.Common.Filtering;
@@ -13,6 +14,10 @@ public class WorkoutsService(
     IWorkoutsRepository workoutsRepository,
     IExerciseCardsRepository exerciseCardsRepository) : IWorkoutsService
 {
+    private const int DefaultRepsMin = 8;
+
+    private const int DefaultRepsMax = 12;
+
     public async Task<PagedResult<WorkoutSummaryDto>> GetWorkoutSummariesAsync(Guid userId, WorkoutFilter filter, CancellationToken cancellationToken)
     {
         var workouts = await workoutsRepository.GetByUserAsync(userId, filter, cancellationToken);
@@ -50,22 +55,41 @@ public class WorkoutsService(
 
     public async Task ReplaceWorkoutExercisesAsync(Guid userId, Guid id, ReplaceWorkoutExercisesRequest request, CancellationToken cancellationToken)
     {
-        await GetOwnedWorkoutAsync(userId, id, cancellationToken);
+        var workout = await GetOwnedWorkoutAsync(userId, id, cancellationToken);
 
         var exerciseIds = request.Exercises.Select(entry => entry.ExerciseId).Distinct().ToList();
 
-        if (await exerciseCardsRepository.CountExistingAsync(exerciseIds, cancellationToken) != exerciseIds.Count)
+        var cards = await exerciseCardsRepository.GetByIdsAsync(exerciseIds, cancellationToken);
+
+        if (cards.Count != exerciseIds.Count)
         {
             throw new BusinessLogicException(ErrorCodes.WorkoutExerciseNotFound);
         }
 
+        var equipment = cards.ToDictionary(card => card.Id, card => card.Equipment);
+        var existing = workout.Exercises
+            .OrderBy(entry => entry.Position)
+            .GroupBy(entry => entry.ExerciseId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+        var occurrences = new Dictionary<Guid, int>();
+
         var entries = request.Exercises
-            .Select((entry, index) => new WorkoutExercise
+            .Select((entry, index) =>
             {
-                WorkoutId = id,
-                ExerciseId = entry.ExerciseId,
-                Position = index + 1,
-                TargetSets = entry.TargetSets,
+                var occurrence = occurrences.GetValueOrDefault(entry.ExerciseId);
+                occurrences[entry.ExerciseId] = occurrence + 1;
+                var previous = existing.GetValueOrDefault(entry.ExerciseId)?.ElementAtOrDefault(occurrence);
+
+                return new WorkoutExercise
+                {
+                    WorkoutId = id,
+                    ExerciseId = entry.ExerciseId,
+                    Position = index + 1,
+                    TargetSets = entry.TargetSets,
+                    RepsMin = entry.RepsMin ?? previous?.RepsMin ?? DefaultRepsMin,
+                    RepsMax = entry.RepsMax ?? previous?.RepsMax ?? DefaultRepsMax,
+                    WeightStepKg = entry.WeightStepKg ?? previous?.WeightStepKg ?? WeightSteps.ForEquipment(equipment[entry.ExerciseId]),
+                };
             })
             .ToList();
 

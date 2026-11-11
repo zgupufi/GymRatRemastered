@@ -36,8 +36,8 @@ const pushDetails: Workout = {
   id: 'w1',
   name: 'Push day',
   exercises: [
-    { order: 2, targetSets: 1, exercise: exercise('e2', 'Cable Fly') },
-    { order: 1, targetSets: 3, exercise: exercise('e1', 'Bench Press') },
+    { order: 2, targetSets: 1, repsMin: 8, repsMax: 12, weightStepKg: 2.5, exercise: exercise('e2', 'Cable Fly') },
+    { order: 1, targetSets: 3, repsMin: 8, repsMax: 12, weightStepKg: 2.5, exercise: exercise('e1', 'Bench Press') },
   ],
 }
 

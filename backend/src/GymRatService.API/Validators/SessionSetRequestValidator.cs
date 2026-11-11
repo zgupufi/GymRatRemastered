@@ -13,6 +13,10 @@ public class SessionSetRequestValidator : AbstractValidator<SessionSetRequest>
 
     private const decimal MaximumWeightKg = 2000;
 
+    private const int MinimumRepsInReserve = 0;
+
+    private const int MaximumRepsInReserve = 3;
+
     public SessionSetRequestValidator()
     {
         RuleFor(request => request.Reps)
@@ -21,5 +25,9 @@ public class SessionSetRequestValidator : AbstractValidator<SessionSetRequest>
         RuleFor(request => request.WeightKg)
             .InclusiveBetween(MinimumWeightKg, MaximumWeightKg)
             .PrecisionScale(7, 2, false);
+
+        RuleFor(request => request.RepsInReserve)
+            .InclusiveBetween(MinimumRepsInReserve, MaximumRepsInReserve)
+            .When(request => request.RepsInReserve is not null);
     }
 }

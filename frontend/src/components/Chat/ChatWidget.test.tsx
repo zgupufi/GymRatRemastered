@@ -21,7 +21,7 @@ async function openChat() {
 
 describe('ChatWidget', () => {
   beforeEach(() => {
-    vi.mocked(sendChatMessage).mockResolvedValue({ reply: 'Done. Created **Leg Day**', workoutsChanged: false })
+    vi.mocked(sendChatMessage).mockResolvedValue({ reply: 'Done. Created **Leg Day**', workoutsChanged: false, suggestions: [] })
   })
 
   afterEach(() => {
@@ -49,8 +49,8 @@ describe('ChatWidget', () => {
 
   it('sends a typed message with the previous history and announces workout changes', async () => {
     vi.mocked(sendChatMessage)
-      .mockResolvedValueOnce({ reply: 'First reply', workoutsChanged: false })
-      .mockResolvedValueOnce({ reply: 'Created it', workoutsChanged: true })
+      .mockResolvedValueOnce({ reply: 'First reply', workoutsChanged: false, suggestions: [] })
+      .mockResolvedValueOnce({ reply: 'Created it', workoutsChanged: true, suggestions: [] })
     const user = await openChat()
     const input = screen.getByLabelText('Message the coach')
 
@@ -78,7 +78,7 @@ describe('ChatWidget', () => {
   })
 
   it('shows the typing indicator while waiting and ignores suggestions meanwhile', async () => {
-    let resolve: (value: { reply: string; workoutsChanged: boolean }) => void = () => {}
+    let resolve: (value: { reply: string; workoutsChanged: boolean; suggestions: never[] }) => void = () => {}
     vi.mocked(sendChatMessage).mockReturnValue(new Promise((done) => (resolve = done)))
     const user = await openChat()
 
@@ -86,7 +86,7 @@ describe('ChatWidget', () => {
     expect(screen.getByRole('status', { name: 'The coach is typing' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled()
 
-    resolve({ reply: 'Ready', workoutsChanged: false })
+    resolve({ reply: 'Ready', workoutsChanged: false, suggestions: [] })
     expect(await screen.findByText('Ready')).toBeInTheDocument()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
@@ -120,7 +120,7 @@ describe('ChatWidget', () => {
   it('shows the server message for a rejected request and retries it', async () => {
     vi.mocked(sendChatMessage)
       .mockRejectedValueOnce(new ApiError(429, 'You are sending messages too fast.', 'BLException_ChatService_RateLimited'))
-      .mockResolvedValueOnce({ reply: 'Back again', workoutsChanged: false })
+      .mockResolvedValueOnce({ reply: 'Back again', workoutsChanged: false, suggestions: [] })
     const user = await openChat()
 
     await user.type(screen.getByLabelText('Message the coach'), 'Plan my week{Enter}')

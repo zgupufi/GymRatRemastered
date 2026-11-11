@@ -9,5 +9,5 @@ public interface IExerciseCardsRepository
 
     Task<ExerciseCard?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    Task<int> CountExistingAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ExerciseCard>> GetByIdsAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken);
 }

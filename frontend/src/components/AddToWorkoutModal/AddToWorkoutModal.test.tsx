@@ -19,6 +19,9 @@ function workoutWith(...exerciseIds: string[]): Workout {
     exercises: exerciseIds.map((id, index) => ({
       order: index,
       targetSets: 4,
+      repsMin: 8,
+      repsMax: 12,
+      weightStepKg: 2.5,
       exercise: { id } as Exercise,
     })),
   }

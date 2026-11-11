@@ -1,3 +1,3 @@
 namespace GymRatService.Common.DTOs.Sessions;
 
-public sealed record SessionSetRequest(int Reps, decimal WeightKg);
+public sealed record SessionSetRequest(int Reps, decimal WeightKg, int? RepsInReserve = null);

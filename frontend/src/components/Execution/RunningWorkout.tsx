@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Check, ChevronLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { WeightUnit } from '../../api/auth'
-import { finishSession, saveExerciseSets, type LastSession } from '../../api/sessions'
+import { finishSession, saveExerciseSets, type ExerciseTarget, type LastSession } from '../../api/sessions'
 import type { Workout } from '../../api/workouts'
 import { useRestTimer } from '../../hooks/useRestTimer'
 import { useStopwatch } from '../../hooks/useStopwatch'
@@ -12,8 +12,9 @@ import { Button } from '../ui/Button'
 import { Modal } from '../ui/Modal'
 import { useToast } from '../ui/ToastContext'
 import { RestTimerPill } from './RestTimerPill'
-import { emptyDrafts, summarize, toEntries, type SetDraft, type WorkoutResult } from './sets'
+import { addDraft, applyTarget, emptyDrafts, removeLastDraft, summarize, toEntries, type SetDraft, type WorkoutResult } from './sets'
 import { SetsCard } from './SetsCard'
+import { TargetBanner } from './TargetBanner'
 
 const ADVANCE_DELAY_MS = 500
 
@@ -21,6 +22,7 @@ interface RunningWorkoutProps {
   workout: Workout
   sessionId: string
   last: LastSession
+  targets: ExerciseTarget[]
   unit: WeightUnit
   restSeconds: number
   onFinished: (seconds: number, result: WorkoutResult) => void
@@ -34,7 +36,7 @@ function initialDrafts(workout: Workout): Record<string, SetDraft[]> {
   return drafts
 }
 
-export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, onFinished }: RunningWorkoutProps) {
+export function RunningWorkout({ workout, sessionId, last, targets, unit, restSeconds, onFinished }: RunningWorkoutProps) {
   const { showToast } = useToast()
   const [index, setIndex] = useState(0)
   const [drafts, setDrafts] = useState(() => initialDrafts(workout))
@@ -79,12 +81,18 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
   const startedCount = workout.exercises.filter((entry) => drafts[entry.exercise.id].some((draft) => draft.done)).length
   const lastTime = previous && previous.length > 0 ? [...previous].sort((a, b) => a.setNumber - b.setNumber) : null
   const detail = [exercise.mainMuscle, exercise.equipment].filter(Boolean).join(' · ')
+  const target = targets.find((item) => item.order === index + 1)
 
   const saveExercise = async (position: number, current: Record<string, SetDraft[]>) => {
     const exerciseId = workout.exercises[position].exercise.id
     const entries = toEntries(current[exerciseId], unit)
     if (entries.length > 0 || savedExercises.current.has(exerciseId)) {
-      await saveExerciseSets(sessionId, exerciseId, entries)
+      const served = targets.find((item) => item.order === position + 1)
+      if (served && entries.length > 0) {
+        await saveExerciseSets(sessionId, exerciseId, entries, { weightKg: served.weightKg, reps: served.reps, reason: served.reason })
+      } else {
+        await saveExerciseSets(sessionId, exerciseId, entries)
+      }
       if (entries.length > 0) {
         savedExercises.current.add(exerciseId)
       } else {
@@ -135,11 +143,26 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
       .catch(() => showToast('error', 'Could not save your sets. Try again.'))
   }
 
+  const updateDrafts = (change: (current: SetDraft[]) => SetDraft[]) => {
+    setDrafts((current) => ({ ...current, [exercise.id]: change(current[exercise.id]) }))
+  }
+
   const patchSet = (row: number, patch: Partial<SetDraft>) => {
     setDrafts((current) => ({
       ...current,
       [exercise.id]: current[exercise.id].map((draft, position) => (position === row ? { ...draft, ...patch } : draft)),
     }))
+  }
+
+  const changeSet = (row: number, patch: Partial<SetDraft>) => {
+    patchSet(row, patch)
+    const current = drafts[exercise.id]
+    if (patch.effort !== undefined && current[row].done) {
+      persistSets(index, {
+        ...drafts,
+        [exercise.id]: current.map((draft, position) => (position === row ? { ...draft, ...patch } : draft)),
+      })
+    }
   }
 
   const toggleSet = (row: number) => {
@@ -197,12 +220,22 @@ export function RunningWorkout({ workout, sessionId, last, unit, restSeconds, on
         <Link to={`/exercises/${exercise.id}`}>{exercise.name}</Link>
       </h2>
       {detail ? <p className="execution__detail">{detail}</p> : null}
-      {lastTime ? (
+      {lastTime && target?.lastWeightKg == null ? (
         <p className="execution__last">
           Last time ({unitLabel(unit)}): {lastTime.map((set) => `${fromKilograms(set.weightKg, unit)} × ${set.reps}`).join(' · ')}
         </p>
       ) : null}
-      <SetsCard drafts={drafts[exercise.id]} previous={previous} unit={unit} onChange={patchSet} onToggle={toggleSet} />
+      {target ? <TargetBanner target={target} unit={unit} onUse={() => updateDrafts((current) => applyTarget(current, target, unit))} /> : null}
+      <SetsCard
+        drafts={drafts[exercise.id]}
+        previous={previous}
+        target={target}
+        unit={unit}
+        onChange={changeSet}
+        onToggle={toggleSet}
+        onAdd={() => updateDrafts(addDraft)}
+        onRemove={() => updateDrafts(removeLastDraft)}
+      />
       <RestTimerPill remaining={rest.remaining} onExtend={rest.extend} onReduce={rest.reduce} onSkip={rest.skip} />
       <div className="execution__controls">
         <Button variant="danger" disabled={busy} onClick={() => setConfirmingEnd(true)}>

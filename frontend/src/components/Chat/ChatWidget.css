@@ -408,3 +408,116 @@
   font-size: 0.8125rem;
   line-height: 1.45;
 }
+
+.coach__suggestion {
+  margin-top: 0.625rem;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--cyan) 35%, transparent);
+  border-radius: var(--radius-lg);
+  background: var(--fill-inset);
+}
+
+.coach__suggestion--applied {
+  border-color: color-mix(in srgb, var(--emerald) 35%, transparent);
+}
+
+.coach__suggestion--dismissed,
+.coach__suggestion--expired {
+  border-color: var(--hairline);
+}
+
+.coach__suggestion-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+
+.coach__suggestion-title {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.coach__suggestion-changes {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.coach__suggestion-changes div {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr;
+}
+
+.coach__suggestion-changes dt {
+  color: var(--text-3);
+}
+
+.coach__suggestion-changes dd {
+  margin: 0;
+}
+
+.coach__suggestion-changes s {
+  color: var(--text-3);
+}
+
+.coach__suggestion-changes strong {
+  color: var(--emerald);
+}
+
+.coach__suggestion-why {
+  margin: 0.5rem 0 0.625rem;
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+
+.coach__suggestion-error {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--danger);
+}
+
+.coach__suggestion-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.coach__suggestion-actions button {
+  flex: 1;
+  min-height: 2.375rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.coach__suggestion-apply {
+  color: var(--on-accent);
+  background: var(--emerald);
+}
+
+.coach__suggestion-dismiss {
+  color: var(--text);
+  background: var(--fill-pressed);
+}
+
+.coach__suggestion-actions button:disabled {
+  opacity: 0.6;
+}
+
+.coach__suggestion-resolved {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.coach__suggestion--applied .coach__suggestion-resolved {
+  color: var(--emerald);
+}

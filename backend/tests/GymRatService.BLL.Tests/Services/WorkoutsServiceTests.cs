@@ -84,8 +84,8 @@ public class WorkoutsServiceTests
         Assert.Equal("Push", result.Name);
         Assert.Equal(
             [
-                new WorkoutExerciseDto(1, 4, new ExerciseDto(chest.Id, "Bench Press", "Chest", null, null, null, null, null)),
-                new WorkoutExerciseDto(2, 5, new ExerciseDto(legs.Id, "Squat", "Legs", null, null, null, null, null)),
+                new WorkoutExerciseDto(1, 4, 8, 12, 2.5m, new ExerciseDto(chest.Id, "Bench Press", "Chest", null, null, null, null, null)),
+                new WorkoutExerciseDto(2, 5, 8, 12, 2.5m, new ExerciseDto(legs.Id, "Squat", "Legs", null, null, null, null, null)),
             ],
             result.Exercises);
     }
@@ -181,7 +181,8 @@ public class WorkoutsServiceTests
         var first = Guid.CreateVersion7();
         var second = Guid.CreateVersion7();
         _workouts.GetByIdAsync(workout.Id, Arg.Any<CancellationToken>()).Returns(workout);
-        _exercises.CountExistingAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(2);
+        _exercises.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns([new ExerciseCard { Id = first, Equipment = "Barbell" }, new ExerciseCard { Id = second, Equipment = "Dumbbells" }]);
         IReadOnlyList<WorkoutExercise>? stored = null;
         await _workouts.ReplaceExercisesAsync(
             workout.Id,
@@ -202,6 +203,8 @@ public class WorkoutsServiceTests
         Assert.Equal([first, second, first], stored.Select(entry => entry.ExerciseId));
         Assert.Equal([1, 2, 3], stored.Select(entry => entry.Position));
         Assert.Equal([4, 3, 2], stored.Select(entry => entry.TargetSets));
+        Assert.Equal([2.5m, 2m, 2.5m], stored.Select(entry => entry.WeightStepKg));
+        Assert.All(stored, entry => Assert.Equal((8, 12), (entry.RepsMin, entry.RepsMax)));
         Assert.All(stored, entry => Assert.Equal(workout.Id, entry.WorkoutId));
     }
 
@@ -211,7 +214,7 @@ public class WorkoutsServiceTests
         // Arrange
         var workout = new Workout { Name = "Push", UserId = _userId };
         _workouts.GetByIdAsync(workout.Id, Arg.Any<CancellationToken>()).Returns(workout);
-        _exercises.CountExistingAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns(0);
+        _exercises.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>()).Returns([]);
         var request = new ReplaceWorkoutExercisesRequest([new WorkoutExerciseRequest(Guid.CreateVersion7(), 3)]);
 
         // Act

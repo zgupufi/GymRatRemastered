@@ -74,7 +74,8 @@ public sealed partial class LiquibaseChangelogTests
     public void WorkoutsSchema_DefinesEveryColumnOfTheWorkoutEntities()
     {
         // Arrange
-        var schema = File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "004-workouts.xml"));
+        var schema = File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "004-workouts.xml"))
+            + File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "007-smart-training.xml"));
         var options = new DbContextOptionsBuilder<GymRatDbContext>()
             .UseNpgsql("Host=localhost;Database=gymrat_model_check")
             .Options;
@@ -90,7 +91,7 @@ public sealed partial class LiquibaseChangelogTests
         Assert.Equal("Workouts", workout.GetTableName());
         Assert.Equal("WorkoutExercises", workoutExercise.GetTableName());
         Assert.Equal(4, workoutColumns.Count);
-        Assert.Equal(5, workoutExerciseColumns.Count);
+        Assert.Equal(8, workoutExerciseColumns.Count);
         Assert.All(workoutColumns.Concat(workoutExerciseColumns), column => Assert.Contains($"<column name=\"{column}\"", schema));
         Assert.Contains("<column name=\"Id\" type=\"uuid\" defaultValueComputed=\"uuid_generate_v7()\">", schema);
     }
@@ -99,7 +100,8 @@ public sealed partial class LiquibaseChangelogTests
     public void WorkoutSessionsSchema_DefinesEveryColumnOfTheSessionEntities()
     {
         // Arrange
-        var schema = File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "006-workout-sessions.xml"));
+        var schema = File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "006-workout-sessions.xml"))
+            + File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "007-smart-training.xml"));
         var options = new DbContextOptionsBuilder<GymRatDbContext>()
             .UseNpgsql("Host=localhost;Database=gymrat_model_check")
             .Options;
@@ -115,7 +117,7 @@ public sealed partial class LiquibaseChangelogTests
         Assert.Equal("WorkoutSessions", session.GetTableName());
         Assert.Equal("SessionSets", set.GetTableName());
         Assert.Equal(6, sessionColumns.Count);
-        Assert.Equal(6, setColumns.Count);
+        Assert.Equal(10, setColumns.Count);
         Assert.All(sessionColumns.Concat(setColumns), column => Assert.Contains($"<column name=\"{column}\"", schema));
         Assert.Contains("<column name=\"Id\" type=\"uuid\" defaultValueComputed=\"uuid_generate_v7()\">", schema);
         Assert.Contains("onDelete=\"SET NULL\"", schema);

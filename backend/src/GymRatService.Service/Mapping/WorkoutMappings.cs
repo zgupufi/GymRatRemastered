@@ -22,6 +22,12 @@ internal static class WorkoutMappings
         workout.Exercises
             .OrderBy(entry => entry.Position)
             .Where(entry => entry.Exercise is not null)
-            .Select((entry, index) => new WorkoutExerciseDto(index + 1, entry.TargetSets, entry.Exercise!.ToDto()))
+            .Select((entry, index) => new WorkoutExerciseDto(
+                index + 1,
+                entry.TargetSets,
+                entry.RepsMin,
+                entry.RepsMax,
+                entry.WeightStepKg,
+                entry.Exercise!.ToDto()))
             .ToList());
 }
