@@ -70,7 +70,7 @@ The client sends the target it showed with each sets PUT; it is stored on that e
 
 ### Data model
 
-Same migration: `WorkoutExercises.RepsMin integer not null default 8`, `RepsMax integer not null default 12`, `WeightStepKg numeric(5,2) not null default 2.5`, check `RepsMin <= RepsMax`; `SessionSets.TargetWeightKg numeric(7,2) null`, `TargetReps integer null`, `TargetReason integer null`.
+Same migration: `WorkoutExercises.RepsMin integer not null default 8`, `RepsMax integer not null default 12`, `WeightStepKg numeric(5,2) not null default 2.5` (existing rows are backfilled by equipment), check `RepsMin <= RepsMax`; `SessionSets.TargetWeightKg numeric(7,2) null`, `TargetReps integer null`, `TargetReason integer null`.
 
 ### API
 
@@ -93,7 +93,7 @@ Unit: golden table per rule (no history, mode with ties, typo set, hold on RIR 0
 
 - New coach tools: `get_exercise_history` (last sessions of one exercise with reps, weight and RIR), `get_targets`, and `propose_exercise_change`. The coach can propose new sets, rep range and step for one exercise in one of the user's workouts, with a rationale. It cannot apply.
 - Each valid proposal becomes a pending suggestion returned with the reply. The chat renders a card with before and after, the rationale, and Apply / Not now. Apply changes the workout and announces the change; Not now dismisses. Both are final.
-- Limits: at most one pending suggestion per workout exercise (a new one dismisses the old), at most 3 proposals per chat turn (later ones return a tool error), suggestions expire after 7 days (hidden from the list; apply returns `NotPending`).
+- Limits: at most one pending suggestion per workout exercise (a new one dismisses the old), at most 3 proposal attempts per chat turn, rejected ones included (later ones return a tool error; calls whose arguments cannot be bound never reach the tool and are not counted), suggestions expire after 7 days (marked `Expired` when the list is read; apply returns `NotPending`). Apply claims the suggestion and updates the exercise in one transaction, so concurrent applies cannot both succeed.
 - Bounds: sets change by at most 1 from the current value, reps 1 to 30 with min not above max, step from the allowed list, at least one value present, rationale required (trimmed to 500).
 - Stale check: a suggestion stores the before-values it was made against. Apply fails with `CoachSuggestions.Stale` if any occurrence of that exercise in the workout differs from them. Apply updates every occurrence.
 - Proposals are logged. Tool output stays data to the model; the worst case of a manipulated proposal is a card the user still has to confirm.
@@ -101,7 +101,7 @@ Unit: golden table per rule (no history, mode with ties, typo set, hold on RIR 0
 
 ### Data model
 
-Same migration, `CoachSuggestions`: `Id` uuid v7, `UserId`, `WorkoutId`, `ExerciseId` (FKs cascade), `TargetSets`, `RepsMin`, `RepsMax`, `WeightStepKg` (null = unchanged), `BeforeTargetSets`, `BeforeRepsMin`, `BeforeRepsMax`, `BeforeWeightStepKg` (not null), `Rationale varchar(500)`, `Status integer` (0 pending, 1 applied, 2 dismissed), `CreatedAt`, `ResolvedAt`. Index `(UserId, Status)`.
+Same migration, `CoachSuggestions`: `Id` uuid v7, `UserId`, `WorkoutId`, `ExerciseId` (FKs cascade), `TargetSets`, `RepsMin`, `RepsMax`, `WeightStepKg` (null = unchanged), `BeforeTargetSets`, `BeforeRepsMin`, `BeforeRepsMax`, `BeforeWeightStepKg` (not null), `Rationale varchar(500)`, `Status integer` (0 pending, 1 applied, 2 dismissed, 3 expired; sent to the client as the name), `CreatedAt`, `ResolvedAt`. Index `(UserId, Status)`.
 
 ### API
 

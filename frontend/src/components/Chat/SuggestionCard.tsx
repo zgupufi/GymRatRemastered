@@ -46,7 +46,10 @@ const RESOLVED_TEXT: Record<Exclude<CoachSuggestion['status'], 'Pending'>, strin
   Expired: 'No longer available',
 }
 
-export function SuggestionCard({ suggestion, onResolve }: SuggestionCardProps) {
+const STATUSES: CoachSuggestion['status'][] = ['Pending', 'Applied', 'Dismissed', 'Expired']
+
+export function SuggestionCard({ suggestion: raw, onResolve }: SuggestionCardProps) {
+  const suggestion = STATUSES.includes(raw.status) ? raw : { ...raw, status: 'Expired' as const }
   const [busy, setBusy] = useState<SuggestionAction | null>(null)
   const [error, setError] = useState<string | null>(null)
   const title = `${suggestion.exerciseName} · ${suggestion.workoutName}`

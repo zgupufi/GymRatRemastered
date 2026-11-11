@@ -65,12 +65,33 @@ public class CoachSuggestionsRepository(GymRatDbContext context) : ICoachSuggest
                 cancellationToken);
     }
 
-    public async Task ApplyAsync(CoachSuggestion suggestion, WorkoutExercise settings, DateTimeOffset resolvedAt, CancellationToken cancellationToken)
+    public async Task<SuggestionApplyOutcome> ApplyAsync(CoachSuggestion suggestion, WorkoutExercise settings, DateTimeOffset resolvedAt, CancellationToken cancellationToken)
     {
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
-        await context.WorkoutExercises
-            .Where(entry => entry.WorkoutId == suggestion.WorkoutId && entry.ExerciseId == suggestion.ExerciseId)
+        var claimed = await context.CoachSuggestions
+            .Where(entry => entry.Id == suggestion.Id && entry.Status == SuggestionStatus.Pending)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(entry => entry.Status, SuggestionStatus.Applied)
+                    .SetProperty(entry => entry.ResolvedAt, resolvedAt),
+                cancellationToken);
+
+        if (claimed == 0)
+        {
+            return SuggestionApplyOutcome.NotPending;
+        }
+
+        var occurrences = context.WorkoutExercises
+            .Where(entry => entry.WorkoutId == suggestion.WorkoutId && entry.ExerciseId == suggestion.ExerciseId);
+
+        var total = await occurrences.CountAsync(cancellationToken);
+
+        var updated = await occurrences
+            .Where(entry => entry.TargetSets == suggestion.BeforeTargetSets
+                && entry.RepsMin == suggestion.BeforeRepsMin
+                && entry.RepsMax == suggestion.BeforeRepsMax
+                && entry.WeightStepKg == suggestion.BeforeWeightStepKg)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(entry => entry.TargetSets, settings.TargetSets)
@@ -79,9 +100,14 @@ public class CoachSuggestionsRepository(GymRatDbContext context) : ICoachSuggest
                     .SetProperty(entry => entry.WeightStepKg, settings.WeightStepKg),
                 cancellationToken);
 
-        await SetStatusAsync([suggestion.Id], SuggestionStatus.Applied, resolvedAt, cancellationToken);
+        if (updated != total)
+        {
+            return SuggestionApplyOutcome.Stale;
+        }
 
         await transaction.CommitAsync(cancellationToken);
+
+        return SuggestionApplyOutcome.Applied;
     }
 
     private static IQueryable<CoachSuggestion> WithDetails(IQueryable<CoachSuggestion> query) =>

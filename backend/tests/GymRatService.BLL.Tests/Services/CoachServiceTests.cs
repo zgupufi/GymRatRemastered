@@ -142,6 +142,23 @@ public class CoachServiceTests
         Assert.Equal((3, 8, 12, 2.5m), (applied.TargetSets, applied.RepsMin, applied.RepsMax, applied.WeightStepKg));
     }
 
+    [Theory]
+    [InlineData(SuggestionApplyOutcome.NotPending, ErrorCodes.CoachSuggestionNotPending)]
+    [InlineData(SuggestionApplyOutcome.Stale, ErrorCodes.CoachSuggestionStale)]
+    public async Task ApplySuggestionAsync_Throws_WhenTheRepositoryLosesARace(SuggestionApplyOutcome outcome, string code)
+    {
+        // Arrange
+        var suggestion = CreateSuggestion(Entry(4, 8, 12, 2.5m));
+        _suggestions.ApplyAsync(suggestion, Arg.Any<WorkoutExercise>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>()).Returns(outcome);
+
+        // Act
+        var exception = await Assert.ThrowsAsync<BusinessLogicException>(
+            () => _service.ApplySuggestionAsync(_userId, suggestion.Id, CancellationToken.None));
+
+        // Assert
+        Assert.Equal(code, exception.Code);
+    }
+
     [Fact]
     public async Task ApplySuggestionAsync_ThrowsStale_WhenAnyOccurrenceChanged()
     {

@@ -19,6 +19,18 @@
 
         <sql>ALTER TABLE "WorkoutExercises" ADD CONSTRAINT "CK_WorkoutExercises_RepRange" CHECK ("RepsMin" &lt;= "RepsMax")</sql>
 
+        <sql>
+            UPDATE "WorkoutExercises" AS entry
+            SET "WeightStepKg" = CASE lower(trim(exercise."Equipment"))
+                WHEN 'barbell' THEN 2.5
+                WHEN 'dumbbell' THEN 2
+                WHEN 'dumbbells' THEN 2
+                ELSE 1.25
+            END
+            FROM "Exercises" AS exercise
+            WHERE exercise."Id" = entry."ExerciseId"
+        </sql>
+
         <addColumn tableName="SessionSets">
             <column name="RepsInReserve" type="integer" />
             <column name="TargetWeightKg" type="numeric(7,2)" />
@@ -79,6 +91,21 @@
         <createIndex tableName="CoachSuggestions" indexName="IX_CoachSuggestions_ExerciseId">
             <column name="ExerciseId" />
         </createIndex>
+        <rollback>
+            <dropTable tableName="CoachSuggestions" />
+            <dropColumn tableName="SessionSets">
+                <column name="RepsInReserve" />
+                <column name="TargetWeightKg" />
+                <column name="TargetReps" />
+                <column name="TargetReason" />
+            </dropColumn>
+            <sql>ALTER TABLE "WorkoutExercises" DROP CONSTRAINT "CK_WorkoutExercises_RepRange"</sql>
+            <dropColumn tableName="WorkoutExercises">
+                <column name="RepsMin" />
+                <column name="RepsMax" />
+                <column name="WeightStepKg" />
+            </dropColumn>
+        </rollback>
     </changeSet>
 
 </databaseChangeLog>

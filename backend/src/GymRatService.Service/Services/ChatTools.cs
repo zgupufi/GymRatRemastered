@@ -68,11 +68,12 @@ public sealed class ChatTools(
             throw new BusinessLogicException(ErrorCodes.CoachTooManyProposals);
         }
 
+        _proposalCount++;
+
         var request = new ProposeExerciseChangeRequest(workoutId, exerciseId, targetSets, repsMin, repsMax, weightStepKg, rationale);
         await inputValidator.ValidateAsync(request, cancellationToken);
 
         var suggestion = await coachService.ProposeExerciseChangeAsync(userId, request, cancellationToken);
-        _proposalCount++;
         _suggestions.RemoveAll(existing => existing.WorkoutId == suggestion.WorkoutId && existing.ExerciseId == suggestion.ExerciseId);
         _suggestions.Add(suggestion);
 

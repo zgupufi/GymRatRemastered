@@ -26,8 +26,8 @@ function formatWeight(weightKg: number, unit: WeightUnit): string {
 }
 
 export function TargetBanner({ target, unit, onUse }: TargetBannerProps) {
-  const reason = target.reason
-  const hasWeight = target.weightKg !== null
+  const reason: ProgressionReason = target.reason in REASON_LABELS ? target.reason : 'AddRep'
+  const hasWeight = typeof target.weightKg === 'number'
   const hint = REASON_HINTS[reason]
 
   return (
@@ -37,13 +37,13 @@ export function TargetBanner({ target, unit, onUse }: TargetBannerProps) {
           Today's target <span className="target-banner__chip">{REASON_LABELS[reason]}</span>
         </small>
         <strong>
-          {target.weightKg !== null
+          {typeof target.weightKg === 'number'
             ? `${formatWeight(target.weightKg, unit)} × ${target.reps}`
             : `Pick a weight, aim for ${target.repsMin}–${target.repsMax}`}
         </strong>
-        {target.lastWeightKg !== null ? (
+        {typeof target.lastWeightKg === 'number' ? (
           <em>
-            Last time {formatWeight(target.lastWeightKg, unit)} × {target.lastReps.join(', ')}
+            Last time {formatWeight(target.lastWeightKg, unit)} × {(target.lastReps ?? []).join(', ')}
           </em>
         ) : null}
         {hint ? <em>{hint}</em> : null}

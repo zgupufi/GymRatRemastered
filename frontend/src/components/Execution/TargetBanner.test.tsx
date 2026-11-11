@@ -19,6 +19,14 @@ const base: ExerciseTarget = {
 }
 
 describe('TargetBanner', () => {
+  it('does not crash on an unexpected reason or missing last reps', () => {
+    const odd = { ...base, reason: 0, lastReps: undefined } as unknown as ExerciseTarget
+    render(<TargetBanner target={odd} unit={WeightUnit.Kilograms} onUse={vi.fn()} />)
+
+    expect(screen.getByText('Add a rep')).toBeInTheDocument()
+    expect(screen.getByText('Last time 60 kg ×')).toBeInTheDocument()
+  })
+
   it('shows a new weight with last time and uses the target', async () => {
     const onUse = vi.fn()
     render(<TargetBanner target={base} unit={WeightUnit.Kilograms} onUse={onUse} />)

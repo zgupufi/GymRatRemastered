@@ -54,6 +54,18 @@ describe('Coach suggestions in the chat', () => {
     vi.resetAllMocks()
   })
 
+  it('treats an unknown status as no longer available instead of crashing', async () => {
+    vi.mocked(sendChatMessage).mockResolvedValue({
+      reply: 'Old card.',
+      workoutsChanged: false,
+      suggestions: [{ ...suggestion, status: 2 as unknown as CoachSuggestion['status'] }],
+    })
+
+    const { card } = await askCoach()
+
+    expect(within(card).getByText('No longer available')).toBeInTheDocument()
+  })
+
   it('shows the change with before and after values and applies it', async () => {
     const { user, card } = await askCoach()
 

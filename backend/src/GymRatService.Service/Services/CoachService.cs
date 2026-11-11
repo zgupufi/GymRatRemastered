@@ -116,7 +116,15 @@ public class CoachService(
             WeightStepKg = suggestion.WeightStepKg ?? suggestion.BeforeWeightStepKg,
         };
 
-        await suggestionsRepository.ApplyAsync(suggestion, settings, TimeProvider.System.GetUtcNow(), cancellationToken);
+        var outcome = await suggestionsRepository.ApplyAsync(suggestion, settings, TimeProvider.System.GetUtcNow(), cancellationToken);
+
+        switch (outcome)
+        {
+            case SuggestionApplyOutcome.NotPending:
+                throw new BusinessLogicException(ErrorCodes.CoachSuggestionNotPending, id);
+            case SuggestionApplyOutcome.Stale:
+                throw new BusinessLogicException(ErrorCodes.CoachSuggestionStale, id);
+        }
     }
 
     public async Task DismissSuggestionAsync(Guid userId, Guid id, CancellationToken cancellationToken)

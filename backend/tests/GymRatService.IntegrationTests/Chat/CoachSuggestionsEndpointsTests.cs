@@ -23,6 +23,7 @@ public sealed class CoachSuggestionsEndpointsTests : IDisposable
     {
         _factory.ChatClient = _chat;
         _factory.Settings["AiCoach:MaximumToolIterations"] = "8";
+        _factory.Settings["AiCoach:RateLimitRequests"] = "20";
     }
 
     public void Dispose() => _factory.Dispose();
@@ -221,6 +222,54 @@ public sealed class CoachSuggestionsEndpointsTests : IDisposable
     }
 
     [Fact]
+    public async Task Propose_CountsRejectedProposalsTowardTheLimitOfThreePerReply()
+    {
+        // Arrange
+        var bench = await SeedExerciseAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, bench.Id, 4);
+        Script((messages, _) => ToolCount(messages) switch
+        {
+            < 3 => ScriptedChatClient.CallTool("propose_exercise_change", new { workoutId, exerciseId = bench.Id, targetSets = 9, rationale = "Too much." }),
+            3 => ScriptedChatClient.CallTool("propose_exercise_change", new { workoutId, exerciseId = bench.Id, targetSets = 3, rationale = "Valid." }),
+            _ => ScriptedChatClient.Reply("Done."),
+        });
+
+        // Act
+        var reply = await SendAsync(client);
+
+        // Assert
+        Assert.Empty(reply.Suggestions);
+        var last = ScriptedChatClient.LastToolResult(_chat.Calls[^1]);
+        Assert.Equal(ErrorCodes.CoachTooManyProposals, last.GetProperty("error").GetString());
+    }
+
+    [Fact]
+    public async Task Targets_SerializeReasonsAsStrings()
+    {
+        // Arrange
+        var bench = await SeedExerciseAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, bench.Id, 4);
+        Script(Proposal(workoutId, bench.Id, new { targetSets = 3 }));
+        await SendAsync(client);
+
+        // Act
+        var targets = await client.GetStringAsync($"/api/workouts/{workoutId}/targets");
+        var suggestions = await client.GetStringAsync("/api/coach/suggestions");
+        var served = await client.PostAsJsonAsync("/api/sessions", new StartSessionRequest(workoutId));
+        var sessionId = (await served.Content.ReadFromJsonAsync<StartSessionResponse>())!.Id;
+        var save = await client.PutAsync(
+            $"/api/sessions/{sessionId}/exercises/{bench.Id}/sets",
+            JsonContent.Create(JsonSerializer.Deserialize<JsonElement>("""{"sets":[{"reps":8,"weightKg":60}],"target":{"weightKg":null,"reps":8,"reason":"NoHistory"}}""")));
+
+        // Assert
+        Assert.Contains("\"reason\":\"NoHistory\"", targets);
+        Assert.Contains("\"status\":\"Pending\"", suggestions);
+        Assert.Equal(HttpStatusCode.NoContent, save.StatusCode);
+    }
+
+    [Fact]
     public async Task Propose_ReturnsToolErrorsAndNoCards_ForInvalidProposals()
     {
         // Arrange
@@ -240,18 +289,22 @@ public sealed class CoachSuggestionsEndpointsTests : IDisposable
             new { workoutId, exerciseId = bench.Id, targetSets = "three", rationale = "x" },
             new { workoutId, exerciseId = bench.Id, targetSets = 3 },
         ];
-        Script((messages, _) => ToolCount(messages) < proposals.Length
-            ? ScriptedChatClient.CallTool("propose_exercise_change", proposals[ToolCount(messages)])
-            : ScriptedChatClient.Reply("Nothing to change."));
+        var results = new List<string>();
+        var cards = 0;
 
         // Act
-        var reply = await SendAsync(client);
+        foreach (var proposal in proposals)
+        {
+            Script((messages, _) => ToolCount(messages) == 0
+                ? ScriptedChatClient.CallTool("propose_exercise_change", proposal)
+                : ScriptedChatClient.Reply("Nothing to change."));
+            var reply = await SendAsync(client);
+            cards += reply.Suggestions.Count;
+            results.Add(JsonSerializer.Serialize(ScriptedChatClient.ToolResults(_chat.Calls[^1]).Single()));
+        }
 
         // Assert
-        Assert.Empty(reply.Suggestions);
-        Assert.Equal("Nothing to change.", reply.Reply);
-        var results = ScriptedChatClient.ToolResults(_chat.Calls[^1]).Select(result => JsonSerializer.Serialize(result)).ToList();
-        Assert.Equal(proposals.Length, results.Count);
+        Assert.Equal(0, cards);
         Assert.Contains(ErrorCodes.WorkoutNotFound, results[0]);
         Assert.Contains(ErrorCodes.CoachSuggestionExerciseNotInWorkout, results[1]);
         Assert.Contains("error", results[2]);
