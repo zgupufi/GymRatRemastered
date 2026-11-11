@@ -8,10 +8,12 @@ import { login, WeightUnit } from './api/auth'
 import { getUserProfile } from './api/users'
 import { AuthProvider } from './auth/AuthProvider'
 import { saveSession } from './auth/sessionStorage'
+import { getActiveSession } from './api/sessions'
 import { getSplit } from './api/split'
 import { getWorkoutSummaries } from './api/workouts'
 import { AppRoutes } from './routes'
 
+vi.mock('./api/sessions')
 vi.mock('./api/split')
 vi.mock('./api/exercises')
 vi.mock('./api/workouts')
@@ -46,6 +48,7 @@ describe('AppRoutes', () => {
     })
     vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [], page: 1, pageSize: 10, totalCount: 0 })
     vi.mocked(getSplit).mockResolvedValue([])
+    vi.mocked(getActiveSession).mockResolvedValue({ sessionId: null, workoutId: null, startedAt: null, exercises: [] })
     vi.mocked(getUserProfile).mockResolvedValue({
       firstName: 'Rafael',
       lastName: null,

@@ -6,6 +6,8 @@ public interface ISessionsRepository
 {
     Task<WorkoutSession?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
+    Task<WorkoutSession?> GetActiveAsync(Guid userId, CancellationToken cancellationToken);
+
     Task AddAsync(WorkoutSession session, CancellationToken cancellationToken);
 
     Task ReplaceSetsAsync(Guid sessionId, Guid exerciseId, IReadOnlyList<SessionSet> sets, CancellationToken cancellationToken);

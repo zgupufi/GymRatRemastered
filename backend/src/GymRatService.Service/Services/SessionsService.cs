@@ -21,6 +21,8 @@ public class SessionsService(
 
     private const int HistorySessionCount = 5;
 
+    private static readonly TimeSpan ActiveSessionMaxAge = TimeSpan.FromHours(12);
+
     public async Task<StartSessionResponse> StartSessionAsync(Guid userId, StartSessionRequest request, CancellationToken cancellationToken)
     {
         await GetOwnedWorkoutAsync(userId, request.WorkoutId, cancellationToken);
@@ -35,6 +37,15 @@ public class SessionsService(
         await sessionsRepository.AddAsync(session, cancellationToken);
 
         return new StartSessionResponse(session.Id);
+    }
+
+    public async Task<ActiveSessionDto> GetActiveSessionAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var session = await sessionsRepository.GetActiveAsync(userId, cancellationToken);
+
+        return session is not null && TimeProvider.System.GetUtcNow() - session.StartedAt < ActiveSessionMaxAge
+            ? session.ToActiveSessionDto()
+            : new ActiveSessionDto(null, null, null, []);
     }
 
     public async Task SaveExerciseSetsAsync(Guid userId, Guid id, Guid exerciseId, SaveExerciseSetsRequest request, CancellationToken cancellationToken)

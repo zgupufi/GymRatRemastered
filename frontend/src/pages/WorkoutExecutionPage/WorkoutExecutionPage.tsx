@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Check, Play, Target } from 'lucide-react'
 import { WeightUnit } from '../../api/auth'
-import { getLastSession, getTargets, startSession, type ExerciseTarget, type LastSession } from '../../api/sessions'
+import { getActiveSession, getLastSession, getTargets, startSession, type ActiveSession, type ExerciseTarget, type LastSession } from '../../api/sessions'
 import { getSplit } from '../../api/split'
 import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } from '../../api/workouts'
 import { useAuth } from '../../auth/AuthContext'
@@ -25,7 +25,7 @@ type Phase =
   | { name: 'error' }
   | { name: 'idle'; workout: WorkoutSummary | null }
   | { name: 'finished'; seconds: number; workoutName: string; result: WorkoutResult }
-  | { name: 'running'; workout: Workout; sessionId: string; last: LastSession; targets: ExerciseTarget[] }
+  | { name: 'running'; workout: Workout; sessionId: string; last: LastSession; targets: ExerciseTarget[]; resume?: ActiveSession }
 
 function todayNumber(): number {
   const jsDay = new Date().getDay()
@@ -46,13 +46,33 @@ export function WorkoutExecutionPage() {
 
   useEffect(() => {
     const controller = new AbortController()
+    const resumeActive = async (): Promise<Phase | null> => {
+      const active = await getActiveSession(controller.signal)
+      if (!active.sessionId || !active.workoutId) {
+        return null
+      }
+      const [workout, last, targets] = await Promise.all([
+        getWorkout(active.workoutId, controller.signal),
+        getLastSession(active.workoutId, controller.signal),
+        getTargets(active.workoutId, controller.signal).catch((): ExerciseTarget[] => []),
+      ])
+      return workout.exercises.length > 0 ? { name: 'running', workout, sessionId: active.sessionId, last, targets, resume: active } : null
+    }
     Promise.all([
       getSplit(controller.signal),
       getWorkoutSummaries({ sortBy: 'Name', direction: 'Ascending', page: 1, pageSize: MAX_WORKOUTS }, controller.signal),
+      resumeActive(),
     ])
-      .then(([days, summaries]) => {
-        const today = days.find((day) => day.day === todayNumber())
+      .then(([days, summaries, resumed]) => {
+        if (controller.signal.aborted) {
+          return
+        }
         setWorkouts(summaries.items)
+        if (resumed) {
+          setPhase(resumed)
+          return
+        }
+        const today = days.find((day) => day.day === todayNumber())
         setPhase({ name: 'idle', workout: today?.workout ?? null })
       })
       .catch(() => {
@@ -110,6 +130,7 @@ export function WorkoutExecutionPage() {
         targets={phase.targets}
         unit={unit}
         restSeconds={restSeconds}
+        resume={phase.resume}
         onFinished={(seconds, result) => setPhase({ name: 'finished', seconds, workoutName: phase.workout.name, result })}
       />
     )

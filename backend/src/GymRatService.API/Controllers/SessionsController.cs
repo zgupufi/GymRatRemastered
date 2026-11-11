@@ -21,6 +21,16 @@ public class SessionsController(ISessionsService sessionsService) : ControllerBa
         return Created($"{Request.Path}/{response.Id}", response);
     }
 
+    [HttpGet("active")]
+    public async Task<IActionResult> GetActiveSessionAsync(CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+
+        var response = await sessionsService.GetActiveSessionAsync(userId, cancellationToken);
+
+        return Ok(response);
+    }
+
     [HttpPut("{id}/exercises/{exerciseId}/sets")]
     public async Task<IActionResult> SaveExerciseSetsAsync(Guid id, Guid exerciseId, SaveExerciseSetsRequest request, CancellationToken cancellationToken)
     {

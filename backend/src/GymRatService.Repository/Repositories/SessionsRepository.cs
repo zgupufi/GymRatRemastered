@@ -13,6 +13,20 @@ public class SessionsRepository(GymRatDbContext context) : ISessionsRepository
             .FirstOrDefaultAsync(session => session.Id == id, cancellationToken);
     }
 
+    public async Task<WorkoutSession?> GetActiveAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var sessions = await context.WorkoutSessions
+            .AsNoTracking()
+            .Include(session => session.Sets)
+            .Where(session => session.UserId == userId && session.WorkoutId != null && session.FinishedAt == null && session.Sets.Any())
+            .ToListAsync(cancellationToken);
+
+        return sessions
+            .OrderByDescending(session => session.StartedAt)
+            .ThenByDescending(session => session.Id)
+            .FirstOrDefault();
+    }
+
     public async Task AddAsync(WorkoutSession session, CancellationToken cancellationToken)
     {
         context.WorkoutSessions.Add(session);

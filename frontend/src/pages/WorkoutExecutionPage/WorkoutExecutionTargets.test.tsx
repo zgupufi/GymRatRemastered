@@ -4,7 +4,7 @@ import { MotionGlobalConfig } from 'motion/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WeightUnit } from '../../api/auth'
-import { finishSession, getLastSession, getTargets, saveExerciseSets, startSession, type ExerciseTarget } from '../../api/sessions'
+import { finishSession, getActiveSession, getLastSession, getTargets, saveExerciseSets, startSession, type ExerciseTarget } from '../../api/sessions'
 import { getSplit } from '../../api/split'
 import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } from '../../api/workouts'
 import { AuthContext, type AuthApi } from '../../auth/AuthContext'
@@ -88,6 +88,7 @@ describe('WorkoutExecutionPage targets and effort', () => {
     vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [push], page: 1, pageSize: 100, totalCount: 1 })
     vi.mocked(getWorkout).mockResolvedValue(workout)
     vi.mocked(getLastSession).mockResolvedValue({ sessionId: null, startedAt: null, durationSeconds: null, exercises: [] })
+    vi.mocked(getActiveSession).mockResolvedValue({ sessionId: null, workoutId: null, startedAt: null, exercises: [] })
     vi.mocked(getTargets).mockResolvedValue([benchTarget])
     vi.mocked(startSession).mockResolvedValue({ id: 's1' })
     vi.mocked(saveExerciseSets).mockResolvedValue(undefined)
