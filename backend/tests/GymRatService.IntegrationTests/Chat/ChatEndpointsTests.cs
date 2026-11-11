@@ -86,7 +86,7 @@ public sealed class ChatEndpointsTests : IDisposable
         var body = await response.Content.ReadFromJsonAsync<ChatMessageResponse>();
         Assert.Equal("Hello", body?.Reply);
         Assert.Equal(2, chat.Calls[0].Count);
-        Assert.Equal("cohere/north-mini-code:free", chat.Options[0]?.ModelId);
+        Assert.Equal("baidu/ernie-5.5-flash-preview:free", chat.Options[0]?.ModelId);
     }
 
     [Fact]

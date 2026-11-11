@@ -52,6 +52,7 @@ public sealed class FailoverChatClient(IChatClient inner, IOptions<AiCoachSettin
     {
         OperationCanceledException => !cancellationToken.IsCancellationRequested,
         TimeoutException => true,
+        ArgumentOutOfRangeException => true,
         HttpRequestException http => http.StatusCode is null || IsRetryableStatus((int)http.StatusCode),
         ClientResultException client => IsRetryableStatus(client.Status),
         _ => false,

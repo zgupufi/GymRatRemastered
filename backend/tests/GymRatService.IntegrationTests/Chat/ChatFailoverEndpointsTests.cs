@@ -32,6 +32,7 @@ public sealed class ChatFailoverEndpointsTests : IDisposable
         new HttpRequestException("bad gateway", null, HttpStatusCode.BadGateway),
         new HttpRequestException("network down"),
         new TimeoutException(),
+        new ArgumentOutOfRangeException("value", "Unknown ChatFinishReason value."),
         new TaskCanceledException("timed out"),
         new ClientResultException(new StatusPipelineResponse(429)),
         new ClientResultException(new StatusPipelineResponse(503)),
