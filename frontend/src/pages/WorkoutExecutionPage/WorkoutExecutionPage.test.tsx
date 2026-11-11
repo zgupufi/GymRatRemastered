@@ -269,7 +269,7 @@ describe('WorkoutExecutionPage', () => {
     await user.click(screen.getByRole('button', { name: 'Next' }))
     await screen.findByText('Exercise 2 of 2')
 
-    expect(saveExerciseSets).toHaveBeenCalledWith('s1', 'e1', [{ reps: 5, weightKg: 99.79 }])
+    expect(saveExerciseSets).toHaveBeenCalledWith('s1', 'e1', [{ reps: 5, weightKg: 99.75 }])
   })
 
   it('only enables the check once both fields are valid and can undo a set', async () => {

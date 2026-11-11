@@ -336,6 +336,7 @@ describe('WorkoutsPage', () => {
     await userEvent.type(screen.getByRole('textbox', { name: 'Search exercises' }), 'sq')
     expect(await screen.findByRole('button', { name: 'Already added Bench Press' })).toBeDisabled()
     await userEvent.click(screen.getByRole('button', { name: 'Add Squat' }))
+    expect(screen.getByRole('textbox', { name: 'Search exercises' })).toHaveValue('')
 
     const squatSets = screen.getByRole('spinbutton', { name: 'Sets for Squat' })
     expect(squatSets).toHaveValue(3)

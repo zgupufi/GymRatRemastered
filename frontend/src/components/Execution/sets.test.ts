@@ -57,7 +57,7 @@ describe('sets', () => {
       WeightUnit.Pounds,
     )
 
-    expect(entries).toEqual([{ reps: 5, weightKg: 99.79 }])
+    expect(entries).toEqual([{ reps: 5, weightKg: 99.75 }])
   })
 
   it('finds the previous set by number', () => {

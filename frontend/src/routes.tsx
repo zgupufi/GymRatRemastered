@@ -27,7 +27,7 @@ export function AppRoutes() {
           <Route path="workout-execution" element={<WorkoutExecutionPage />} />
           <Route path="progress" element={<ProgressionPage />} />
         </Route>
-        <Route path="*" element={<PlaceholderPage title="Page not found" description="That page does not exist." />} />
+        <Route path="*" element={<PlaceholderPage title="Page not found" description="That page does not exist." homeLink />} />
       </Route>
     </Routes>
   )

@@ -193,7 +193,7 @@ export function ExerciseList() {
           ) : null}
         </>
       ) : null}
-      {addingId ? <AddToWorkoutModal key={addingId} open exerciseId={addingId} onClose={() => setAddingId(null)} /> : null}
+      {addingId ? <AddToWorkoutModal key={addingId} open exerciseId={addingId} exerciseName={items.find((item) => item.id === addingId)?.name} onClose={() => setAddingId(null)} /> : null}
     </section>
   )
 }

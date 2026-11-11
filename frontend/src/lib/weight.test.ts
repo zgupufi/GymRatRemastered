@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { WeightUnit } from '../api/auth'
 import { formatClock } from './clock'
-import { fromKilograms, toKilograms, unitLabel } from './weight'
+import { displayWeight, fromKilograms, toKilograms, unitLabel } from './weight'
 
 describe('weight', () => {
   it('labels units', () => {
@@ -16,7 +16,15 @@ describe('weight', () => {
 
   it('converts to kilograms for saving', () => {
     expect(toKilograms(60, WeightUnit.Kilograms)).toBe(60)
-    expect(toKilograms(220, WeightUnit.Pounds)).toBe(99.79)
+    expect(toKilograms(220, WeightUnit.Pounds)).toBe(99.75)
+    expect(toKilograms(137.3, WeightUnit.Pounds)).toBe(62.28)
+  })
+
+  it('keeps a kilogram weight stable through a pounds round trip', () => {
+    for (const kg of [20, 22.5, 42.5, 62.5, 100, 102.5]) {
+      const pounds = displayWeight(kg, WeightUnit.Pounds)
+      expect(toKilograms(pounds, WeightUnit.Pounds)).toBe(kg)
+    }
   })
 })
 

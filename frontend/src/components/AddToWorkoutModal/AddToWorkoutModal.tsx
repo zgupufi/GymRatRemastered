@@ -13,6 +13,7 @@ const CLOSE_DELAY_MS = 1500
 interface AddToWorkoutModalProps {
   open: boolean
   exerciseId: string
+  exerciseName?: string
   onClose: () => void
 }
 
@@ -100,9 +101,10 @@ function WorkoutChoices({ exerciseId, onClose }: Omit<AddToWorkoutModalProps, 'o
   )
 }
 
-export function AddToWorkoutModal({ open, exerciseId, onClose }: AddToWorkoutModalProps) {
+export function AddToWorkoutModal({ open, exerciseId, exerciseName, onClose }: AddToWorkoutModalProps) {
   return (
     <Modal open={open} title="Choose workout" onClose={onClose}>
+      {exerciseName ? <p className="add-to-workout__subject">Adding {exerciseName}</p> : null}
       <WorkoutChoices exerciseId={exerciseId} onClose={onClose} />
     </Modal>
   )

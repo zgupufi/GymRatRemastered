@@ -88,7 +88,7 @@ export function ExercisePicker({ selectedIds, onAdd }: ExercisePickerProps) {
     <div className="exercise-picker" ref={containerRef}>
       <Input
         aria-label="Search exercises"
-        placeholder="Search exercises by name or muscle…"
+        placeholder="Search exercises…"
         icon={<Search size={18} />}
         value={term}
         onChange={(event) => changeTerm(event.target.value)}
@@ -123,7 +123,10 @@ export function ExercisePicker({ selectedIds, onAdd }: ExercisePickerProps) {
                     className="exercise-picker__row"
                     disabled={added}
                     aria-label={`${added ? 'Already added' : 'Add'} ${exercise.name}`}
-                    onClick={() => onAdd(exercise)}
+                    onClick={() => {
+                      onAdd(exercise)
+                      changeTerm('')
+                    }}
                   >
                     <span>
                       {exercise.name}

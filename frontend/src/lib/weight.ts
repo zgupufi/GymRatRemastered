@@ -21,5 +21,10 @@ export function displayWeight(weightKg: number, unit: WeightUnit): number {
 }
 
 export function toKilograms(weight: number, unit: WeightUnit): number {
-  return unit === WeightUnit.Pounds ? Math.round((weight / POUNDS_PER_KILOGRAM) * 100) / 100 : weight
+  if (unit !== WeightUnit.Pounds) {
+    return weight
+  }
+  const exact = weight / POUNDS_PER_KILOGRAM
+  const snapped = Math.round(exact / KILOGRAM_DISPLAY_STEP) * KILOGRAM_DISPLAY_STEP
+  return displayWeight(snapped, unit) === weight ? snapped : Math.round(exact * 100) / 100
 }

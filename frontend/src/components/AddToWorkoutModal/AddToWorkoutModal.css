@@ -45,3 +45,9 @@
 .add-to-workout__empty {
   color: var(--text-2);
 }
+
+.add-to-workout__subject {
+  margin: 0 0 var(--space-3);
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
