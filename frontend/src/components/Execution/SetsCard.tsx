@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import type { WeightUnit } from '../../api/auth'
 import type { ExerciseTarget, SessionSet } from '../../api/sessions'
 import { press, spring } from '../../lib/motion'
-import { displayWeight, fromKilograms, unitLabel } from '../../lib/weight'
+import { displayWeight, unitLabel } from '../../lib/weight'
 import { NumberInput } from '../ui/NumberInput'
 import { canRemoveLast, EFFORT_OPTIONS, isValidDraft, MAX_SETS, previousFor, type SetDraft } from './sets'
 
@@ -23,7 +23,7 @@ function placeholders(target: ExerciseTarget | undefined, last: SessionSet | und
     return { weight: String(displayWeight(target.weightKg, unit)), reps: String(target.reps) }
   }
   if (last) {
-    return { weight: String(fromKilograms(last.weightKg, unit)), reps: String(last.reps) }
+    return { weight: String(displayWeight(last.weightKg, unit)), reps: String(last.reps) }
   }
   return { weight: '-', reps: target ? String(target.reps) : '-' }
 }

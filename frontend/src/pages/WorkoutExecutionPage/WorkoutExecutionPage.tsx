@@ -14,7 +14,7 @@ import { Spinner } from '../../components/ui/Spinner'
 import { useToast } from '../../components/ui/ToastContext'
 import type { WorkoutResult } from '../../components/Execution/sets'
 import { formatClock } from '../../lib/clock'
-import { fromKilograms, unitLabel } from '../../lib/weight'
+import { displayWeight, fromKilograms, unitLabel } from '../../lib/weight'
 import './WorkoutExecutionPage.css'
 
 const MAX_WORKOUTS = 100
@@ -167,7 +167,7 @@ export function WorkoutExecutionPage() {
                 <li key={item.name}>
                   <span>{item.name}</span>
                   <span>
-                    {item.best ? `${fromKilograms(item.best.weightKg, unit)} ${unitLabel(unit).toLowerCase()} × ${item.best.reps}` : null}
+                    {item.best ? `${displayWeight(item.best.weightKg, unit)} ${unitLabel(unit).toLowerCase()} × ${item.best.reps}` : null}
                   </span>
                 </li>
               ))}

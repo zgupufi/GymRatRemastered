@@ -22,7 +22,7 @@ describe('ProgressChart', () => {
   it('moves the tooltip to the focused session', () => {
     render(<ProgressChart exerciseName="Bench Press" points={points} />)
 
-    fireEvent.focus(screen.getByRole('button', { name: '12 Sep 2026, 89 kg estimated one rep max' }))
+    fireEvent.focus(screen.getByRole('button', { name: '12 Sep 2026, 88.75 kg estimated one rep max' }))
 
     expect(screen.getByText('12 Sep 2026')).toBeInTheDocument()
     expect(screen.getByText('70 kg × 8 reps')).toBeInTheDocument()
@@ -67,11 +67,12 @@ describe('ProgressChart', () => {
     expect(screen.getByText('7 Nov 2026')).toBeInTheDocument()
   })
 
-  it('keeps the tooltip inside the chart on the left half', () => {
+  it('shows the readout above the plot so it never covers the line', () => {
     const { container } = render(<ProgressChart exerciseName="Bench Press" points={points} />)
 
-    fireEvent.focus(screen.getAllByRole('button')[0])
+    const readout = container.querySelector('.progress-chart__tooltip') as HTMLElement
+    const svg = container.querySelector('svg') as SVGSVGElement
 
-    expect(container.querySelector<HTMLElement>('.progress-chart__tooltip')?.style.left).toMatch(/\+ 16px\)$/)
+    expect(readout.compareDocumentPosition(svg) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 })

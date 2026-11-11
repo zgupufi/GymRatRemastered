@@ -1,30 +1,59 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { WeightUnit } from '../../api/auth'
 import type { ProgressPoint } from '../../api/progress'
+import { displayWeight, unitLabel } from '../../lib/weight'
 import { formatDate, formatFullDate, niceDomain, pickLabelIndexes, smoothPath } from './chartMath'
 import './ProgressChart.css'
 
-const WIDTH = 880
-const HEIGHT = 320
-const LEFT = 48
+const DEFAULT_WIDTH = 880
+const LEFT = 40
 const RIGHT = 20
 const TOP = 24
 const BOTTOM = 40
 const MAX_LABELS = 5
-const TOOLTIP_WIDTH = 184
 
 interface ProgressChartProps {
   exerciseName: string
   points: ProgressPoint[]
+  unit?: WeightUnit
 }
 
-export function ProgressChart({ exerciseName, points }: ProgressChartProps) {
+function useWidth() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(DEFAULT_WIDTH)
+  useEffect(() => {
+    const element = ref.current
+    if (!element || typeof ResizeObserver === 'undefined') {
+      return
+    }
+    const observer = new ResizeObserver(([entry]) => {
+      const next = Math.round(entry.contentRect.width)
+      if (next > 0) {
+        setWidth(next)
+      }
+    })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return { ref, width }
+}
+
+export function ProgressChart({ exerciseName, points: rawPoints, unit = WeightUnit.Kilograms }: ProgressChartProps) {
+  const points = rawPoints.map((point) => ({
+    ...point,
+    estimatedOneRepMax: displayWeight(point.estimatedOneRepMax, unit),
+    bestSet: { ...point.bestSet, weightKg: displayWeight(point.bestSet.weightKg, unit) },
+  }))
+  const label = unitLabel(unit).toLowerCase()
   const gradientId = useId()
+  const { ref, width } = useWidth()
+  const height = width < 520 ? 240 : 320
   const [active, setActive] = useState(points.length - 1)
 
   const values = points.map((point) => point.estimatedOneRepMax)
   const domain = niceDomain(values)
-  const plotWidth = WIDTH - LEFT - RIGHT
-  const plotHeight = HEIGHT - TOP - BOTTOM
+  const plotWidth = width - LEFT - RIGHT
+  const plotHeight = height - TOP - BOTTOM
   const scaleX = (index: number) => LEFT + (index / (points.length - 1)) * plotWidth
   const scaleY = (value: number) => TOP + (1 - (value - domain.min) / (domain.max - domain.min)) * plotHeight
   const coordinates = values.map((value, index) => ({ x: scaleX(index), y: scaleY(value) }))
@@ -32,8 +61,6 @@ export function ProgressChart({ exerciseName, points }: ProgressChartProps) {
   const area = `${line} L${coordinates[coordinates.length - 1].x},${TOP + plotHeight} L${coordinates[0].x},${TOP + plotHeight}Z`
   const current = points[active]
   const anchor = coordinates[active]
-  const tooltipLeft = anchor.x / WIDTH
-  const flip = anchor.x > WIDTH * 0.6
 
   const select = (event: React.PointerEvent<SVGRectElement>) => {
     const box = event.currentTarget.getBoundingClientRect()
@@ -42,9 +69,19 @@ export function ProgressChart({ exerciseName, points }: ProgressChartProps) {
   }
 
   return (
-    <div className="progress-chart">
+    <div className="progress-chart" ref={ref}>
+      <div className="progress-chart__tooltip" aria-live="polite">
+        <span className="progress-chart__tooltip-date">{formatFullDate(current.date)}</span>
+        <strong>
+          {current.estimatedOneRepMax} <small>{label}</small>
+        </strong>
+        <span className="progress-chart__tooltip-label">Estimated 1RM</span>
+        <span className="progress-chart__tooltip-set">
+          {current.bestSet.weightKg} {label} × {current.bestSet.reps} reps
+        </span>
+      </div>
       <svg
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+        viewBox={`0 0 ${width} ${height}`}
         role="img"
         aria-label={`Estimated one rep max of ${exerciseName} over ${points.length} sessions`}
       >
@@ -56,18 +93,18 @@ export function ProgressChart({ exerciseName, points }: ProgressChartProps) {
         </defs>
         {domain.ticks.map((tick) => (
           <g key={tick}>
-            <line className="progress-chart__grid" x1={LEFT} x2={WIDTH - RIGHT} y1={scaleY(tick)} y2={scaleY(tick)} />
+            <line className="progress-chart__grid" x1={LEFT} x2={width - RIGHT} y1={scaleY(tick)} y2={scaleY(tick)} />
             <text className="progress-chart__tick" x={0} y={scaleY(tick) + 4}>
               {tick}
             </text>
           </g>
         ))}
-        {pickLabelIndexes(points.length, MAX_LABELS).map((index) => (
+        {pickLabelIndexes(points.length, width < 520 ? 3 : MAX_LABELS).map((index) => (
           <text
             key={points[index].date}
             className="progress-chart__tick"
             x={scaleX(index)}
-            y={HEIGHT - 12}
+            y={height - 12}
             textAnchor={index === 0 ? 'start' : index === points.length - 1 ? 'end' : 'middle'}
           >
             {formatDate(points[index].date)}
@@ -87,7 +124,7 @@ export function ProgressChart({ exerciseName, points }: ProgressChartProps) {
             r={10}
             tabIndex={0}
             role="button"
-            aria-label={`${formatFullDate(point.date)}, ${Math.round(point.estimatedOneRepMax)} kg estimated one rep max`}
+            aria-label={`${formatFullDate(point.date)}, ${point.estimatedOneRepMax} ${label} estimated one rep max`}
             onFocus={() => setActive(index)}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
@@ -102,30 +139,11 @@ export function ProgressChart({ exerciseName, points }: ProgressChartProps) {
           x={LEFT}
           y={0}
           width={plotWidth}
-          height={HEIGHT}
+          height={height}
           onPointerMove={select}
           onPointerDown={select}
         />
       </svg>
-      <div
-        className="progress-chart__tooltip"
-        style={{
-          left: `calc(${tooltipLeft * 100}% - ${flip ? TOOLTIP_WIDTH + 16 : -16}px)`,
-          top: 0,
-        }}
-        aria-live="polite"
-      >
-        <span className="progress-chart__tooltip-date">{formatFullDate(current.date)}</span>
-        <strong>
-          {Math.round(current.estimatedOneRepMax)} <small>kg</small>
-        </strong>
-        <span className="progress-chart__tooltip-label">Estimated 1RM</span>
-        <hr />
-        <span className="progress-chart__tooltip-label">Best set</span>
-        <span className="progress-chart__tooltip-set">
-          {current.bestSet.weightKg} kg × {current.bestSet.reps} reps
-        </span>
-      </div>
     </div>
   )
 }

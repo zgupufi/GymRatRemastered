@@ -1,7 +1,7 @@
 .split-page {
   --accent: var(--emerald);
   --on-accent: var(--text);
-  max-width: 44rem;
+  max-width: 56rem;
 }
 
 .split-page__header {
@@ -148,12 +148,8 @@
 }
 
 .workout-select__menu {
-  position: absolute;
-  z-index: 5;
-  top: calc(100% + var(--space-2));
-  left: 0;
-  right: 0;
-  margin: 0;
+  position: static;
+  margin: var(--space-2) 0 0;
   padding: 0.375rem;
   list-style: none;
   border: 1px solid var(--hairline-strong);

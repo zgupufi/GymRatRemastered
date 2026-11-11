@@ -106,7 +106,7 @@ export function WorkoutsPage() {
           <p>Create, edit, and organize your routines.</p>
         </div>
         <Button onClick={create} loading={creating}>
-          <Plus size={18} aria-hidden="true" />
+          {creating ? null : <Plus size={18} aria-hidden="true" />}
           Create workout
         </Button>
       </header>

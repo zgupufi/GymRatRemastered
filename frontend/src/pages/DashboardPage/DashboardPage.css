@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  max-width: 40rem;
+  max-width: 56rem;
 }
 
 .dashboard__hero {
@@ -225,7 +225,9 @@
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 50%;
-  background: var(--surface-3);
+  background: var(--glow-emerald-strong);
+  border: 1px solid color-mix(in srgb, var(--emerald) 40%, transparent);
+  color: var(--emerald);
   font-weight: 700;
 }
 

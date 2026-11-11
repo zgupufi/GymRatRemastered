@@ -5,6 +5,7 @@
 }
 
 html {
+  scrollbar-gutter: stable;
   color-scheme: dark;
   -webkit-text-size-adjust: 100%;
 }
@@ -28,6 +29,12 @@ h3,
 h4,
 p {
   margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
 h1 {

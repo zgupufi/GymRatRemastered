@@ -8,7 +8,7 @@
   gap: var(--space-3);
   width: 100%;
   max-width: 47.5rem;
-  margin: 0 auto var(--space-3);
+  margin: 0 0 var(--space-3);
 }
 
 .exercise-list__controls .field {
@@ -20,10 +20,19 @@
   gap: var(--space-2);
   width: 100%;
   max-width: 47.5rem;
-  margin: 0 auto var(--space-4);
+  margin: 0 0 var(--space-4);
   padding-bottom: var(--space-1);
   overflow-x: auto;
   scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+}
+
+@media (min-width: 640px) {
+  .exercise-list__chips {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
 }
 
 .exercise-list__chip {
@@ -45,7 +54,6 @@
 
 .exercise-list__count {
   margin-bottom: var(--space-6);
-  text-align: center;
   font-size: 0.875rem;
   color: var(--text-3);
 }
