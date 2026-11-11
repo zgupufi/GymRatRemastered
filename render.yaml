@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: gymrat-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: JwtSettings__Key
+        generateValue: true
+      - key: PasswordSettings__Pepper
+        generateValue: true
+      - key: AiCoach__ApiKey
+        sync: false
+      - key: Cors__AllowedOrigins__0
+        sync: false
