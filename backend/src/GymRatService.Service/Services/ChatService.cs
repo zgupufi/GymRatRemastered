@@ -1,3 +1,4 @@
+using System.ClientModel;
 using GymRatService.Common.DTOs.Chat;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
@@ -67,7 +68,9 @@ public class ChatService(
         {
             logger.LogError(exception, "AI coach request failed");
 
-            throw new BusinessLogicException(ErrorCodes.ChatProviderUnavailable);
+            throw new BusinessLogicException(exception is ClientResultException { Status: 429 }
+                ? ErrorCodes.ChatProviderBusy
+                : ErrorCodes.ChatProviderUnavailable);
         }
 
         usageLimiter.RecordTokens(userId, response.Usage?.TotalTokenCount ?? 0);
