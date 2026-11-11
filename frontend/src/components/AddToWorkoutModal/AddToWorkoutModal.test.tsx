@@ -37,6 +37,17 @@ function renderModal(onClose = vi.fn()) {
 }
 
 describe('AddToWorkoutModal', () => {
+  it('names the exercise being added', async () => {
+    vi.mocked(getAllWorkoutSummaries).mockResolvedValue([summary])
+    render(
+      <ToastProvider>
+        <AddToWorkoutModal open exerciseId="e2" exerciseName="Back Squat" onClose={vi.fn()} />
+      </ToastProvider>,
+    )
+
+    expect(await screen.findByText('Adding Back Squat')).toBeInTheDocument()
+  })
+
   beforeAll(() => {
     MotionGlobalConfig.skipAnimations = true
   })

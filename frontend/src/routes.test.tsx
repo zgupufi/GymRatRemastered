@@ -78,6 +78,12 @@ describe('AppRoutes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
   })
 
+  it('links the not found page back home', async () => {
+    renderAt('/nowhere')
+
+    expect(await screen.findByRole('link', { name: 'Go to home' })).toHaveAttribute('href', '/')
+  })
+
   it.each([
     ['/login', 'Welcome back'],
     ['/register', 'Create account'],
