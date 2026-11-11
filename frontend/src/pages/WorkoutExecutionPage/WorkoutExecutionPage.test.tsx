@@ -4,7 +4,7 @@ import { MotionGlobalConfig } from 'motion/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WeightUnit } from '../../api/auth'
-import { finishSession, getLastSession, getTargets, saveExerciseSets, startSession } from '../../api/sessions'
+import { finishSession, getActiveSession, getLastSession, getTargets, saveExerciseSets, startSession } from '../../api/sessions'
 import { getSplit } from '../../api/split'
 import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } from '../../api/workouts'
 import { AuthContext, type AuthApi } from '../../auth/AuthContext'
@@ -90,6 +90,7 @@ describe('WorkoutExecutionPage', () => {
 
   beforeEach(() => {
     vi.mocked(getSplit).mockResolvedValue(todayDays(push))
+    vi.mocked(getActiveSession).mockResolvedValue({ sessionId: null, workoutId: null, startedAt: null, exercises: [] })
     vi.mocked(getTargets).mockResolvedValue([])
     vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [push, legs], page: 1, pageSize: 100, totalCount: 2 })
     vi.mocked(getWorkout).mockResolvedValue(workout)
@@ -184,6 +185,38 @@ describe('WorkoutExecutionPage', () => {
 
     expect(await screen.findByText('Could not start the workout. Try again.')).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: 'Push day' })).toBeInTheDocument()
+  })
+
+  it('resumes the unfinished session with its saved sets after a reload', async () => {
+    vi.mocked(getActiveSession).mockResolvedValue({
+      sessionId: 's9',
+      workoutId: 'w1',
+      startedAt: new Date(Date.now() - 125_000).toISOString(),
+      exercises: [{ exerciseId: 'e1', sets: [{ setNumber: 1, reps: 8, weightKg: 60, repsInReserve: 2 }] }],
+    })
+    const user = userEvent.setup()
+    renderPage()
+
+    expect(await screen.findByText('Exercise 1 of 2')).toBeInTheDocument()
+    expect(screen.getByLabelText('Set 1 weight')).toHaveValue(60)
+    expect(screen.getByLabelText('Set 1 reps')).toHaveValue(8)
+    expect(screen.getByLabelText('Elapsed time')).toHaveTextContent(/^0?2:0[5-9]$/)
+    expect(startSession).not.toHaveBeenCalled()
+
+    await fillSet(user, 2, '65', '6')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    await screen.findByText('Exercise 2 of 2')
+
+    expect(saveExerciseSets).toHaveBeenLastCalledWith('s9', 'e1', [
+      { reps: 8, weightKg: 60, repsInReserve: 2 },
+      { reps: 6, weightKg: 65 },
+    ])
+  })
+
+  it('shows the start screen when there is no unfinished session', async () => {
+    renderPage()
+
+    expect(await screen.findByRole('button', { name: 'Start workout' })).toBeInTheDocument()
   })
 
   it('starts the session and shows last session values as placeholders', async () => {

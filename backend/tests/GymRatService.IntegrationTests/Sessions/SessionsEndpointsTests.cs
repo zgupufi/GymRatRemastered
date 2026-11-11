@@ -19,6 +19,7 @@ public sealed class SessionsEndpointsTests : IDisposable
 
     [Theory]
     [InlineData("POST", "/api/sessions")]
+    [InlineData("GET", "/api/sessions/active")]
     [InlineData("PUT", $"/api/sessions/{AnyId}/exercises/{AnyId}/sets")]
     [InlineData("POST", $"/api/sessions/{AnyId}/finish")]
     [InlineData("GET", $"/api/workouts/{AnyId}/last-session")]
@@ -86,6 +87,86 @@ public sealed class SessionsEndpointsTests : IDisposable
 
         // Assert
         await AssertBadRequestAsync(response, ErrorCodes.WorkoutNotFound);
+    }
+
+    [Fact]
+    public async Task GetActiveSession_ReturnsTheUnfinishedSessionWithItsSavedSets()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push");
+        var sessionId = await StartSessionAsync(client, workoutId);
+        await SaveSetsAsync(client, sessionId, bench.Id, new SessionSetRequest(8, 60, 2), new SessionSetRequest(6, 62.5m));
+
+        // Act
+        var active = await client.GetFromJsonAsync<ActiveSessionDto>("/api/sessions/active");
+
+        // Assert
+        Assert.NotNull(active);
+        Assert.Equal(sessionId, active.SessionId);
+        Assert.Equal(workoutId, active.WorkoutId);
+        Assert.NotNull(active.StartedAt);
+        var exercise = Assert.Single(active.Exercises);
+        Assert.Equal(bench.Id, exercise.ExerciseId);
+        Assert.Equal([new SessionSetDto(1, 8, 60, 2), new SessionSetDto(2, 6, 62.5m)], exercise.Sets);
+    }
+
+    [Fact]
+    public async Task GetActiveSession_ReturnsTheLatestUnfinishedSession_WhenSeveralAreOpen()
+    {
+        // Arrange
+        await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push");
+        await StartSessionAsync(client, workoutId);
+        var latest = await StartSessionAsync(client, workoutId);
+
+        // Act
+        var active = await client.GetFromJsonAsync<ActiveSessionDto>("/api/sessions/active");
+
+        // Assert
+        Assert.Equal(latest, active?.SessionId);
+        Assert.Empty(active!.Exercises);
+    }
+
+    [Fact]
+    public async Task GetActiveSession_ReturnsAnEmptyResult_WhenTheSessionWasFinished()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push");
+        var sessionId = await StartSessionAsync(client, workoutId);
+        await SaveSetsAsync(client, sessionId, bench.Id, new SessionSetRequest(8, 60));
+        (await client.PostAsync($"/api/sessions/{sessionId}/finish", null)).EnsureSuccessStatusCode();
+
+        // Act
+        var active = await client.GetFromJsonAsync<ActiveSessionDto>("/api/sessions/active");
+
+        // Assert
+        Assert.Null(active?.SessionId);
+        Assert.Null(active?.WorkoutId);
+        Assert.Null(active?.StartedAt);
+        Assert.Empty(active!.Exercises);
+    }
+
+    [Fact]
+    public async Task GetActiveSession_DoesNotReturnTheSessionOfAnotherUser()
+    {
+        // Arrange
+        await SeedExercisesAsync();
+        var owner = await CreateClientAsync("owner@example.com");
+        var intruder = await CreateClientAsync("intruder@example.com");
+        var workoutId = await CreateWorkoutAsync(owner, "Push");
+        await StartSessionAsync(owner, workoutId);
+
+        // Act
+        var active = await intruder.GetFromJsonAsync<ActiveSessionDto>("/api/sessions/active");
+
+        // Assert
+        Assert.Null(active?.SessionId);
+        Assert.Empty(active!.Exercises);
     }
 
     [Fact]

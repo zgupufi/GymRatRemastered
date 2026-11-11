@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { finishSession, getLastSession, saveExerciseSets, startSession } from './sessions'
+import { finishSession, getActiveSession, getLastSession, saveExerciseSets, startSession } from './sessions'
 
 function stubFetch(response: Response) {
   const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(response)
@@ -19,6 +19,14 @@ describe('sessions api', () => {
     expect(fetchMock.mock.calls[0][0]).toBe('/api/sessions')
     expect(fetchMock.mock.calls[0][1]?.method).toBe('POST')
     expect(fetchMock.mock.calls[0][1]?.body).toBe(JSON.stringify({ workoutId: 'w1' }))
+  })
+
+  it('loads the active session', async () => {
+    const active = { sessionId: 's1', workoutId: 'w1', startedAt: '2026-01-01T10:00:00Z', exercises: [] }
+    const fetchMock = stubFetch(Response.json(active))
+
+    expect(await getActiveSession()).toEqual(active)
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/sessions/active')
   })
 
   it('saves the sets of an exercise', async () => {

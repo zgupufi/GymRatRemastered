@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Check, ChevronLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { WeightUnit } from '../../api/auth'
-import { finishSession, saveExerciseSets, type ExerciseTarget, type LastSession } from '../../api/sessions'
+import { finishSession, saveExerciseSets, type ActiveSession, type ExerciseTarget, type LastSession } from '../../api/sessions'
 import type { Workout } from '../../api/workouts'
 import { useRestTimer } from '../../hooks/useRestTimer'
 import { useStopwatch } from '../../hooks/useStopwatch'
@@ -12,7 +12,7 @@ import { Button } from '../ui/Button'
 import { Modal } from '../ui/Modal'
 import { useToast } from '../ui/ToastContext'
 import { RestTimerPill } from './RestTimerPill'
-import { addDraft, applyTarget, emptyDrafts, removeLastDraft, summarize, toEntries, type SetDraft, type WorkoutResult } from './sets'
+import { addDraft, applyTarget, draftsFromSaved, emptyDrafts, removeLastDraft, summarize, toEntries, type SetDraft, type WorkoutResult } from './sets'
 import { SetsCard } from './SetsCard'
 import { TargetBanner } from './TargetBanner'
 
@@ -25,30 +25,37 @@ interface RunningWorkoutProps {
   targets: ExerciseTarget[]
   unit: WeightUnit
   restSeconds: number
+  resume?: ActiveSession
   onFinished: (seconds: number, result: WorkoutResult) => void
 }
 
-function initialDrafts(workout: Workout): Record<string, SetDraft[]> {
+function initialDrafts(workout: Workout, unit: WeightUnit, resume: ActiveSession | undefined): Record<string, SetDraft[]> {
   const drafts: Record<string, SetDraft[]> = {}
   for (const entry of workout.exercises) {
-    drafts[entry.exercise.id] = emptyDrafts(entry.targetSets)
+    const saved = resume?.exercises.find((item) => item.exerciseId === entry.exercise.id)?.sets
+    drafts[entry.exercise.id] = saved ? draftsFromSaved(entry.targetSets, saved, unit) : emptyDrafts(entry.targetSets)
   }
   return drafts
 }
 
-export function RunningWorkout({ workout, sessionId, last, targets, unit, restSeconds, onFinished }: RunningWorkoutProps) {
+function initialIndex(workout: Workout, drafts: Record<string, SetDraft[]>): number {
+  const open = workout.exercises.findIndex((entry) => !drafts[entry.exercise.id].every((draft) => draft.done))
+  return open === -1 ? workout.exercises.length - 1 : open
+}
+
+export function RunningWorkout({ workout, sessionId, last, targets, unit, restSeconds, resume, onFinished }: RunningWorkoutProps) {
   const { showToast } = useToast()
-  const [index, setIndex] = useState(0)
-  const [drafts, setDrafts] = useState(() => initialDrafts(workout))
+  const [drafts, setDrafts] = useState(() => initialDrafts(workout, unit, resume))
+  const [index, setIndex] = useState(() => (resume ? initialIndex(workout, drafts) : 0))
   const [busy, setBusy] = useState(false)
   const [confirmingEnd, setConfirmingEnd] = useState(false)
   const advanceTimer = useRef<number | undefined>(undefined)
   const saveQueue = useRef<Promise<void>>(Promise.resolve())
-  const savedExercises = useRef(new Set<string>())
+  const savedExercises = useRef(new Set(resume?.exercises.filter((item) => item.sets.length > 0).map((item) => item.exerciseId)))
   const finished = useRef(false)
   const closeTimer = useRef<number | undefined>(undefined)
   const rest = useRestTimer()
-  const elapsed = useStopwatch(true)
+  const elapsed = useStopwatch(true, resume?.startedAt ? Date.parse(resume.startedAt) : undefined)
 
   useEffect(() => () => window.clearTimeout(advanceTimer.current), [])
 

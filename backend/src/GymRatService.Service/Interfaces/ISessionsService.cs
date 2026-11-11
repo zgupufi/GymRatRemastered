@@ -7,6 +7,8 @@ public interface ISessionsService
 {
     Task<StartSessionResponse> StartSessionAsync(Guid userId, StartSessionRequest request, CancellationToken cancellationToken);
 
+    Task<ActiveSessionDto> GetActiveSessionAsync(Guid userId, CancellationToken cancellationToken);
+
     Task SaveExerciseSetsAsync(Guid userId, Guid id, Guid exerciseId, SaveExerciseSetsRequest request, CancellationToken cancellationToken);
 
     Task FinishSessionAsync(Guid userId, Guid id, CancellationToken cancellationToken);
