@@ -27,7 +27,7 @@ Add a new XML changeset under `database/changelog/changes`, include it in `db.ch
 
 ## AI coach
 
-`POST /api/chat/messages` talks to an LLM through `Microsoft.Extensions.AI` (`IChatClient`). The default is `nvidia/nemotron-3-ultra-550b-a55b:free` through OpenRouter's OpenAI-compatible endpoint, with `google/gemma-4-31b-it:free` as `AiCoach:FallbackModel` (used on 429, 5xx, timeout or an empty reply). The API key is never stored in the repo:
+`POST /api/chat/messages` talks to an LLM through `Microsoft.Extensions.AI` (`IChatClient`). The default is `cohere/north-mini-code:free` through OpenRouter's OpenAI-compatible endpoint, with `nvidia/nemotron-3.5-lightning:free` as `AiCoach:FallbackModel` (used on 429, 5xx, timeout or an empty reply). The API key is never stored in the repo:
 
 - Locally, in `backend/src/GymRatService.API`: `dotnet user-secrets set "AiCoach:ApiKey" "<your OpenRouter API key>"`
 - Docker: set `AI_COACH_API_KEY` in `infra/.env`
