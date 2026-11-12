@@ -76,6 +76,21 @@ public sealed class ChatFailoverEndpointsTests : IDisposable
     }
 
     [Fact]
+    public async Task SendMessage_AnswersFromTheFallbackModel_WhenThePrimaryReturnsToolCallMarkup()
+    {
+        // Arrange
+        _chat.Script = (_, options) => ScriptedChatClient.Reply(options?.ModelId == Primary ? "<ernie:tool_call><invoke name=\"create_workout\"></invoke></ernie:tool_call>" : "from fallback");
+        var client = await CreateClientAsync();
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("Hi", null));
+
+        // Assert
+        var body = await response.Content.ReadFromJsonAsync<ChatMessageResponse>();
+        Assert.Equal("from fallback", body?.Reply);
+    }
+
+    [Fact]
     public async Task SendMessage_DoesNotTreatAToolCallAsAnEmptyReply()
     {
         // Arrange

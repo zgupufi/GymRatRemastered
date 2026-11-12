@@ -18,12 +18,12 @@ public sealed class FailoverChatClient(IChatClient inner, IOptions<AiCoachSettin
         {
             var response = await base.GetResponseAsync(history, WithModel(chatOptions, settings.Model), cancellationToken);
 
-            if (hasFallback && IsEmpty(response))
+            if (hasFallback && IsUnusable(response))
             {
-                logger.LogWarning("AI coach model {Model} returned an empty reply, trying {FallbackModel}", settings.Model, settings.FallbackModel);
+                logger.LogWarning("AI coach model {Model} returned an empty or unusable reply, trying {FallbackModel}", settings.Model, settings.FallbackModel);
             }
 
-            if (!hasFallback || !IsEmpty(response))
+            if (!hasFallback || !IsUnusable(response))
             {
                 return response;
             }
@@ -43,6 +43,8 @@ public sealed class FailoverChatClient(IChatClient inner, IOptions<AiCoachSettin
 
         return clone;
     }
+
+    private static bool IsUnusable(ChatResponse response) => ToolCallMarkup.IsPresentIn(response.Text) || IsEmpty(response);
 
     private static bool IsEmpty(ChatResponse response) =>
         string.IsNullOrWhiteSpace(response.Text)

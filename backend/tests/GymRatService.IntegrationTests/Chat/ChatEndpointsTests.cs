@@ -222,6 +222,7 @@ public sealed class ChatEndpointsTests : IDisposable
     [Theory]
     [InlineData("<tool_call><function=create_workout><parameter=name>Leg Day</parameter></function></tool_call>")]
     [InlineData("Sure. <function=create_workout>")]
+    [InlineData("<ernie:tool_call><invoke name=\"create_workout\"></invoke></ernie:tool_call>")]
     public async Task SendMessage_ReturnsInvalidReply_WhenTheModelReturnsToolCallMarkup(string reply)
     {
         // Arrange
