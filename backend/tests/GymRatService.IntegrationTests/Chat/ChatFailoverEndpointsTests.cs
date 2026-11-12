@@ -32,6 +32,7 @@ public sealed class ChatFailoverEndpointsTests : IDisposable
         new HttpRequestException("bad gateway", null, HttpStatusCode.BadGateway),
         new HttpRequestException("network down"),
         new TimeoutException(),
+        new ArgumentOutOfRangeException("value", "Unknown ChatFinishReason value."),
         new TaskCanceledException("timed out"),
         new ClientResultException(new StatusPipelineResponse(429)),
         new ClientResultException(new StatusPipelineResponse(503)),
@@ -64,6 +65,21 @@ public sealed class ChatFailoverEndpointsTests : IDisposable
     {
         // Arrange
         _chat.Script = (_, options) => ScriptedChatClient.Reply(options?.ModelId == Primary ? emptyReply : "from fallback");
+        var client = await CreateClientAsync();
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("Hi", null));
+
+        // Assert
+        var body = await response.Content.ReadFromJsonAsync<ChatMessageResponse>();
+        Assert.Equal("from fallback", body?.Reply);
+    }
+
+    [Fact]
+    public async Task SendMessage_AnswersFromTheFallbackModel_WhenThePrimaryReturnsToolCallMarkup()
+    {
+        // Arrange
+        _chat.Script = (_, options) => ScriptedChatClient.Reply(options?.ModelId == Primary ? "<ernie:tool_call><invoke name=\"create_workout\"></invoke></ernie:tool_call>" : "from fallback");
         var client = await CreateClientAsync();
 
         // Act

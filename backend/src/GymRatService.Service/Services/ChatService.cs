@@ -1,3 +1,4 @@
+using System.ClientModel;
 using GymRatService.Common.DTOs.Chat;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
@@ -67,12 +68,14 @@ public class ChatService(
         {
             logger.LogError(exception, "AI coach request failed");
 
-            throw new BusinessLogicException(ErrorCodes.ChatProviderUnavailable);
+            throw new BusinessLogicException(exception is ClientResultException { Status: 429 }
+                ? ErrorCodes.ChatProviderBusy
+                : ErrorCodes.ChatProviderUnavailable);
         }
 
         usageLimiter.RecordTokens(userId, response.Usage?.TotalTokenCount ?? 0);
 
-        if (ContainsToolCallMarkup(response.Text))
+        if (ToolCallMarkup.IsPresentIn(response.Text))
         {
             logger.LogWarning("AI coach returned tool call markup instead of a reply");
 
@@ -81,8 +84,4 @@ public class ChatService(
 
         return new ChatMessageResponse(response.Text, tools.WorkoutsChanged, tools.Suggestions);
     }
-
-    private static bool ContainsToolCallMarkup(string text) =>
-        text.Contains("<tool_call", StringComparison.OrdinalIgnoreCase) ||
-        text.Contains("<function=", StringComparison.OrdinalIgnoreCase);
 }

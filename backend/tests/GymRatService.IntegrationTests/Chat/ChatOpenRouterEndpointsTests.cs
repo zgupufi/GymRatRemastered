@@ -240,6 +240,20 @@ public sealed class ChatOpenRouterEndpointsTests : IDisposable
         Assert.Equal(2, _server!.Requests.Count);
     }
 
+    [Fact]
+    public async Task SendMessage_ReturnsProviderBusy_WhenBothModelsAreRateLimited()
+    {
+        // Arrange
+        var client = await StartAsync(_ => FakeOpenRouterReply.Error(429));
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("Hi", null));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(ErrorCodes.ChatProviderBusy, (await response.Content.ReadFromJsonAsync<ErrorResponse>())?.Code);
+    }
+
     private static async Task AssertProviderUnavailableAsync(HttpResponseMessage response)
     {
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
