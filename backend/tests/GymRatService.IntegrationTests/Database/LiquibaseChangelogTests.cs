@@ -140,6 +140,29 @@ public sealed partial class LiquibaseChangelogTests
         Assert.Contains(rows, row => row.Name == "Bench Press");
     }
 
+    [Fact]
+    public void ExtendedCatalog_AddsOnlyNewUniqueExercisesWithValidValues()
+    {
+        // Arrange
+        var seed = File.ReadAllText(Path.Combine(ChangelogDirectory, "data", "exercise-catalog.csv"));
+        var changeset = File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "009-extend-exercise-catalog.xml"));
+        var existingNames = SeedRowRegex().Matches(seed).Select(match => match.Groups[2].Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Act
+        var added = ExtendedRowRegex().Matches(changeset)
+            .Select(match => (Name: match.Groups[1].Value, Muscle: match.Groups[2].Value, Equipment: match.Groups[3].Value, Difficulty: match.Groups[4].Value))
+            .ToList();
+
+        // Assert
+        Assert.NotEmpty(added);
+        Assert.All(added, row => Assert.DoesNotContain(row.Name, existingNames));
+        Assert.Equal(added.Count, added.Select(row => row.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.All(added, row => Assert.Contains(row.Muscle, new[] { "Back", "Biceps", "Chest", "Core", "Legs", "Shoulders", "Triceps" }));
+        Assert.All(added, row => Assert.Contains(row.Equipment, new[] { "Barbell", "Bench", "Bodyweight", "Cable", "Dumbbells", "Machine" }));
+        Assert.All(added, row => Assert.Contains(row.Difficulty, new[] { "Beginner", "Intermediate", "Advanced" }));
+        Assert.Contains(added, row => row.Name == "Cable Rear Delt Flyes");
+    }
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -154,6 +177,9 @@ public sealed partial class LiquibaseChangelogTests
 
     [GeneratedRegex("<include file=\"([^\"]+)\"")]
     private static partial Regex IncludedFileRegex();
+
+    [GeneratedRegex("^\\s+\\('([^']+)', '([^']+)', '[^']*', '([^']+)', '([^']+)', '", RegexOptions.Multiline)]
+    private static partial Regex ExtendedRowRegex();
 
     [GeneratedRegex("^\"([0-9a-f-]{36})\",\"((?:[^\"]|\"\")*)\"", RegexOptions.Multiline)]
     private static partial Regex SeedRowRegex();

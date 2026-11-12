@@ -12,5 +12,6 @@
     <include file="changes/006-workout-sessions.xml" relativeToChangelogFile="true" />
     <include file="changes/007-smart-training.xml" relativeToChangelogFile="true" />
     <include file="changes/008-backfill-weight-steps.xml" relativeToChangelogFile="true" />
+    <include file="changes/009-extend-exercise-catalog.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>
