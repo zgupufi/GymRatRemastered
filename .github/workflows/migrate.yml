@@ -1,0 +1,25 @@
+name: Migrate database
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'database/**'
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Run Liquibase
+        env:
+          DB_URL: ${{ secrets.NEON_JDBC_URL }}
+          DB_USER: ${{ secrets.NEON_DB_USER }}
+          DB_PASSWORD: ${{ secrets.NEON_DB_PASSWORD }}
+        run: |
+          docker run --rm -v "$PWD/database/changelog:/liquibase/changelog:ro" liquibase/liquibase:4.32 \
+            --changelog-file=changelog/db.changelog-master.xml \
+            --url="$DB_URL" --username="$DB_USER" --password="$DB_PASSWORD" update
