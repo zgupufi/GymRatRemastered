@@ -4,10 +4,11 @@
 
 ## Run with Docker
 
-Run the commands from the `infra` folder, where `docker-compose.yml` lives:
+Run the commands from the `infra` folder, where `docker-compose.yml` lives. Before the first run, copy `infra/.env.example` to `infra/.env`:
 
 ```bash
 cd infra
+cp .env.example .env
 docker compose up db
 docker compose up backend
 docker compose up frontend
@@ -21,7 +22,9 @@ docker compose up --build
 
 Postgres is exposed on localhost:5432. The database connection for the backend is defined in `infra/docker-compose.yml` (`backend` service, `ConnectionStrings__DefaultConnection`).
 
-Before the first run, copy `infra/.env.example` to `infra/.env`. The example sets `ASPNETCORE_ENVIRONMENT=Development`, which lets the API start with the placeholder secrets. Without an `infra/.env` the API runs as `Production` and refuses to start, because the defaults in `docker-compose.yml` are publicly known.
+The example file sets `ASPNETCORE_ENVIRONMENT=Development`, which lets the API start with the placeholder secrets. Without an `infra/.env` the API runs as `Production` and refuses to start, because the defaults in `docker-compose.yml` are publicly known.
+
+`Development` is for your own machine only: it switches the startup checks off, accepts the public placeholder secrets and exposes `/openapi/v1.json`. When the compose stack runs anywhere else, remove the `ASPNETCORE_ENVIRONMENT` line from `infra/.env` or set it to `Production`, and set real values for `JWT_KEY`, `PASSWORD_PEPPER` and `POSTGRES_PASSWORD`.
 
 ## Required settings outside Development
 
