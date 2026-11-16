@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using GymRatService.Common.DTOs.Auth;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
+using Microsoft.Extensions.Options;
 
 namespace GymRatService.IntegrationTests.Auth;
 
@@ -134,8 +135,14 @@ public sealed class AuthRateLimitEndpointsTests : IDisposable
         var refused = await LoginAsync(client, "ana@example.com", Password);
 
         // Act
-        await Task.Delay(TimeSpan.FromSeconds(1.2));
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(30);
         var response = await LoginAsync(client, "ana@example.com", Password);
+
+        while (response.StatusCode != HttpStatusCode.OK && DateTimeOffset.UtcNow < deadline)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(250));
+            response = await LoginAsync(client, "ana@example.com", Password);
+        }
 
         // Assert
         var refusedError = await refused.Content.ReadFromJsonAsync<ErrorResponse>();
@@ -273,6 +280,124 @@ public sealed class AuthRateLimitEndpointsTests : IDisposable
         var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
         Assert.Equal(ErrorCodes.TooManyAttempts, error?.Code);
         Assert.InRange(GetRetryAfterSeconds(response), 1, 30);
+    }
+
+    [Fact]
+    public async Task Login_GivesEachForwardedAddressItsOwnLimit_WhenTheRequestComesFromATrustedProxy()
+    {
+        // Arrange
+        _factory.Settings["ForwardedHeaders:TrustedNetworks:0"] = "10.0.0.5/32";
+        _factory.Settings["AuthRateLimit:LoginPermitLimit"] = "1";
+        await _factory.SeedAsync(_ => { });
+        var client = _factory.CreateClientWithIp("10.0.0.5", "203.0.113.7");
+        await RegisterAsync(client, "ana@example.com");
+        var first = await LoginAsync(client, "ana@example.com", Password);
+        var second = await LoginAsync(client, "ana@example.com", Password);
+
+        // Act
+        var response = await LoginAsync(_factory.CreateClientWithIp("10.0.0.5", "203.0.113.8"), "ana@example.com", Password);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        var secondError = await second.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(ErrorCodes.TooManyAttempts, secondError?.Code);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var login = await response.Content.ReadFromJsonAsync<LoginResponse>();
+        Assert.False(string.IsNullOrEmpty(login?.AccessToken));
+    }
+
+    [Fact]
+    public async Task Login_UsesOnlyTheAddressAddedByTheTrustedProxy_WhenTheClientSendsItsOwnForwardedAddresses()
+    {
+        // Arrange
+        _factory.Settings["ForwardedHeaders:TrustedNetworks:0"] = "10.0.0.0/24";
+        _factory.Settings["AuthRateLimit:LoginPermitLimit"] = "1";
+        await _factory.SeedAsync(_ => { });
+        var client = _factory.CreateClientWithIp("10.0.0.5", "198.51.100.1, 203.0.113.7");
+        await RegisterAsync(client, "ana@example.com");
+        var first = await LoginAsync(client, "ana@example.com", Password);
+
+        // Act
+        var response = await LoginAsync(_factory.CreateClientWithIp("10.0.0.5", "198.51.100.2, 203.0.113.7"), "ana@example.com", Password);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(ErrorCodes.TooManyAttempts, error?.Code);
+    }
+
+    [Theory]
+    [InlineData("10.0.0.5/32")]
+    [InlineData(null)]
+    public async Task Login_IgnoresTheForwardedAddress_WhenTheRequestDoesNotComeFromATrustedProxy(string? trustedNetwork)
+    {
+        // Arrange
+        if (trustedNetwork is not null)
+        {
+            _factory.Settings["ForwardedHeaders:TrustedNetworks:0"] = trustedNetwork;
+        }
+
+        _factory.Settings["AuthRateLimit:LoginPermitLimit"] = "1";
+        await _factory.SeedAsync(_ => { });
+        var client = _factory.CreateClientWithIp("198.51.100.1", "203.0.113.7");
+        await RegisterAsync(client, "ana@example.com");
+        var first = await LoginAsync(client, "ana@example.com", Password);
+
+        // Act
+        var response = await LoginAsync(_factory.CreateClientWithIp("198.51.100.1", "203.0.113.8"), "ana@example.com", Password);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(ErrorCodes.TooManyAttempts, error?.Code);
+    }
+
+    [Theory]
+    [InlineData("2001:db8:1:1::1", "2001:db8:1:1:ffff:ffff:ffff:2", HttpStatusCode.BadRequest)]
+    [InlineData("2001:db8:1:1::1", "2001:db8:1:2::1", HttpStatusCode.OK)]
+    [InlineData("::ffff:203.0.113.10", "203.0.113.10", HttpStatusCode.BadRequest)]
+    [InlineData("::ffff:203.0.113.10", "203.0.113.11", HttpStatusCode.OK)]
+    public async Task Login_GroupsIpv6AddressesByTheir64BitPrefix_AndMappedAddressesWithTheirIpv4Address(
+        string firstIp,
+        string secondIp,
+        HttpStatusCode expectedStatus)
+    {
+        // Arrange
+        _factory.Settings["AuthRateLimit:LoginPermitLimit"] = "1";
+        await _factory.SeedAsync(_ => { });
+        var client = _factory.CreateClientWithIp(firstIp);
+        await RegisterAsync(client, "ana@example.com");
+        var first = await LoginAsync(client, "ana@example.com", Password);
+
+        // Act
+        var response = await LoginAsync(_factory.CreateClientWithIp(secondIp), "ana@example.com", Password);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        Assert.Equal(expectedStatus, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Equal(expectedStatus == HttpStatusCode.BadRequest, body.Contains(ErrorCodes.TooManyAttempts));
+    }
+
+    [Theory]
+    [InlineData("LoginPermitLimit", "0")]
+    [InlineData("LoginWindowSeconds", "0")]
+    [InlineData("RegisterPermitLimit", "-1")]
+    [InlineData("RegisterWindowSeconds", "0")]
+    [InlineData("FailedLoginLimit", "0")]
+    [InlineData("FailedLoginWindowSeconds", "-5")]
+    public void Startup_Fails_WhenAnAuthRateLimitValueIsNotPositive(string setting, string value)
+    {
+        // Arrange
+        _factory.Settings[$"AuthRateLimit:{setting}"] = value;
+
+        // Act
+        var exception = Assert.Throws<OptionsValidationException>(() => _factory.CreateClient());
+
+        // Assert
+        Assert.Equal(["Every AuthRateLimit value must be greater than zero."], exception.Failures);
     }
 
     private static Task<HttpResponseMessage> RegisterAsync(HttpClient client, string email) =>

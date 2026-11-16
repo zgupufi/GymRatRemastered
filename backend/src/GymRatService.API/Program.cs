@@ -45,6 +45,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddAiCoach(builder.Configuration);
 
+builder.Services.AddTrustedForwardedHeaders(builder.Configuration);
 builder.Services.AddAuthRateLimiting(builder.Configuration);
 
 builder.Services.AddRequestValidation();
@@ -59,6 +60,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseTrustedForwardedHeaders();
 
 app.UseRequestLocalization(new RequestLocalizationOptions()
     .SetDefaultCulture(supportedCultures[0])

@@ -44,14 +44,12 @@ public class AuthService(
     {
         var email = request.Email.NormalizeEmail();
 
-        loginAttemptLimiter.EnsureAllowed(email);
+        loginAttemptLimiter.RegisterAttempt(email);
 
         var user = await usersRepository.GetByEmailAsync(email, cancellationToken);
 
         if (user is null || !passwordHasher.Verify(request.Password, user.PasswordHash, user.PasswordSalt))
         {
-            loginAttemptLimiter.RecordFailure(email);
-
             throw new BusinessLogicException(ErrorCodes.InvalidCredentials);
         }
 

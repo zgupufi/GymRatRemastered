@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using GymRatService.Common.Errors;
 using GymRatService.Common.Settings;
 using GymRatService.Service.Exceptions;
@@ -8,66 +10,85 @@ namespace GymRatService.Service.Services;
 
 public class LoginAttemptLimiter(IOptions<AuthRateLimitSettings> options, TimeProvider timeProvider) : ILoginAttemptLimiter
 {
-    private readonly Dictionary<string, Queue<DateTimeOffset>> _failures = [];
+    private readonly Dictionary<string, Queue<DateTimeOffset>> _attempts = [];
 
     private readonly Lock _lock = new();
 
-    public void EnsureAllowed(string email)
+    private DateTimeOffset _nextSweep;
+
+    public int TrackedEmails
     {
-        var settings = options.Value;
-        var window = TimeSpan.FromSeconds(settings.FailedLoginWindowSeconds);
-        var now = timeProvider.GetUtcNow();
-
-        lock (_lock)
+        get
         {
-            RemoveExpired(now - window);
-
-            if (_failures.TryGetValue(email, out var failures) && failures.Count >= settings.FailedLoginLimit)
+            lock (_lock)
             {
-                throw new RateLimitedException(ErrorCodes.TooManyAttempts, failures.Peek() + window - now);
+                return _attempts.Count;
             }
         }
     }
 
-    public void RecordFailure(string email)
+    public void RegisterAttempt(string email)
     {
-        var window = TimeSpan.FromSeconds(options.Value.FailedLoginWindowSeconds);
+        var settings = options.Value;
+        var window = TimeSpan.FromSeconds(settings.FailedLoginWindowSeconds);
         var now = timeProvider.GetUtcNow();
+        var windowStart = now - window;
+        var key = GetKey(email);
 
         lock (_lock)
         {
-            RemoveExpired(now - window);
-
-            if (!_failures.TryGetValue(email, out var failures))
+            if (now >= _nextSweep)
             {
-                failures = new Queue<DateTimeOffset>();
-                _failures[email] = failures;
+                RemoveExpiredEmails(windowStart);
+                _nextSweep = now + window;
             }
 
-            failures.Enqueue(now);
+            if (!_attempts.TryGetValue(key, out var attempts))
+            {
+                attempts = new Queue<DateTimeOffset>();
+                _attempts[key] = attempts;
+            }
+
+            RemoveExpiredAttempts(attempts, windowStart);
+
+            if (attempts.Count >= settings.FailedLoginLimit)
+            {
+                throw new RateLimitedException(ErrorCodes.TooManyAttempts, attempts.Peek() + window - now);
+            }
+
+            attempts.Enqueue(now);
         }
     }
 
     public void Reset(string email)
     {
+        var key = GetKey(email);
+
         lock (_lock)
         {
-            _failures.Remove(email);
+            _attempts.Remove(key);
         }
     }
 
-    private void RemoveExpired(DateTimeOffset windowStart)
-    {
-        foreach (var (email, failures) in _failures)
-        {
-            while (failures.Count > 0 && failures.Peek() <= windowStart)
-            {
-                failures.Dequeue();
-            }
+    private static string GetKey(string email) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(email)));
 
-            if (failures.Count == 0)
+    private static void RemoveExpiredAttempts(Queue<DateTimeOffset> attempts, DateTimeOffset windowStart)
+    {
+        while (attempts.Count > 0 && attempts.Peek() <= windowStart)
+        {
+            attempts.Dequeue();
+        }
+    }
+
+    private void RemoveExpiredEmails(DateTimeOffset windowStart)
+    {
+        foreach (var (key, attempts) in _attempts)
+        {
+            RemoveExpiredAttempts(attempts, windowStart);
+
+            if (attempts.Count == 0)
             {
-                _failures.Remove(email);
+                _attempts.Remove(key);
             }
         }
     }

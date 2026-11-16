@@ -78,10 +78,15 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
         return client;
     }
 
-    public HttpClient CreateClientWithIp(string clientIp)
+    public HttpClient CreateClientWithIp(string clientIp, string? forwardedFor = null)
     {
         var client = CreateClient();
         client.DefaultRequestHeaders.Add(ClientIpStartupFilter.HeaderName, clientIp);
+
+        if (forwardedFor is not null)
+        {
+            client.DefaultRequestHeaders.Add("X-Forwarded-For", forwardedFor);
+        }
 
         return client;
     }
