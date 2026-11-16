@@ -4,6 +4,7 @@ using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
+using GymRatService.Service.Interfaces;
 using GymRatService.Service.Security;
 using GymRatService.Service.Services;
 using NSubstitute;
@@ -17,12 +18,13 @@ public class AuthServiceTests
     private readonly IUsersRepository _repository = Substitute.For<IUsersRepository>();
     private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
     private readonly ITokenGenerator _tokenGenerator = Substitute.For<ITokenGenerator>();
+    private readonly ILoginAttemptLimiter _loginAttemptLimiter = Substitute.For<ILoginAttemptLimiter>();
     private readonly AuthService _service;
 
     public AuthServiceTests()
     {
         _passwordHasher.Hash(Arg.Any<string>()).Returns(new HashedPassword("hashed", "salt"));
-        _service = new AuthService(_repository, _passwordHasher, _tokenGenerator);
+        _service = new AuthService(_repository, _passwordHasher, _tokenGenerator, _loginAttemptLimiter);
     }
 
     [Fact]
@@ -98,6 +100,9 @@ public class AuthServiceTests
         // Assert
         Assert.Equal(token, response);
         await _repository.Received(1).UpdateLastLoginAsync(user.Id, Arg.Is<DateTimeOffset>(at => at >= Now), Arg.Any<CancellationToken>());
+        _loginAttemptLimiter.Received(1).EnsureAllowed("ana@example.com");
+        _loginAttemptLimiter.Received(1).Reset("ana@example.com");
+        _loginAttemptLimiter.DidNotReceive().RecordFailure(Arg.Any<string>());
     }
 
     [Fact]
@@ -116,6 +121,8 @@ public class AuthServiceTests
         Assert.Equal(ErrorCodes.InvalidCredentials, exception.Code);
         _tokenGenerator.DidNotReceive().Generate(Arg.Any<User>());
         await _repository.DidNotReceive().UpdateLastLoginAsync(Arg.Any<Guid>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
+        _loginAttemptLimiter.Received(1).RecordFailure("ana@example.com");
+        _loginAttemptLimiter.DidNotReceive().Reset(Arg.Any<string>());
     }
 
     [Fact]
@@ -131,5 +138,26 @@ public class AuthServiceTests
         // Assert
         Assert.Equal(ErrorCodes.InvalidCredentials, exception.Code);
         _passwordHasher.DidNotReceive().Verify(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+        _loginAttemptLimiter.Received(1).RecordFailure("nobody@example.com");
+    }
+
+    [Fact]
+    public async Task LoginAsync_ThrowsTooManyAttemptsWithoutCheckingThePassword_WhenTheEmailIsLimited()
+    {
+        // Arrange
+        _loginAttemptLimiter
+            .When(limiter => limiter.EnsureAllowed("ana@example.com"))
+            .Do(_ => throw new RateLimitedException(ErrorCodes.TooManyAttempts, TimeSpan.FromMinutes(3)));
+
+        // Act
+        var exception = await Assert.ThrowsAsync<RateLimitedException>(
+            () => _service.LoginAsync(new LoginRequest(" Ana@example.com", "password123"), CancellationToken.None));
+
+        // Assert
+        Assert.Equal(ErrorCodes.TooManyAttempts, exception.Code);
+        Assert.Equal(TimeSpan.FromMinutes(3), exception.RetryAfter);
+        await _repository.DidNotReceive().GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        _passwordHasher.DidNotReceive().Verify(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+        _loginAttemptLimiter.DidNotReceive().RecordFailure(Arg.Any<string>());
     }
 }
