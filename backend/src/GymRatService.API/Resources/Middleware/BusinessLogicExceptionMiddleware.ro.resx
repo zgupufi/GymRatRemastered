@@ -21,6 +21,9 @@
   <data name="BLException_AuthService_InvalidCredentials" xml:space="preserve">
     <value>Adresa de email sau parola este incorectă.</value>
   </data>
+  <data name="BLException_AuthService_TooManyAttempts" xml:space="preserve">
+    <value>Prea multe încercări. Te rugăm să aștepți puțin și să încerci din nou.</value>
+  </data>
   <data name="BLException_AuthService_UnauthorizedAccess" xml:space="preserve">
     <value>Tokenul de acces nu identifică un utilizator.</value>
   </data>
@@ -47,6 +50,9 @@
   </data>
   <data name="BLException_ChatService_ProviderUnavailable" xml:space="preserve">
     <value>Antrenorul AI nu este disponibil momentan. Te rugăm să încerci din nou mai târziu.</value>
+  </data>
+  <data name="BLException_ChatService_ProviderBusy" xml:space="preserve">
+    <value>Antrenorul AI este aglomerat momentan. Te rugăm să încerci din nou peste un minut.</value>
   </data>
   <data name="BLException_ChatService_InvalidReply" xml:space="preserve">
     <value>Antrenorul AI nu a putut finaliza această cerere. Te rugăm să încerci din nou.</value>

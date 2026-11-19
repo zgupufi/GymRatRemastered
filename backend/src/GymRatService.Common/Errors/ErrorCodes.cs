@@ -8,6 +8,8 @@ public static class ErrorCodes
 
     public const string InvalidCredentials = "BLException_AuthService_InvalidCredentials";
 
+    public const string TooManyAttempts = "BLException_AuthService_TooManyAttempts";
+
     public const string UnauthorizedAccess = "BLException_AuthService_UnauthorizedAccess";
 
     public const string UserNotFound = "BLException_UsersService_UserNotFound";
@@ -25,6 +27,8 @@ public static class ErrorCodes
     public const string ChatTokenBudgetExceeded = "BLException_ChatService_TokenBudgetExceeded";
 
     public const string ChatProviderUnavailable = "BLException_ChatService_ProviderUnavailable";
+
+    public const string ChatProviderBusy = "BLException_ChatService_ProviderBusy";
 
     public const string ChatInvalidReply = "BLException_ChatService_InvalidReply";
 

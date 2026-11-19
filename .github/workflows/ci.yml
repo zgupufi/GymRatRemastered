@@ -56,3 +56,54 @@ jobs:
 
       - name: Test with 90% coverage gate
         run: npm run test:coverage
+
+      - name: Type-check and build
+        run: npm run build
+
+      - name: Report bundle size
+        run: |
+          {
+            echo '### Frontend bundle size'
+            echo
+            echo '| File | Size | Gzip |'
+            echo '| --- | ---: | ---: |'
+            find dist -type f | sort | while read -r file; do
+              echo "| ${file#dist/} | $(wc -c < "$file") B | $(gzip -c "$file" | wc -c) B |"
+            done
+            echo
+            echo "Total: $(find dist -type f -exec cat {} + | wc -c) B"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  docker:
+    name: docker
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Detect image changes
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          files=$(git diff --name-only "$BASE_SHA...HEAD")
+          echo "$files"
+          shared='^\.github/workflows/ci\.yml$'
+          frontend='^frontend/(Dockerfile|\.dockerignore|nginx\.conf|package\.json|package-lock\.json)$'
+          backend='^backend/(Dockerfile|\.dockerignore|Directory\.Build\.props|Directory\.Packages\.props|GymRatService\.sln|.*\.csproj)$'
+          if echo "$files" | grep -Eq "$shared|$frontend"; then
+            echo "frontend=true" >> "$GITHUB_OUTPUT"
+          fi
+          if echo "$files" | grep -Eq "$shared|$backend"; then
+            echo "backend=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build frontend image
+        if: steps.changes.outputs.frontend == 'true'
+        run: docker build --tag gymrat-frontend:ci frontend
+
+      - name: Build backend image
+        if: steps.changes.outputs.backend == 'true'
+        run: docker build --tag gymrat-backend:ci backend

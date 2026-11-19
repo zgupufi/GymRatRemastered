@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentValidation;
 using GymRatService.Common.Errors;
 using GymRatService.Service.Exceptions;
@@ -17,6 +18,13 @@ public class BusinessLogicExceptionMiddleware(
         }
         catch (BusinessLogicException exception)
         {
+            if (exception is RateLimitedException rateLimited)
+            {
+                var retryAfterSeconds = Math.Max(1, (long)Math.Ceiling(rateLimited.RetryAfter.TotalSeconds));
+
+                context.Response.Headers.RetryAfter = retryAfterSeconds.ToString(CultureInfo.InvariantCulture);
+            }
+
             await WriteBadRequestAsync(context, new ErrorResponse(exception.Code, localizer[exception.Code, [.. exception.Arguments]]));
         }
         catch (ValidationException exception)

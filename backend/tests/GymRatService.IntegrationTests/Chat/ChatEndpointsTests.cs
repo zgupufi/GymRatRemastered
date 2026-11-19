@@ -86,7 +86,7 @@ public sealed class ChatEndpointsTests : IDisposable
         var body = await response.Content.ReadFromJsonAsync<ChatMessageResponse>();
         Assert.Equal("Hello", body?.Reply);
         Assert.Equal(2, chat.Calls[0].Count);
-        Assert.Equal("nvidia/nemotron-3-ultra-550b-a55b:free", chat.Options[0]?.ModelId);
+        Assert.Equal("baidu/ernie-5.5-flash-preview:free", chat.Options[0]?.ModelId);
     }
 
     [Fact]
@@ -222,6 +222,7 @@ public sealed class ChatEndpointsTests : IDisposable
     [Theory]
     [InlineData("<tool_call><function=create_workout><parameter=name>Leg Day</parameter></function></tool_call>")]
     [InlineData("Sure. <function=create_workout>")]
+    [InlineData("<ernie:tool_call><invoke name=\"create_workout\"></invoke></ernie:tool_call>")]
     public async Task SendMessage_ReturnsInvalidReply_WhenTheModelReturnsToolCallMarkup(string reply)
     {
         // Arrange

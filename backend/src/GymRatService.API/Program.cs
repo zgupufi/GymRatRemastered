@@ -15,13 +15,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(FrontendCorsPolicy, policy => policy
-        .WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
+        .WithOrigins(builder.Configuration.GetSection(CorsSettings.SectionName).Get<CorsSettings>()?.AllowedOrigins ?? [])
         .AllowAnyHeader()
         .AllowAnyMethod());
 });
 
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
-builder.Services.Configure<PasswordSettings>(builder.Configuration.GetSection(PasswordSettings.SectionName));
+builder.Services.AddStartupSettings(builder.Configuration);
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -45,6 +44,9 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddAiCoach(builder.Configuration);
 
+builder.Services.AddTrustedForwardedHeaders(builder.Configuration);
+builder.Services.AddAuthRateLimiting(builder.Configuration);
+
 builder.Services.AddRequestValidation();
 builder.Services.AddControllers(options => options.Filters.AddService<ValidationActionFilter>());
 builder.Services.AddOpenApi();
@@ -58,6 +60,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseTrustedForwardedHeaders();
+
 app.UseRequestLocalization(new RequestLocalizationOptions()
     .SetDefaultCulture(supportedCultures[0])
     .AddSupportedCultures(supportedCultures)
@@ -66,6 +70,8 @@ app.UseRequestLocalization(new RequestLocalizationOptions()
 app.UseMiddleware<BusinessLogicExceptionMiddleware>();
 
 app.UseCors(FrontendCorsPolicy);
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

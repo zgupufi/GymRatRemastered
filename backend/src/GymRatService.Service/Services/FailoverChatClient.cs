@@ -18,12 +18,12 @@ public sealed class FailoverChatClient(IChatClient inner, IOptions<AiCoachSettin
         {
             var response = await base.GetResponseAsync(history, WithModel(chatOptions, settings.Model), cancellationToken);
 
-            if (hasFallback && IsEmpty(response))
+            if (hasFallback && IsUnusable(response))
             {
-                logger.LogWarning("AI coach model {Model} returned an empty reply, trying {FallbackModel}", settings.Model, settings.FallbackModel);
+                logger.LogWarning("AI coach model {Model} returned an empty or unusable reply, trying {FallbackModel}", settings.Model, settings.FallbackModel);
             }
 
-            if (!hasFallback || !IsEmpty(response))
+            if (!hasFallback || !IsUnusable(response))
             {
                 return response;
             }
@@ -44,6 +44,8 @@ public sealed class FailoverChatClient(IChatClient inner, IOptions<AiCoachSettin
         return clone;
     }
 
+    private static bool IsUnusable(ChatResponse response) => ToolCallMarkup.IsPresentIn(response.Text) || IsEmpty(response);
+
     private static bool IsEmpty(ChatResponse response) =>
         string.IsNullOrWhiteSpace(response.Text)
         && !response.Messages.Any(message => message.Contents.OfType<FunctionCallContent>().Any());
@@ -52,6 +54,7 @@ public sealed class FailoverChatClient(IChatClient inner, IOptions<AiCoachSettin
     {
         OperationCanceledException => !cancellationToken.IsCancellationRequested,
         TimeoutException => true,
+        ArgumentOutOfRangeException => true,
         HttpRequestException http => http.StatusCode is null || IsRetryableStatus((int)http.StatusCode),
         ClientResultException client => IsRetryableStatus(client.Status),
         _ => false,

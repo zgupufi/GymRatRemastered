@@ -12,7 +12,8 @@ namespace GymRatService.Service.Services;
 public class AuthService(
     IUsersRepository usersRepository,
     IPasswordHasher passwordHasher,
-    ITokenGenerator tokenGenerator) : IAuthService
+    ITokenGenerator tokenGenerator,
+    ILoginAttemptLimiter loginAttemptLimiter) : IAuthService
 {
     public async Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
     {
@@ -41,12 +42,18 @@ public class AuthService(
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
     {
-        var user = await usersRepository.GetByEmailAsync(request.Email.NormalizeEmail(), cancellationToken);
+        var email = request.Email.NormalizeEmail();
+
+        loginAttemptLimiter.RegisterAttempt(email);
+
+        var user = await usersRepository.GetByEmailAsync(email, cancellationToken);
 
         if (user is null || !passwordHasher.Verify(request.Password, user.PasswordHash, user.PasswordSalt))
         {
             throw new BusinessLogicException(ErrorCodes.InvalidCredentials);
         }
+
+        loginAttemptLimiter.Reset(email);
 
         await usersRepository.UpdateLastLoginAsync(user.Id, TimeProvider.System.GetUtcNow(), cancellationToken);
 

@@ -6,7 +6,7 @@ public sealed class AiCoachSettings
 
     public const string DefaultEndpoint = "https://openrouter.ai/api/v1";
 
-    public string Model { get; set; } = "nvidia/nemotron-3-ultra-550b-a55b:free";
+    public string Model { get; set; } = "baidu/ernie-5.5-flash-preview:free";
 
     public string FallbackModel { get; set; } = "google/gemma-4-31b-it:free";
 
