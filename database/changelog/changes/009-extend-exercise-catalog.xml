@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="009-extend-exercise-catalog" author="gymrat">
+        <sql>
+            INSERT INTO "Exercises" ("Name", "MainMuscle", "SubMuscles", "Equipment", "Difficulty", "Description")
+            SELECT candidate."Name", candidate."MainMuscle", candidate."SubMuscles", candidate."Equipment", candidate."Difficulty", candidate."Description"
+            FROM (VALUES
+                ('Cable Rear Delt Flyes', 'Shoulders', 'Rear Deltoids, Rhomboids, Traps', 'Cable', 'Beginner', 'Set two cable handles at shoulder height, cross them and pull apart with soft elbows until your arms are in line with your shoulders. Constant cable tension makes this one of the best rear delt isolation movements.'),
+                ('Seated Bent-Over Rear Delt Raise', 'Shoulders', 'Rear Deltoids, Rhomboids', 'Dumbbells', 'Beginner', 'Sit at the edge of a bench, hinge forward until your chest is close to your thighs and raise the dumbbells out to the sides. Removes momentum so the rear delts do all the work.'),
+                ('Single-Arm Cable Rear Delt Fly', 'Shoulders', 'Rear Deltoids, Rhomboids', 'Cable', 'Intermediate', 'Hold one handle with the opposite hand, lean slightly forward and sweep your arm across and out. Lets you focus on one side at a time and fix imbalances.'),
+                ('Lying Incline Bench Rear Delt Raise', 'Shoulders', 'Rear Deltoids, Rhomboids', 'Dumbbells', 'Beginner', 'Lie chest down on an incline bench and raise light dumbbells out to the sides with the thumbs pointing up. The bench supports your torso so the movement stays strict.'),
+                ('Arnold Press', 'Shoulders', 'Triceps, Front Deltoids, Medial Deltoids', 'Dumbbells', 'Intermediate', 'Start with the palms facing you at chest height and rotate them outward as you press overhead. The rotation brings all three heads of the deltoid into play.'),
+                ('Push Press', 'Shoulders', 'Triceps, Quadriceps, Traps', 'Barbell', 'Advanced', 'Dip slightly through the knees and drive the bar overhead using leg power, finishing with locked out arms. Lets you overload the shoulders with heavier weights than a strict press.'),
+                ('Landmine Press', 'Shoulders', 'Triceps, Upper Chest, Core', 'Barbell', 'Intermediate', 'Press the end of an anchored barbell up and forward from shoulder height. The arc of the bar is shoulder friendly and builds stability through the core.'),
+                ('Seated Barbell Shoulder Press', 'Shoulders', 'Triceps, Upper Chest', 'Barbell', 'Intermediate', 'Sit with back support and press the bar from collarbone height to overhead. The seat removes leg drive so the shoulders carry the load.'),
+                ('Cable Upright Row', 'Shoulders', 'Medial Deltoids, Traps', 'Cable', 'Intermediate', 'Pull a straight bar or rope from the low pulley up to chest height, leading with the elbows. The cable keeps constant tension through the whole range.'),
+                ('Dumbbell Upright Row', 'Shoulders', 'Medial Deltoids, Traps', 'Dumbbells', 'Beginner', 'Lift two dumbbells along your torso up to chest height with the elbows higher than the wrists. Dumbbells let your wrists move in a more natural path than a straight bar.'),
+                ('Chin-ups', 'Back', 'Biceps, Lower Lats, Core', 'Bodyweight', 'Intermediate', 'Hang from a bar with an underhand shoulder-width grip and pull until your chin clears the bar. The supinated grip shifts more work to the biceps and lower lats.'),
+                ('Inverted Rows', 'Back', 'Biceps, Rear Deltoids, Rhomboids', 'Bodyweight', 'Beginner', 'Lie under a low bar, keep your body in a straight line and pull your chest to the bar. A great horizontal pulling movement that is easy to scale by changing body angle.'),
+                ('Chest-Supported Dumbbell Row', 'Back', 'Biceps, Rear Deltoids, Rhomboids', 'Dumbbells', 'Beginner', 'Lie chest down on an incline bench and row the dumbbells toward your hips. Takes the lower back out of the movement so you can focus on the upper back.'),
+                ('Pendlay Row', 'Back', 'Biceps, Rear Deltoids, Lower Back', 'Barbell', 'Advanced', 'Start every rep with the barbell on the floor, keep your torso parallel to the ground and explosively row the bar to your lower chest. Builds raw pulling power and upper back thickness.'),
+                ('Single-Arm Lat Pulldown', 'Back', 'Biceps, Lower Lats', 'Cable', 'Intermediate', 'Pull a single handle down toward your shoulder while keeping your torso upright. Allows a deeper stretch and stronger contraction in each lat.'),
+                ('Rack Pulls', 'Back', 'Traps, Glutes, Hamstrings, Forearms', 'Barbell', 'Advanced', 'Deadlift the bar from knee height or just below using safety pins in a power rack. Lets you overload the upper back and lockout of the deadlift.'),
+                ('Barbell Shrugs', 'Back', 'Upper Trapezius, Forearms', 'Barbell', 'Beginner', 'Hold the barbell in front of your thighs and shrug your shoulders straight up toward your ears without rolling them. Allows heavy loading for the upper traps.'),
+                ('Good Mornings', 'Back', 'Hamstrings, Glutes, Lower Back', 'Barbell', 'Advanced', 'With the bar on your upper back, hinge at the hips with a slight knee bend until your torso is nearly parallel to the floor, then stand back up. Strengthens the entire posterior chain.'),
+                ('Cable Shrugs', 'Back', 'Upper Trapezius, Forearms', 'Cable', 'Beginner', 'Stand between two low pulleys or in front of one and shrug against the cable resistance. Constant tension makes the top of each rep tougher than with free weights.'),
+                ('Push-ups', 'Chest', 'Triceps, Front Deltoids, Core', 'Bodyweight', 'Beginner', 'Keep your body in a straight line, lower your chest to the floor and press back up. A fundamental pressing movement that needs no equipment.'),
+                ('Chest Dips', 'Chest', 'Triceps, Front Deltoids, Lower Chest', 'Bodyweight', 'Intermediate', 'Lean your torso forward on parallel bars and lower until your upper arms are parallel to the floor, then press back up. The forward lean emphasizes the lower chest.'),
+                ('Incline Chest Press Machine', 'Chest', 'Upper Chest, Triceps, Front Deltoids', 'Machine', 'Beginner', 'Press the handles up and forward from a fixed incline seat. A stable way to train the upper chest close to failure.'),
+                ('Low-to-High Cable Flyes', 'Chest', 'Upper Chest, Front Deltoids', 'Cable', 'Intermediate', 'Set the pulleys low and sweep your hands up and together in front of your upper chest. Targets the clavicular fibers with constant tension.'),
+                ('Smith Machine Bench Press', 'Chest', 'Triceps, Front Deltoids', 'Machine', 'Beginner', 'Press the guided bar from your chest to lockout on a flat bench. The fixed path makes it easier to push hard without a spotter.'),
+                ('Svend Press', 'Chest', 'Front Deltoids, Triceps', 'Dumbbells', 'Beginner', 'Squeeze two weight plates together in front of your chest and press them straight out and back. The constant inner chest squeeze gives a strong contraction with light loads.'),
+                ('Dumbbell Floor Press', 'Chest', 'Triceps, Front Deltoids', 'Dumbbells', 'Beginner', 'Lie on the floor and press the dumbbells up until your arms are straight. The floor limits the range of motion and is easy on the shoulders.'),
+                ('Spider Curls', 'Biceps', 'Brachialis, Forearms', 'Dumbbells', 'Intermediate', 'Lie chest down on an incline bench and curl the dumbbells with your arms hanging straight down. Removes swinging and keeps tension on the biceps at the shortened position.'),
+                ('Bayesian Curls', 'Biceps', 'Long Head of Biceps, Forearms', 'Cable', 'Intermediate', 'Face away from a low cable, keep your arm behind your torso and curl the handle up. The stretched starting position hits the long head of the biceps hard.'),
+                ('Zottman Curls', 'Biceps', 'Brachialis, Forearms', 'Dumbbells', 'Intermediate', 'Curl up with palms facing up, rotate the wrists at the top and lower with palms facing down. Trains the biceps on the way up and the forearms on the way down.'),
+                ('Reverse Barbell Curls', 'Biceps', 'Brachialis, Forearms', 'Barbell', 'Beginner', 'Curl the bar with an overhand grip, keeping your elbows pinned to your sides. Builds the brachialis and the forearm extensors.'),
+                ('Dumbbell Preacher Curl', 'Biceps', 'Forearms', 'Dumbbells', 'Beginner', 'Rest your upper arm on a preacher pad and curl one dumbbell at a time. The pad prevents cheating and isolates the biceps.'),
+                ('Cross-Body Hammer Curls', 'Biceps', 'Brachialis, Forearms', 'Dumbbells', 'Beginner', 'Curl each dumbbell across your torso toward the opposite shoulder with a neutral grip. Targets the brachialis and the outer part of the arm.'),
+                ('Drag Curls', 'Biceps', 'Forearms, Rear Deltoids', 'Barbell', 'Intermediate', 'Keep the bar in contact with your body and drag it up your torso by pulling the elbows back. Reduces shoulder involvement so the biceps do the work.'),
+                ('Bench Dips', 'Triceps', 'Chest, Front Deltoids', 'Bodyweight', 'Beginner', 'Place your hands on a bench behind you with your legs extended and lower your body until your elbows are at ninety degrees, then press back up. An easy bodyweight triceps finisher.'),
+                ('Diamond Push-ups', 'Triceps', 'Chest, Front Deltoids', 'Bodyweight', 'Intermediate', 'Form a diamond with your hands under your chest and perform a push-up, keeping the elbows close to your body. Shifts the load from the chest to the triceps.'),
+                ('Single-Arm Cable Pushdown', 'Triceps', 'Forearms', 'Cable', 'Intermediate', 'Press one handle down with your elbow tucked at your side until your arm is straight. Working one arm at a time evens out strength differences.'),
+                ('Reverse-Grip Tricep Pushdown', 'Triceps', 'Forearms', 'Cable', 'Intermediate', 'Push a straight bar down with an underhand grip and lock out your elbows. The grip change emphasizes the medial head of the triceps.'),
+                ('JM Press', 'Triceps', 'Chest, Front Deltoids', 'Barbell', 'Advanced', 'A hybrid between a close-grip bench press and a skullcrusher: lower the bar toward your chin and chest with the elbows tucked and press back up. Lets you load the triceps heavily.'),
+                ('Cable Triceps Kickbacks', 'Triceps', 'Rear Deltoids', 'Cable', 'Beginner', 'Hinge forward, keep your upper arm parallel to the floor and extend your elbow against the cable. The cable keeps tension at the top where dumbbells lose it.'),
+                ('Hack Squat', 'Legs', 'Glutes, Quadriceps', 'Machine', 'Intermediate', 'Position your shoulders under the pads with your feet low on the platform and squat deep. The machine supports your back and puts the focus on the quadriceps.'),
+                ('Smith Machine Squats', 'Legs', 'Glutes, Quadriceps, Hamstrings', 'Machine', 'Beginner', 'Squat with the bar guided on fixed rails and your feet slightly forward. A more stable option for learning the movement and training close to failure.'),
+                ('Sumo Deadlift', 'Legs', 'Glutes, Hamstrings, Inner Thighs, Lower Back', 'Barbell', 'Advanced', 'Take a wide stance with your toes pointed out and grip the bar inside your knees. The upright torso and shorter range suit many lifters and train the inner thighs.'),
+                ('Walking Lunges', 'Legs', 'Glutes, Quadriceps, Hamstrings', 'Dumbbells', 'Intermediate', 'Hold dumbbells at your sides and step forward into a lunge, alternating legs as you travel. Challenges balance and builds the legs and glutes.'),
+                ('Reverse Lunges', 'Legs', 'Glutes, Quadriceps, Hamstrings', 'Dumbbells', 'Beginner', 'Step backward into a lunge and push through your front foot to return. Easier on the knees than forward lunges and good for glute focus.'),
+                ('Seated Calf Raises', 'Legs', 'Calves', 'Machine', 'Beginner', 'Sit with your knees bent under the pad and press up onto your toes. The bent knee shifts the work to the soleus muscle.'),
+                ('Dumbbell Calf Raises', 'Legs', 'Calves', 'Dumbbells', 'Beginner', 'Hold dumbbells at your sides and raise your heels as high as possible, standing on a step for a deeper stretch. A simple way to train the calves anywhere.'),
+                ('Nordic Hamstring Curls', 'Legs', 'Hamstrings, Glutes', 'Bodyweight', 'Advanced', 'Anchor your ankles, kneel upright and lower your torso forward as slowly as you can, then push back up. Builds very strong hamstrings and helps prevent injuries.'),
+                ('Glute Bridge', 'Legs', 'Glutes, Hamstrings, Core', 'Bodyweight', 'Beginner', 'Lie on your back with your knees bent and drive your hips up until your body forms a straight line. A basic movement to learn glute activation.'),
+                ('Cable Pull-Through', 'Legs', 'Glutes, Hamstrings, Lower Back', 'Cable', 'Intermediate', 'Face away from a low cable with the rope between your legs, hinge at the hips and snap them forward to stand. Teaches the hip hinge with constant resistance.'),
+                ('Single-Leg Romanian Deadlift', 'Legs', 'Hamstrings, Glutes, Lower Back, Core', 'Dumbbells', 'Intermediate', 'Balance on one leg, hinge forward while the other leg extends behind you and lower the dumbbell toward the floor. Trains balance and the hamstrings one leg at a time.'),
+                ('Sumo Squat', 'Legs', 'Glutes, Inner Thighs, Quadriceps', 'Dumbbells', 'Beginner', 'Hold one dumbbell between your legs with a wide stance and toes pointed out, then squat down and stand up. Places extra emphasis on the glutes and adductors.'),
+                ('Hip Thrust Machine', 'Legs', 'Glutes, Hamstrings', 'Machine', 'Beginner', 'Sit with your upper back against the pad and drive your hips up against the loaded belt or lever. A comfortable way to load the glutes heavily.'),
+                ('Glute Kickback Machine', 'Legs', 'Glutes, Hamstrings', 'Machine', 'Beginner', 'Press one foot back and up against the pad while stabilizing your torso. Isolates the glutes with a guided path.'),
+                ('Hanging Leg Raises', 'Core', 'Hip Flexors, Rectus Abdominis', 'Bodyweight', 'Advanced', 'Hang from a bar and lift your straight legs until they are parallel to the floor or higher, without swinging. One of the hardest and most effective lower ab exercises.'),
+                ('Hanging Knee Raises', 'Core', 'Hip Flexors, Rectus Abdominis', 'Bodyweight', 'Intermediate', 'Hang from a bar and bring your knees up toward your chest by curling your pelvis. An easier version of the hanging leg raise.'),
+                ('Ab Wheel Rollout', 'Core', 'Shoulders, Lats, Lower Back', 'Bodyweight', 'Advanced', 'Kneel and roll the wheel forward as far as you can while keeping your hips tucked, then pull back. Demands a lot of anterior core strength.'),
+                ('Bicycle Crunches', 'Core', 'Obliques, Hip Flexors', 'Bodyweight', 'Beginner', 'Lie on your back and bring opposite elbow and knee together in a pedaling motion. Works the abs and obliques together.'),
+                ('Dead Bug', 'Core', 'Rectus Abdominis, Hip Flexors', 'Bodyweight', 'Beginner', 'Lie on your back with arms and knees raised and slowly extend the opposite arm and leg while keeping your lower back on the floor. Teaches core control.'),
+                ('Mountain Climbers', 'Core', 'Shoulders, Hip Flexors', 'Bodyweight', 'Beginner', 'From a push-up position drive your knees alternately toward your chest at a quick pace. Combines core work with conditioning.'),
+                ('Side Plank', 'Core', 'Obliques, Shoulders, Glutes', 'Bodyweight', 'Beginner', 'Support yourself on one forearm and the side of your foot, keeping your body in a straight line. Builds lateral core stability.'),
+                ('Reverse Crunches', 'Core', 'Lower Abs, Hip Flexors', 'Bodyweight', 'Beginner', 'Lie on your back and curl your hips off the floor by bringing your knees toward your chest. Targets the lower part of the abs.'),
+                ('Decline Sit-ups', 'Core', 'Hip Flexors, Rectus Abdominis', 'Bench', 'Intermediate', 'Hook your feet under the pads of a decline bench and sit up with control. The slope increases the range of motion and difficulty.'),
+                ('Pallof Press', 'Core', 'Obliques, Shoulders', 'Cable', 'Intermediate', 'Stand sideways to a cable at chest height, press the handle straight out and resist the rotational pull. A classic anti-rotation core exercise.'),
+                ('Crunches', 'Core', 'Rectus Abdominis', 'Bodyweight', 'Beginner', 'Lie on your back with bent knees and curl your shoulders off the floor toward your hips. The simplest way to train the upper abs.'),
+                ('Hanging Windshield Wipers', 'Core', 'Obliques, Hip Flexors, Shoulders', 'Bodyweight', 'Advanced', 'Hang from a bar, lift your legs and swing them side to side like windshield wipers. An advanced oblique and grip challenge.')
+            ) AS candidate("Name", "MainMuscle", "SubMuscles", "Equipment", "Difficulty", "Description")
+            WHERE NOT EXISTS (
+                SELECT 1 FROM "Exercises" AS existing WHERE lower(existing."Name") = lower(candidate."Name")
+            )
+        </sql>
+
+        <rollback>
+            <sql>
+                DELETE FROM "Exercises" WHERE "Name" IN (
+                    'Cable Rear Delt Flyes', 'Seated Bent-Over Rear Delt Raise', 'Single-Arm Cable Rear Delt Fly', 'Lying Incline Bench Rear Delt Raise',
+                    'Arnold Press', 'Push Press', 'Landmine Press', 'Seated Barbell Shoulder Press', 'Cable Upright Row', 'Dumbbell Upright Row',
+                    'Chin-ups', 'Inverted Rows', 'Chest-Supported Dumbbell Row', 'Pendlay Row', 'Single-Arm Lat Pulldown', 'Rack Pulls',
+                    'Barbell Shrugs', 'Good Mornings', 'Cable Shrugs',
+                    'Push-ups', 'Chest Dips', 'Incline Chest Press Machine', 'Low-to-High Cable Flyes', 'Smith Machine Bench Press', 'Svend Press', 'Dumbbell Floor Press',
+                    'Spider Curls', 'Bayesian Curls', 'Zottman Curls', 'Reverse Barbell Curls', 'Dumbbell Preacher Curl', 'Cross-Body Hammer Curls', 'Drag Curls',
+                    'Bench Dips', 'Diamond Push-ups', 'Single-Arm Cable Pushdown', 'Reverse-Grip Tricep Pushdown', 'JM Press', 'Cable Triceps Kickbacks',
+                    'Hack Squat', 'Smith Machine Squats', 'Sumo Deadlift', 'Walking Lunges', 'Reverse Lunges', 'Seated Calf Raises', 'Dumbbell Calf Raises',
+                    'Nordic Hamstring Curls', 'Glute Bridge', 'Cable Pull-Through', 'Single-Leg Romanian Deadlift', 'Sumo Squat', 'Hip Thrust Machine', 'Glute Kickback Machine',
+                    'Hanging Leg Raises', 'Hanging Knee Raises', 'Ab Wheel Rollout', 'Bicycle Crunches', 'Dead Bug', 'Mountain Climbers', 'Side Plank',
+                    'Reverse Crunches', 'Decline Sit-ups', 'Pallof Press', 'Crunches', 'Hanging Windshield Wipers'
+                )
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
