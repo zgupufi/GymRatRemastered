@@ -7,6 +7,13 @@ on:
     paths:
       - 'database/**'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: migrate-database
+  cancel-in-progress: false
+
 jobs:
   migrate:
     runs-on: ubuntu-latest
