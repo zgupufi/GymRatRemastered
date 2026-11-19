@@ -4,10 +4,11 @@
 
 ## Run with Docker
 
-Run the commands from the `infra` folder, where `docker-compose.yml` lives:
+Run the commands from the `infra` folder, where `docker-compose.yml` lives. Before the first run, copy `infra/.env.example` to `infra/.env`:
 
 ```bash
 cd infra
+cp .env.example .env
 docker compose up db
 docker compose up backend
 docker compose up frontend
@@ -19,7 +20,24 @@ docker compose up --build
 - `up frontend` starts the web app and also starts `backend` and `db`. Frontend: http://localhost:3000.
 - `up --build` builds the backend and frontend images and starts everything.
 
-Postgres is exposed on localhost:5432. The database connection for the backend is defined in `infra/docker-compose.yml` (`backend` service, `ConnectionStrings__DefaultConnection`). The defaults are for local development only. To use your own password or JWT key, copy `infra/.env.example` to `infra/.env` and change them.
+Postgres is exposed on localhost:5432. The database connection for the backend is defined in `infra/docker-compose.yml` (`backend` service, `ConnectionStrings__DefaultConnection`).
+
+The example file sets `ASPNETCORE_ENVIRONMENT=Development`, which lets the API start with the placeholder secrets. Without an `infra/.env` the API runs as `Production` and refuses to start, because the defaults in `docker-compose.yml` are publicly known.
+
+`Development` is for your own machine only: it switches the startup checks off, accepts the public placeholder secrets and exposes `/openapi/v1.json`. When the compose stack runs anywhere else, remove the `ASPNETCORE_ENVIRONMENT` line from `infra/.env` or set it to `Production`, and set real values for `JWT_KEY`, `PASSWORD_PEPPER` and `POSTGRES_PASSWORD`.
+
+## Required settings outside Development
+
+In any environment other than `Development` and `Testing` the API validates its settings at startup and exits with a message that names the setting (never its value) when one of these rules is broken:
+
+| Setting | Environment variable | Rule |
+| --- | --- | --- |
+| `JwtSettings:Key` | `JwtSettings__Key` (`JWT_KEY` in `infra/.env`) | At least 32 bytes, and not one of the development or example values from this repository. |
+| `PasswordSettings:Pepper` | `PasswordSettings__Pepper` (`PASSWORD_PEPPER` in `infra/.env`) | Not empty, and not one of the development or example values from this repository. |
+| `ConnectionStrings:DefaultConnection` | `ConnectionStrings__DefaultConnection` | Not empty. |
+| `Cors:AllowedOrigins` | `Cors__AllowedOrigins__0`, `Cors__AllowedOrigins__1`, ... | At least one origin, unless `Cors:SameOrigin` (`Cors__SameOrigin`) is `true` because the web app and the API share one origin, as with the nginx proxy in `infra/docker-compose.yml`. |
+
+Generate each secret separately, for example with `openssl rand -base64 48`. Changing the pepper invalidates every stored password.
 
 ## Changing the database
 
