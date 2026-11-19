@@ -8,6 +8,8 @@ public static class ErrorCodes
 
     public const string InvalidCredentials = "BLException_AuthService_InvalidCredentials";
 
+    public const string TooManyAttempts = "BLException_AuthService_TooManyAttempts";
+
     public const string UnauthorizedAccess = "BLException_AuthService_UnauthorizedAccess";
 
     public const string UserNotFound = "BLException_UsersService_UserNotFound";

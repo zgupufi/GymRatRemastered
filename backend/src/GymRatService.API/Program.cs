@@ -44,6 +44,9 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddAiCoach(builder.Configuration);
 
+builder.Services.AddTrustedForwardedHeaders(builder.Configuration);
+builder.Services.AddAuthRateLimiting(builder.Configuration);
+
 builder.Services.AddRequestValidation();
 builder.Services.AddControllers(options => options.Filters.AddService<ValidationActionFilter>());
 builder.Services.AddOpenApi();
@@ -57,6 +60,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseTrustedForwardedHeaders();
+
 app.UseRequestLocalization(new RequestLocalizationOptions()
     .SetDefaultCulture(supportedCultures[0])
     .AddSupportedCultures(supportedCultures)
@@ -65,6 +70,8 @@ app.UseRequestLocalization(new RequestLocalizationOptions()
 app.UseMiddleware<BusinessLogicExceptionMiddleware>();
 
 app.UseCors(FrontendCorsPolicy);
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

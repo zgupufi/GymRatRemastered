@@ -21,6 +21,9 @@
   <data name="BLException_AuthService_InvalidCredentials" xml:space="preserve">
     <value>Adresa de email sau parola este incorectă.</value>
   </data>
+  <data name="BLException_AuthService_TooManyAttempts" xml:space="preserve">
+    <value>Prea multe încercări. Te rugăm să aștepți puțin și să încerci din nou.</value>
+  </data>
   <data name="BLException_AuthService_UnauthorizedAccess" xml:space="preserve">
     <value>Tokenul de acces nu identifică un utilizator.</value>
   </data>

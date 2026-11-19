@@ -3,6 +3,7 @@ using GymRatService.Service.Interfaces;
 using GymRatService.Service.Security;
 using GymRatService.Service.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace GymRatService.Service;
 
@@ -17,6 +18,8 @@ public static class ServiceLayerExtensions
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<ITokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IChatUsageLimiter, ChatUsageLimiter>();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<ILoginAttemptLimiter, LoginAttemptLimiter>();
 
         services.AddScoped<IExercisesService, ExercisesService>();
         services.AddScoped<IAuthService, AuthService>();

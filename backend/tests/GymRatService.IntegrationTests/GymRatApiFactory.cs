@@ -54,6 +54,8 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
                 services.AddSingleton(ChatClient);
             }
 
+            services.AddSingleton<IStartupFilter, ClientIpStartupFilter>();
+
             _connection.Open();
             _connection.CreateFunction("uuid_generate_v7", () => Guid.CreateVersion7().ToString().ToUpperInvariant());
             services.AddDbContext<GymRatDbContext>(options => options.UseSqlite(_connection));
@@ -72,6 +74,19 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
     {
         var client = CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(TestAuthHandler.SchemeName);
+
+        return client;
+    }
+
+    public HttpClient CreateClientWithIp(string clientIp, string? forwardedFor = null)
+    {
+        var client = CreateClient();
+        client.DefaultRequestHeaders.Add(ClientIpStartupFilter.HeaderName, clientIp);
+
+        if (forwardedFor is not null)
+        {
+            client.DefaultRequestHeaders.Add("X-Forwarded-For", forwardedFor);
+        }
 
         return client;
     }
