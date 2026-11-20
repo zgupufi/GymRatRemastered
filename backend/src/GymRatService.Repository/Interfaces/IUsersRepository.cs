@@ -11,7 +11,7 @@ public interface IUsersRepository
 
     Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    Task AddAsync(User user, CancellationToken cancellationToken);
+    Task<bool> TryAddAsync(User user, CancellationToken cancellationToken);
 
     Task UpdateLastLoginAsync(Guid id, DateTimeOffset lastLoginAt, CancellationToken cancellationToken);
 

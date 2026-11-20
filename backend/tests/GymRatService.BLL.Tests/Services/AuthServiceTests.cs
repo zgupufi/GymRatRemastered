@@ -35,7 +35,7 @@ public class AuthServiceTests
         // Arrange
         var request = new RegisterRequest(" Ana@Example.com ", "password123", " Ana ", " Pop ", WeightUnit.Pounds);
         User? stored = null;
-        await _repository.AddAsync(Arg.Do<User>(user => stored = user), Arg.Any<CancellationToken>());
+        _repository.TryAddAsync(Arg.Do<User>(user => stored = user), Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
         await _service.RegisterAsync(request, CancellationToken.None);
@@ -58,7 +58,7 @@ public class AuthServiceTests
     {
         // Arrange
         User? stored = null;
-        await _repository.AddAsync(Arg.Do<User>(user => stored = user), Arg.Any<CancellationToken>());
+        _repository.TryAddAsync(Arg.Do<User>(user => stored = user), Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
         await _service.RegisterAsync(
@@ -83,7 +83,7 @@ public class AuthServiceTests
 
         // Assert
         Assert.Equal(ErrorCodes.EmailAlreadyExists, exception.Code);
-        await _repository.DidNotReceive().AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
+        await _repository.DidNotReceive().TryAddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
