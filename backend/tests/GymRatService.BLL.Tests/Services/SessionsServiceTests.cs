@@ -74,14 +74,74 @@ public class SessionsServiceTests
     {
         // Arrange
         _workouts.GetByIdAsync(_workoutId, Arg.Any<CancellationToken>()).Returns(new Workout { Id = _workoutId, UserId = _userId });
+        _sessions.TryAddAsync(Arg.Any<WorkoutSession>(), Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
         await _service.StartSessionAsync(_userId, new StartSessionRequest(_workoutId), CancellationToken.None);
 
         // Assert
-        await _sessions.Received(1).AddAsync(
+        await _sessions.Received(1).TryAddAsync(
             Arg.Is<WorkoutSession>(session => session.UserId == _userId && session.WorkoutId == _workoutId && session.StartedAt >= Now),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task StartSessionAsync_ReturnsTheOpenSession_WhenItIsForTheSameWorkoutAndRecent()
+    {
+        // Arrange
+        _workouts.GetByIdAsync(_workoutId, Arg.Any<CancellationToken>()).Returns(new Workout { Id = _workoutId, UserId = _userId });
+        var open = new WorkoutSession { Id = Guid.CreateVersion7(), UserId = _userId, WorkoutId = _workoutId, StartedAt = Now.AddHours(-1) };
+        _sessions.GetOpenAsync(_userId, Arg.Any<CancellationToken>()).Returns(open);
+
+        // Act
+        var response = await _service.StartSessionAsync(_userId, new StartSessionRequest(_workoutId), CancellationToken.None);
+
+        // Assert
+        Assert.Equal(open.Id, response.Id);
+        await _sessions.DidNotReceive().TryAddAsync(Arg.Any<WorkoutSession>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task StartSessionAsync_FinishesAStaleOpenSessionWithSetsCappedAtTwelveHours_AndStartsANewOne()
+    {
+        // Arrange
+        _workouts.GetByIdAsync(_workoutId, Arg.Any<CancellationToken>()).Returns(new Workout { Id = _workoutId, UserId = _userId });
+        var stale = new WorkoutSession
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = _userId,
+            WorkoutId = _workoutId,
+            StartedAt = Now.AddHours(-30),
+            Sets = [new SessionSet { ExerciseId = _exerciseId, SetNumber = 1, Reps = 5, WeightKg = 60 }],
+        };
+        _sessions.GetOpenAsync(_userId, Arg.Any<CancellationToken>()).Returns(stale);
+        _sessions.TryAddAsync(Arg.Any<WorkoutSession>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        await _service.StartSessionAsync(_userId, new StartSessionRequest(_workoutId), CancellationToken.None);
+
+        // Assert
+        await _sessions.Received(1).FinishAsync(stale.Id, stale.StartedAt.AddHours(12), 12 * 3600, Arg.Any<CancellationToken>());
+        await _sessions.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await _sessions.Received(1).TryAddAsync(Arg.Any<WorkoutSession>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task StartSessionAsync_DeletesAnOpenSessionWithoutSets_WhenItIsForAnotherWorkout()
+    {
+        // Arrange
+        _workouts.GetByIdAsync(_workoutId, Arg.Any<CancellationToken>()).Returns(new Workout { Id = _workoutId, UserId = _userId });
+        var empty = new WorkoutSession { Id = Guid.CreateVersion7(), UserId = _userId, WorkoutId = Guid.CreateVersion7(), StartedAt = Now.AddMinutes(-5) };
+        _sessions.GetOpenAsync(_userId, Arg.Any<CancellationToken>()).Returns(empty);
+        _sessions.TryAddAsync(Arg.Any<WorkoutSession>(), Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        await _service.StartSessionAsync(_userId, new StartSessionRequest(_workoutId), CancellationToken.None);
+
+        // Assert
+        await _sessions.Received(1).DeleteAsync(empty.Id, Arg.Any<CancellationToken>());
+        await _sessions.DidNotReceive().FinishAsync(Arg.Any<Guid>(), Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+        await _sessions.Received(1).TryAddAsync(Arg.Any<WorkoutSession>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -100,7 +160,7 @@ public class SessionsServiceTests
         // Assert
         Assert.Equal(ErrorCodes.WorkoutNotFound, missing.Code);
         Assert.Equal(ErrorCodes.WorkoutNotFound, foreign.Code);
-        await _sessions.DidNotReceive().AddAsync(Arg.Any<WorkoutSession>(), Arg.Any<CancellationToken>());
+        await _sessions.DidNotReceive().TryAddAsync(Arg.Any<WorkoutSession>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

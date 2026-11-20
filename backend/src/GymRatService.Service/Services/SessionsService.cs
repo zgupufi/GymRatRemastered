@@ -21,22 +21,58 @@ public class SessionsService(
 
     private const int HistorySessionCount = 5;
 
+    private const int StartSessionAttempts = 3;
+
     private static readonly TimeSpan ActiveSessionMaxAge = TimeSpan.FromHours(12);
 
     public async Task<StartSessionResponse> StartSessionAsync(Guid userId, StartSessionRequest request, CancellationToken cancellationToken)
     {
         await GetOwnedWorkoutAsync(userId, request.WorkoutId, cancellationToken);
 
-        var session = new WorkoutSession
+        for (var attempt = 0; attempt < StartSessionAttempts; attempt++)
         {
-            UserId = userId,
-            WorkoutId = request.WorkoutId,
-            StartedAt = TimeProvider.System.GetUtcNow(),
-        };
+            var now = TimeProvider.System.GetUtcNow();
+            var open = await sessionsRepository.GetOpenAsync(userId, cancellationToken);
 
-        await sessionsRepository.AddAsync(session, cancellationToken);
+            if (open is not null)
+            {
+                if (open.WorkoutId == request.WorkoutId && now - open.StartedAt < ActiveSessionMaxAge)
+                {
+                    return new StartSessionResponse(open.Id);
+                }
 
-        return new StartSessionResponse(session.Id);
+                await CloseOpenSessionAsync(open, now, cancellationToken);
+            }
+
+            var session = new WorkoutSession
+            {
+                UserId = userId,
+                WorkoutId = request.WorkoutId,
+                StartedAt = now,
+            };
+
+            if (await sessionsRepository.TryAddAsync(session, cancellationToken))
+            {
+                return new StartSessionResponse(session.Id);
+            }
+        }
+
+        throw new InvalidOperationException("Could not start a session because another one was opened at the same time.");
+    }
+
+    private async Task CloseOpenSessionAsync(WorkoutSession session, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        if (session.Sets.Count == 0)
+        {
+            await sessionsRepository.DeleteAsync(session.Id, cancellationToken);
+
+            return;
+        }
+
+        var finishedAt = session.StartedAt + ActiveSessionMaxAge < now ? session.StartedAt + ActiveSessionMaxAge : now;
+        var durationSeconds = (int)Math.Max(0, (finishedAt - session.StartedAt).TotalSeconds);
+
+        await sessionsRepository.FinishAsync(session.Id, finishedAt, durationSeconds, cancellationToken);
     }
 
     public async Task<ActiveSessionDto> GetActiveSessionAsync(Guid userId, CancellationToken cancellationToken)
