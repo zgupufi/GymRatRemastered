@@ -52,6 +52,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       ...init,
       headers: {
         Accept: 'application/json',
+        'Accept-Language': 'en',
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         ...init?.headers,
       },
