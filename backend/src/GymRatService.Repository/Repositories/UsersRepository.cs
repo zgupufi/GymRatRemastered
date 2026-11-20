@@ -2,6 +2,7 @@ using GymRatService.Common.Enums;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace GymRatService.Repository.Repositories;
 
@@ -26,11 +27,32 @@ public class UsersRepository(GymRatDbContext context) : IUsersRepository
             .FirstOrDefaultAsync(user => user.Id == id, cancellationToken);
     }
 
-    public async Task AddAsync(User user, CancellationToken cancellationToken)
+    public async Task<bool> TryAddAsync(User user, CancellationToken cancellationToken)
     {
         context.Users.Add(user);
 
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+
+            return true;
+        }
+        catch (DbUpdateException exception) when (IsUniqueViolation(exception))
+        {
+            context.Entry(user).State = EntityState.Detached;
+
+            return false;
+        }
+    }
+
+    private static bool IsUniqueViolation(DbUpdateException exception)
+    {
+        return exception.InnerException switch
+        {
+            PostgresException postgresException => postgresException.SqlState == PostgresErrorCodes.UniqueViolation,
+            { } inner => inner.Message.Contains("UNIQUE constraint failed", StringComparison.Ordinal),
+            _ => false,
+        };
     }
 
     public async Task UpdateLastLoginAsync(Guid id, DateTimeOffset lastLoginAt, CancellationToken cancellationToken)

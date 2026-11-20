@@ -65,6 +65,24 @@ public sealed class AuthEndpointsTests : IDisposable
     }
 
     [Fact]
+    public async Task Register_ReturnsOneCreatedAndOneBadRequestWithEmailAlreadyExists_WhenTheSameEmailIsRegisteredInParallel()
+    {
+        // Arrange
+        await _factory.SeedAsync(_ => { });
+        var client = _factory.CreateClient();
+        var request = new RegisterRequest("ana@example.com", "password123", "Ana", null, WeightUnit.Kilograms);
+
+        // Act
+        var responses = await Task.WhenAll(Enumerable.Range(0, 2).Select(_ => Task.Run(() => client.PostAsJsonAsync("/api/auth/register", request))));
+
+        // Assert
+        Assert.Equal(1, responses.Count(response => response.StatusCode == HttpStatusCode.Created));
+        var rejected = Assert.Single(responses, response => response.StatusCode == HttpStatusCode.BadRequest);
+        var error = await rejected.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(ErrorCodes.EmailAlreadyExists, error!.Code);
+    }
+
+    [Fact]
     public async Task Register_ReturnsBadRequestWithEveryValidationError_WhenTheRequestIsInvalid()
     {
         // Arrange
