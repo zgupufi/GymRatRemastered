@@ -28,11 +28,11 @@ public class ExercisesController(IExercisesService exercisesService, ISessionsSe
     }
 
     [HttpGet("{id}/progress")]
-    public async Task<IActionResult> GetExerciseProgressAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetExerciseProgressAsync(Guid id, [FromQuery] ProgressFilter filter, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 
-        var response = await sessionsService.GetExerciseProgressAsync(userId, id, cancellationToken);
+        var response = await sessionsService.GetExerciseProgressAsync(userId, id, filter, cancellationToken);
 
         return Ok(response);
     }
