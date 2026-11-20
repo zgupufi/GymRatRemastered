@@ -57,7 +57,11 @@ public class SessionsService(
             }
         }
 
-        throw new InvalidOperationException("Could not start a session because another one was opened at the same time.");
+        var existing = await sessionsRepository.GetOpenAsync(userId, cancellationToken);
+
+        return existing is not null && existing.WorkoutId == request.WorkoutId
+            ? new StartSessionResponse(existing.Id)
+            : throw new InvalidOperationException("Could not start a session because another one was opened at the same time.");
     }
 
     private async Task CloseOpenSessionAsync(WorkoutSession session, DateTimeOffset now, CancellationToken cancellationToken)
