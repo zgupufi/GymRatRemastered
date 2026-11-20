@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUp, Bot, Check, Clock, Dumbbell, Search, TrendingUp } from 'lucide-react'
+import { ArrowLeft, ArrowUp, Bot, Check, Clock, Search, TrendingUp } from 'lucide-react'
 
 type SetState = 'done' | 'current' | 'next'
 
@@ -155,6 +155,16 @@ export function ProgressChartMockup() {
           </span>
         </span>
       </div>
+      <div className="mock__target">
+        <span className="mock__target-text">
+          <small>
+            Today&apos;s target <span className="mock__target-chip">Add a rep</span>
+          </small>
+          <strong>34 kg × 10</strong>
+          <em>Last time 34 kg × 9, 9, 9</em>
+        </span>
+        <span className="mock__target-use">Use target</span>
+      </div>
       <div className="mock__chart">
         <span className="mock__chart-y">
           {['120', '112', '104', '96', '88'].map((label) => (
@@ -199,20 +209,28 @@ export function CoachChatMockup() {
         </span>
       </div>
       <div className="chat__body">
-        <span className="chat__bubble chat__bubble--me">Build me a leg day for tomorrow</span>
-        <span className="chat__bubble">
-          I&apos;ve generated a new <strong>Leg day</strong> routine. It&apos;s ready in your workout list.
-        </span>
-        <span className="chat__card">
-          <span className="chat__card-icon">
-            <Dumbbell size={18} />
+        <span className="chat__bubble chat__bubble--me">My bench press has stalled for two weeks</span>
+        <span className="chat__suggestion">
+          <span className="chat__suggestion-eyebrow">Suggested change</span>
+          <strong>Bench press · Push day</strong>
+          <span className="chat__suggestion-change">
+            <span>Sets</span>
+            <span>
+              <s>4</s> → <strong>5</strong>
+            </span>
           </span>
-          <span className="chat__card-text">
-            <strong>Barbell squats</strong>
-            <span>4 sets · 8–10 reps</span>
+          <span className="chat__suggestion-change">
+            <span>Reps</span>
+            <span>
+              <s>8–10</s> → <strong>5–8</strong>
+            </span>
+          </span>
+          <span className="chat__suggestion-why">Lower reps with a fifth set lets you add load without extra fatigue.</span>
+          <span className="chat__suggestion-actions">
+            <span className="chat__suggestion-apply">Apply</span>
+            <span>Not now</span>
           </span>
         </span>
-        <span className="chat__bubble">Done. Added to your workout!</span>
       </div>
       <div className="chat__input">
         <span>Ask the coach...</span>

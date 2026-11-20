@@ -15,23 +15,49 @@ public class SessionsRepository(GymRatDbContext context) : ISessionsRepository
 
     public async Task<WorkoutSession?> GetActiveAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var sessions = await context.WorkoutSessions
+        return await context.WorkoutSessions
             .AsNoTracking()
             .Include(session => session.Sets)
             .Where(session => session.UserId == userId && session.WorkoutId != null && session.FinishedAt == null && session.Sets.Any())
-            .ToListAsync(cancellationToken);
-
-        return sessions
-            .OrderByDescending(session => session.StartedAt)
-            .ThenByDescending(session => session.Id)
-            .FirstOrDefault();
+            .OrderByDescending(session => session.Id)
+            .Take(1)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task AddAsync(WorkoutSession session, CancellationToken cancellationToken)
+    public async Task<WorkoutSession?> GetOpenAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await context.WorkoutSessions
+            .AsNoTracking()
+            .Include(session => session.Sets)
+            .Where(session => session.UserId == userId && session.FinishedAt == null)
+            .OrderByDescending(session => session.Id)
+            .Take(1)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<bool> TryAddAsync(WorkoutSession session, CancellationToken cancellationToken)
     {
         context.WorkoutSessions.Add(session);
 
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            context.Entry(session).State = EntityState.Detached;
+
+            return false;
+        }
+    }
+
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        await context.WorkoutSessions
+            .Where(session => session.Id == id)
+            .ExecuteDeleteAsync(cancellationToken);
     }
 
     public async Task ReplaceSetsAsync(Guid sessionId, Guid exerciseId, IReadOnlyList<SessionSet> sets, CancellationToken cancellationToken)

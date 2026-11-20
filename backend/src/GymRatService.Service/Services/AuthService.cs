@@ -37,7 +37,10 @@ public class AuthService(
             CreatedAt = TimeProvider.System.GetUtcNow(),
         };
 
-        await usersRepository.AddAsync(user, cancellationToken);
+        if (!await usersRepository.TryAddAsync(user, cancellationToken))
+        {
+            throw new BusinessLogicException(ErrorCodes.EmailAlreadyExists);
+        }
     }
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken)

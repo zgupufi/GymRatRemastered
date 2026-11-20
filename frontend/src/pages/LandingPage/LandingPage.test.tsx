@@ -67,9 +67,9 @@ describe('LandingPage', () => {
   })
 
   it.each([
-    ['Log workouts seamlessly', 'Intuitive workout logging'],
-    ['Measure your progress', 'Clear progress charts'],
-    ['Your personal AI coach', 'Generate custom routines instantly'],
+    ['Log every set, fast', 'Weight, reps and effort for each set'],
+    ['Know what to lift next', "Today's target with the reason"],
+    ['A coach that proposes, you decide', 'Apply a change or dismiss it'],
   ])('renders the %s feature section', (title, point) => {
     renderLanding()
 
@@ -88,6 +88,14 @@ describe('LandingPage', () => {
     expect(mockups).toHaveLength(4)
     mockups.forEach((mockup) => expect(mockup).toHaveAttribute('aria-hidden', 'true'))
     expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument()
+  })
+
+  it('does not advertise features the app does not have', () => {
+    renderLanding()
+
+    expect(screen.queryByText(/volume/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/full body analysis/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/real time/i)).not.toBeInTheDocument()
   })
 
   it('shows the current year in the footer', () => {

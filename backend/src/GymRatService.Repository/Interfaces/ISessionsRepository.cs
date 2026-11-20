@@ -8,7 +8,11 @@ public interface ISessionsRepository
 
     Task<WorkoutSession?> GetActiveAsync(Guid userId, CancellationToken cancellationToken);
 
-    Task AddAsync(WorkoutSession session, CancellationToken cancellationToken);
+    Task<WorkoutSession?> GetOpenAsync(Guid userId, CancellationToken cancellationToken);
+
+    Task<bool> TryAddAsync(WorkoutSession session, CancellationToken cancellationToken);
+
+    Task DeleteAsync(Guid id, CancellationToken cancellationToken);
 
     Task ReplaceSetsAsync(Guid sessionId, Guid exerciseId, IReadOnlyList<SessionSet> sets, CancellationToken cancellationToken);
 

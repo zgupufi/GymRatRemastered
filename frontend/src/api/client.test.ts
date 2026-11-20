@@ -31,6 +31,19 @@ describe('apiClient', () => {
     expect(fetchMock.mock.calls[0][1]?.headers).toMatchObject({ Authorization: 'Bearer abc123' })
   })
 
+  it('asks for English messages on every request', async () => {
+    const fetchMock = mockFetch(new Response(null, { status: 204 }))
+
+    await apiClient.get('/api/things')
+    await apiClient.post('/api/things', { name: 'x' })
+
+    expect(fetchMock.mock.calls[0][1]?.headers).toMatchObject({ 'Accept-Language': 'en' })
+    expect(fetchMock.mock.calls[1][1]?.headers).toMatchObject({
+      'Accept-Language': 'en',
+      'Content-Type': 'application/json',
+    })
+  })
+
   it('sends no authorization header without an access token', async () => {
     const fetchMock = mockFetch(Response.json([]))
 

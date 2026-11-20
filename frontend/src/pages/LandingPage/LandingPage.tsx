@@ -35,19 +35,29 @@ const features: Feature[] = [
     tone: 'blue',
     icon: Dumbbell,
     eyebrow: 'Logging',
-    title: 'Log workouts seamlessly',
-    body: 'GymRat gives you everything you need to log workouts intuitively, track your weights, and smash your goals, without clunky interfaces getting in the way.',
-    points: ['Intuitive workout logging', 'Unlimited custom routines', 'Automatic rest timers', 'Sets tracked in real time'],
+    title: 'Log every set, fast',
+    body: "Pick today's workout, enter weight and reps, and tick the set off. Rate how hard it felt, and a rest timer starts on its own.",
+    points: [
+      'Weight, reps and effort for each set',
+      'Build your own routines and weekly split',
+      'Rest timer with −10s and +30s',
+      'Add or remove sets during a workout',
+    ],
     mockup: <WorkoutCardMockup />,
   },
   {
     id: 'progress',
     tone: 'emerald',
     icon: TrendingUp,
-    eyebrow: 'Progress',
-    title: 'Measure your progress',
-    body: 'Staying motivated is effortless when you can see how far you have come. Analyze your volume and estimated 1RM, and track every kg lifted over time.',
-    points: ['Clear progress charts', 'Estimated one rep max', 'Volume and workout frequency', 'Full body analysis'],
+    eyebrow: 'Progression',
+    title: 'Know what to lift next',
+    body: 'Every exercise opens with a target for today and the reason behind it: add a rep, move up in weight, or hold. When a lift stalls, the coach can help. Your estimated one rep max is charted per exercise.',
+    points: [
+      "Today's target with the reason",
+      "Last session's sets shown next to it",
+      'Estimated one rep max chart per exercise',
+      'Stalled lifts point you to the coach',
+    ],
     mockup: <ProgressChartMockup />,
     reverse: true,
     band: true,
@@ -57,13 +67,13 @@ const features: Feature[] = [
     tone: 'cyan',
     icon: Bot,
     eyebrow: 'AI coach',
-    title: 'Your personal AI coach',
-    body: 'Meet GymRat AI. Type what you need and it acts as your personal assistant, creating routines, adding exercises, and adjusting sets in real time.',
+    title: 'A coach that proposes, you decide',
+    body: 'Ask the coach to build a routine or adjust your sets and reps. The coach explains each suggestion, and changes to sets and reps wait for your Apply.',
     points: [
-      'Generate custom routines instantly',
-      'Edit exercises and sets by chat',
-      'Changes show up in your app instantly',
-      'Adjust your workout hands free',
+      'Ask the coach to build a routine',
+      'Suggestions show the current and proposed values',
+      'Apply a change or dismiss it',
+      'Ask for a plan when a lift stalls',
     ],
     mockup: <CoachChatMockup />,
   },
@@ -155,8 +165,8 @@ export function LandingPage() {
                 <span>Stay motivated.</span>
               </h1>
               <p className="hero__lead">
-                GymRat is a free, powerfully simple workout tracker. Build routines, follow your split, and track every
-                session with precision.
+                GymRat is a free workout tracker. Build routines, follow a weekly split, and log every set with weight,
+                reps and effort.
               </p>
               <div className="hero__actions">
                 <ButtonLink to="/register" size="lg">

@@ -1,0 +1,156 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--bg:#05070d;--surface:#111725;--surface-2:#182033;--text:#f5f7fb;--text-2:#b4bccc;--text-3:#7d879b;--text-4:#535c70;--blue:#3d8bff;--emerald:#22c58b;--cyan:#2cc4d9;--hair:rgba(255,255,255,.08)}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;width:1280px;padding:0 0 40px}
+.label{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:28px 64px 0}
+.hero{padding:36px 64px 48px;border-bottom:1px solid var(--hair)}
+.hero small{display:inline-block;font-size:13px;color:var(--emerald);font-weight:600;margin-bottom:14px}
+.hero h1{font-size:52px;letter-spacing:-.03em;line-height:1.05;max-width:760px}
+.hero h1 em{font-style:normal;color:var(--emerald)}
+.hero p{margin-top:18px;font-size:18px;line-height:1.5;color:var(--text-2);max-width:620px}
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;padding:56px 64px;border-bottom:1px solid var(--hair)}
+.feature.rev .copy{order:2}
+.feature.band{background:rgba(255,255,255,.02)}
+.eyebrow{font-size:13px;font-weight:600;color:var(--c);margin-bottom:12px}
+h2{font-size:34px;letter-spacing:-.02em;line-height:1.1}
+.body{margin-top:14px;font-size:16px;line-height:1.55;color:var(--text-2)}
+ul{list-style:none;padding:0;margin-top:22px;display:grid;gap:11px}
+li{display:flex;gap:12px;align-items:center;font-size:15px;color:var(--text)}
+li i{width:20px;height:20px;border-radius:50%;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c);display:grid;place-items:center;font-size:11px;font-style:normal;font-weight:700;flex:none}
+.mock{background:var(--surface);border:1px solid var(--hair);border-radius:24px;padding:22px;box-shadow:0 30px 60px -30px rgba(0,0,0,.7)}
+.mtitle{font-size:20px;font-weight:700}
+.ex{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--hair);margin-top:8px}
+.ex b{width:24px;height:24px;border-radius:8px;background:rgba(255,255,255,.07);display:grid;place-items:center;font-size:12px;color:var(--text-3)}
+.ex span{flex:1;font-weight:600;font-size:15px}.ex span small{display:block;font-weight:400;color:var(--text-3);font-size:12px;margin-top:2px}
+.ex em{font-style:normal;color:var(--text-3);font-size:12px}.ex em strong{display:block;color:var(--text);font-size:16px;text-align:right}
+.sethead,.setrow{display:grid;grid-template-columns:34px 1fr 1fr 1fr;gap:8px;align-items:center;text-align:center}
+.sethead{font-size:11px;letter-spacing:.1em;color:var(--text-3);text-transform:uppercase;margin-top:16px;padding:0 6px}
+.setrow{margin-top:8px;padding:6px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--hair);font-size:15px;font-weight:600}
+.setrow.done{background:rgba(34,197,139,.1);border-color:rgba(34,197,139,.3)}
+.pillx{font-size:12px;font-weight:600;padding:5px 0;border-radius:999px;background:rgba(255,255,255,.07);color:var(--text-2)}
+.pillx.on{background:var(--emerald);color:#03140d}
+.rest{margin-top:16px;display:flex;justify-content:space-between;align-items:center;padding:10px 10px 10px 18px;border-radius:999px;background:var(--surface-2);border:1px solid var(--hair);font-size:14px;color:var(--text-2)}
+.rest b{font:600 18px ui-monospace,Consolas,monospace;color:var(--emerald);margin-left:10px}
+.rest span.b{padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.07);font-size:12px;font-weight:600;margin-left:6px;color:var(--text)}
+.target{border-radius:16px;padding:14px 16px;background:rgba(34,197,139,.1);border:1px solid rgba(34,197,139,.3);display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.target small{font-size:12px;color:var(--text-2);display:block}
+.target .chip{margin-left:6px;padding:2px 8px;border-radius:999px;background:rgba(34,197,139,.2);color:var(--emerald);font-weight:600}
+.target strong{display:block;font-size:22px;margin:4px 0 2px}
+.target em{font-style:normal;font-size:12px;color:var(--text-3)}
+.target .use{padding:9px 14px;border-radius:999px;background:var(--emerald);color:#03140d;font-weight:600;font-size:13px}
+.chart{margin-top:16px;height:150px;position:relative}
+.chart svg{width:100%;height:100%}
+.chartsub{font-size:12px;color:var(--text-3);margin-top:2px}
+.bubble{max-width:78%;padding:11px 14px;border-radius:18px;font-size:14px;line-height:1.4;background:var(--surface-2);margin-top:10px}
+.bubble.me{margin-left:auto;background:var(--cyan);color:#041418}
+.sug{margin-top:10px;border-radius:18px;padding:16px;background:rgba(44,196,217,.08);border:1px solid rgba(44,196,217,.3)}
+.sug .e{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);font-weight:600}
+.sug .t{font-weight:600;font-size:15px;margin-top:6px}
+.sug dl{margin-top:10px;display:grid;gap:6px;font-size:14px}
+.sug dl div{display:flex;justify-content:space-between;color:var(--text-2)}
+.sug s{color:var(--text-3)}.sug strong{color:var(--text)}
+.sug p{margin-top:10px;font-size:13px;color:var(--text-3);line-height:1.4}
+.acts{display:flex;gap:8px;margin-top:12px}
+.acts span{padding:9px 16px;border-radius:999px;font-weight:600;font-size:13px;background:rgba(255,255,255,.07)}
+.acts span.p{background:var(--cyan);color:#041418}
+.input{margin-top:14px;display:flex;justify-content:space-between;align-items:center;padding:10px 10px 10px 16px;border-radius:999px;background:rgba(0,0,0,.25);border:1px solid var(--hair);color:var(--text-4);font-size:14px}
+.input i{width:30px;height:30px;border-radius:50%;background:var(--cyan);display:grid;place-items:center;color:#041418;font-style:normal;font-weight:700}
+.closing{text-align:center;padding:48px 64px 0}
+.closing h2{font-size:30px}.closing p{margin-top:10px;color:var(--text-2)}
+</style></head><body>
+<div class="label">GR-BUG-08 · Landing page copy · proposed</div>
+
+<section class="hero">
+  <small>Free workout tracker</small>
+  <h1>Log workouts. <em>Get stronger.</em> Stay motivated.</h1>
+  <p>GymRat is a free workout tracker. Build routines, follow a weekly split, and log every set with weight, reps and effort.</p>
+</section>
+
+<section class="feature" style="--c:var(--blue)">
+  <div class="copy">
+    <div class="eyebrow">Logging</div>
+    <h2>Log every set, fast</h2>
+    <p class="body">Pick today's workout, enter weight and reps, and tick the set off. Rate how hard it felt, and a rest timer starts on its own.</p>
+    <ul>
+      <li><i>✓</i>Weight, reps and effort for each set</li>
+      <li><i>✓</i>Build your own routines and weekly split</li>
+      <li><i>✓</i>Rest timer with −10s and +30s</li>
+      <li><i>✓</i>Add or remove sets during a workout</li>
+    </ul>
+  </div>
+  <div class="mock">
+    <div class="mtitle">Incline dumbbell press</div>
+    <div class="sethead"><span>Set</span><span>Kg</span><span>Reps</span><span>Effort</span></div>
+    <div class="setrow done"><span>1</span><span>32</span><span>10</span><span class="pillx">Easy</span></div>
+    <div class="setrow done"><span>2</span><span>32</span><span>9</span><span class="pillx on">Good</span></div>
+    <div class="setrow"><span>3</span><span>32</span><span style="color:var(--text-4)">—</span><span class="pillx">—</span></div>
+    <div class="rest"><span>Rest<b>01:24</b></span><span><span class="b">−10s</span><span class="b">+30s</span></span></div>
+  </div>
+</section>
+
+<section class="feature rev band" style="--c:var(--emerald)">
+  <div class="copy">
+    <div class="eyebrow">Progression</div>
+    <h2>Know what to lift next</h2>
+    <p class="body">Every exercise opens with a target for today and the reason behind it: add a rep, move up in weight, or hold. When a lift stalls, the coach can help. Your estimated one rep max is charted per exercise.</p>
+    <ul>
+      <li><i>✓</i>Today's target with the reason</li>
+      <li><i>✓</i>Last session's sets shown next to it</li>
+      <li><i>✓</i>Estimated one rep max chart per exercise</li>
+      <li><i>✓</i>Stalled lifts point you to the coach</li>
+    </ul>
+  </div>
+  <div class="mock">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><div class="mtitle">Incline dumbbell press</div><div class="chartsub">Estimated 1 rep max (kg)</div></div>
+      <div style="text-align:right"><div style="font-size:20px;font-weight:700">118 kg</div><div style="font-size:12px;color:var(--emerald)">+14%</div></div>
+    </div>
+    <div class="target">
+      <div><small>Today's target <span class="chip">Add a rep</span></small><strong>34 kg × 10</strong><em>Last time 34 kg × 9, 9, 9</em></div>
+      <span class="use">Use target</span>
+    </div>
+    <div class="chart">
+      <svg viewBox="0 0 400 150" preserveAspectRatio="none">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22c58b" stop-opacity=".32"/><stop offset="1" stop-color="#22c58b" stop-opacity="0"/></linearGradient></defs>
+        <g stroke="rgba(255,255,255,.07)"><line x1="0" x2="400" y1="10" y2="10"/><line x1="0" x2="400" y1="52" y2="52"/><line x1="0" x2="400" y1="94" y2="94"/><line x1="0" x2="400" y1="136" y2="136"/></g>
+        <path d="M4,120 C40,115 60,108 90,100 S140,90 170,80 S230,62 260,54 S330,36 396,20 L396,146 L4,146 Z" fill="url(#g)"/>
+        <path d="M4,120 C40,115 60,108 90,100 S140,90 170,80 S230,62 260,54 S330,36 396,20" fill="none" stroke="#22c58b" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="396" cy="20" r="5" fill="#22c58b"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="feature" style="--c:var(--cyan)">
+  <div class="copy">
+    <div class="eyebrow">AI coach</div>
+    <h2>A coach that proposes, you decide</h2>
+    <p class="body">Ask the coach to build a routine or adjust your sets and reps. The coach explains each suggestion, and changes to sets and reps wait for your Apply.</p>
+    <ul>
+      <li><i>✓</i>Ask the coach to build a routine</li>
+      <li><i>✓</i>Suggestions show the current and proposed values</li>
+      <li><i>✓</i>Apply a change or dismiss it</li>
+      <li><i>✓</i>Ask for a plan when a lift stalls</li>
+    </ul>
+  </div>
+  <div class="mock">
+    <div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:12px;background:rgba(44,196,217,.16);color:var(--cyan);display:grid;place-items:center;font-weight:700">AI</div><div><b>GymRat AI</b></div></div>
+    <div class="bubble me">My bench press has stalled for two weeks</div>
+    <div class="sug">
+      <div class="e">Suggested change</div>
+      <div class="t">Bench press · Push day</div>
+      <dl><div><span>Sets</span><span><s>4</s> → <strong>5</strong></span></div><div><span>Reps</span><span><s>8–10</s> → <strong>5–8</strong></span></div></dl>
+      <p>Lower reps with a fifth set lets you add load without extra fatigue.</p>
+      <div class="acts"><span class="p">Apply</span><span>Not now</span></div>
+    </div>
+    <div class="input"><span>Ask the coach...</span><i>↑</i></div>
+  </div>
+</section>
+
+<section class="closing">
+  <h2>Start logging today.</h2>
+  <p>Free, simple, and built for the gym floor.</p>
+</section>
+</body></html>
