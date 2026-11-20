@@ -526,10 +526,12 @@ public sealed class SessionsEndpointsTests : IDisposable
 
         // Act
         var utc = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress");
+        var empty = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress?timeZone=");
         var bucharest = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress?timeZone=Europe%2FBucharest");
 
         // Assert
         Assert.Equal(new DateOnly(2026, 11, 10), Assert.Single(utc!).Date);
+        Assert.Equal(new DateOnly(2026, 11, 10), Assert.Single(empty!).Date);
         Assert.Equal(new DateOnly(2026, 11, 11), Assert.Single(bucharest!).Date);
     }
 

@@ -388,6 +388,42 @@ public class SessionsServiceTests
         Assert.Equal(new DateOnly(2026, 11, 11), Assert.Single(progress).Date);
     }
 
+    [Theory]
+    [InlineData(2026, 3, 28, 21, 30, 28)]
+    [InlineData(2026, 3, 28, 22, 30, 29)]
+    [InlineData(2026, 10, 24, 20, 30, 24)]
+    [InlineData(2026, 10, 24, 21, 30, 25)]
+    public async Task GetExerciseProgressAsync_BucketsTheSessionsAcrossDaylightSavingTransitions(int year, int month, int day, int hour, int minute, int expectedDay)
+    {
+        // Arrange
+        _exercises.GetByIdAsync(_exerciseId, Arg.Any<CancellationToken>()).Returns(new ExerciseCard { Id = _exerciseId });
+        var session = new WorkoutSession { StartedAt = new DateTimeOffset(year, month, day, hour, minute, 0, TimeSpan.Zero) };
+        _sessions.GetExerciseSetsAsync(_userId, _exerciseId, Arg.Any<CancellationToken>())
+            .Returns(new List<SessionSet> { new() { Session = session, Reps = 5, WeightKg = 100 } });
+
+        // Act
+        var progress = await _service.GetExerciseProgressAsync(_userId, _exerciseId, new ProgressFilter { TimeZone = "Europe/Bucharest" }, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(expectedDay, Assert.Single(progress).Date.Day);
+    }
+
+    [Fact]
+    public async Task GetExerciseProgressAsync_UsesUtc_WhenTheTimeZoneIsEmpty()
+    {
+        // Arrange
+        _exercises.GetByIdAsync(_exerciseId, Arg.Any<CancellationToken>()).Returns(new ExerciseCard { Id = _exerciseId });
+        var session = new WorkoutSession { StartedAt = new DateTimeOffset(2026, 11, 10, 22, 30, 0, TimeSpan.Zero) };
+        _sessions.GetExerciseSetsAsync(_userId, _exerciseId, Arg.Any<CancellationToken>())
+            .Returns(new List<SessionSet> { new() { Session = session, Reps = 5, WeightKg = 100 } });
+
+        // Act
+        var progress = await _service.GetExerciseProgressAsync(_userId, _exerciseId, new ProgressFilter { TimeZone = "" }, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(new DateOnly(2026, 11, 10), Assert.Single(progress).Date);
+    }
+
     [Fact]
     public async Task GetExerciseProgressAsync_ReturnsAnEmptyList_WhenThereAreNoSets()
     {
