@@ -161,7 +161,7 @@ export function ProgressChartMockup() {
             Today&apos;s target <span className="mock__target-chip">Add a rep</span>
           </small>
           <strong>34 kg × 10</strong>
-          <em>Last time 34 kg × 9, 9, 8</em>
+          <em>Last time 34 kg × 9, 9, 9</em>
         </span>
         <span className="mock__target-use">Use target</span>
       </div>

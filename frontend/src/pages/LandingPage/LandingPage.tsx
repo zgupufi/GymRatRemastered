@@ -51,7 +51,7 @@ const features: Feature[] = [
     icon: TrendingUp,
     eyebrow: 'Progression',
     title: 'Know what to lift next',
-    body: 'Every exercise opens with a target for today and the reason behind it: add a rep, move up in weight, hold, or change something after a stall. Your estimated one rep max is charted per exercise.',
+    body: 'Every exercise opens with a target for today and the reason behind it: add a rep, move up in weight, or hold. When a lift stalls, the coach can help. Your estimated one rep max is charted per exercise.',
     points: [
       "Today's target with the reason",
       "Last session's sets shown next to it",
@@ -68,7 +68,7 @@ const features: Feature[] = [
     icon: Bot,
     eyebrow: 'AI coach',
     title: 'A coach that proposes, you decide',
-    body: 'Ask for a routine or a change to your sets and reps. The coach explains its suggestion, and nothing in your plan changes until you apply it.',
+    body: 'Ask the coach to build a routine or adjust your sets and reps. The coach explains each suggestion, and changes to sets and reps wait for your Apply.',
     points: [
       'Ask the coach to build a routine',
       'Suggestions show the current and proposed values',
