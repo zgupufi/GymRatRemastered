@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="010-close-stale-open-sessions" author="gymrat">
+        <sql>
+            DELETE FROM "WorkoutSessions" AS session
+            WHERE session."FinishedAt" IS NULL
+              AND NOT EXISTS (SELECT 1 FROM "SessionSets" AS item WHERE item."SessionId" = session."Id")
+              AND (
+                session."StartedAt" &lt; now() - interval '12 hours'
+                OR EXISTS (
+                    SELECT 1 FROM "WorkoutSessions" AS newer
+                    WHERE newer."UserId" = session."UserId"
+                      AND newer."FinishedAt" IS NULL
+                      AND (newer."StartedAt", newer."Id") &gt; (session."StartedAt", session."Id")));
+
+            UPDATE "WorkoutSessions" AS session
+            SET "FinishedAt" = LEAST(session."StartedAt" + interval '12 hours', now()),
+                "DurationSeconds" = floor(extract(epoch FROM (LEAST(session."StartedAt" + interval '12 hours', now()) - session."StartedAt")))::integer
+            WHERE session."FinishedAt" IS NULL
+              AND (
+                session."StartedAt" &lt; now() - interval '12 hours'
+                OR EXISTS (
+                    SELECT 1 FROM "WorkoutSessions" AS newer
+                    WHERE newer."UserId" = session."UserId"
+                      AND newer."FinishedAt" IS NULL
+                      AND (newer."StartedAt", newer."Id") &gt; (session."StartedAt", session."Id")));
+        </sql>
+        <rollback />
+    </changeSet>
+
+    <changeSet id="010-single-open-session-indexes" author="gymrat">
+        <sql>
+            CREATE UNIQUE INDEX "UX_WorkoutSessions_UserId_Open" ON "WorkoutSessions" ("UserId") WHERE "FinishedAt" IS NULL;
+            CREATE INDEX "IX_WorkoutSessions_UserId_FinishedAt" ON "WorkoutSessions" ("UserId", "FinishedAt");
+        </sql>
+        <rollback>
+            <sql>
+                DROP INDEX "IX_WorkoutSessions_UserId_FinishedAt";
+                DROP INDEX "UX_WorkoutSessions_UserId_Open";
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

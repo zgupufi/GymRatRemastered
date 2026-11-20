@@ -21,5 +21,12 @@ public class WorkoutSessionConfiguration : IEntityTypeConfiguration<WorkoutSessi
         builder.HasOne<Workout>().WithMany().HasForeignKey(session => session.WorkoutId).OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(session => new { session.UserId, session.WorkoutId });
+
+        builder.HasIndex(session => new { session.UserId, session.FinishedAt });
+
+        builder.HasIndex(session => session.UserId)
+            .IsUnique()
+            .HasDatabaseName("UX_WorkoutSessions_UserId_Open")
+            .HasFilter("\"FinishedAt\" IS NULL");
     }
 }
