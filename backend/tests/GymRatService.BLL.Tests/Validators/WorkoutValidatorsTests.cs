@@ -103,4 +103,18 @@ public class WorkoutValidatorsTests
         // Assert
         Assert.Equal("Exercises[0].ExerciseId", Assert.Single(result.Errors).PropertyName);
     }
+
+    [Fact]
+    public async Task ReplaceWorkoutExercisesRequestValidator_Fails_WhenAnExerciseIdIsRepeated()
+    {
+        // Arrange
+        var exerciseId = Guid.CreateVersion7();
+
+        // Act
+        var result = await new ReplaceWorkoutExercisesRequestValidator().ValidateAsync(
+            new ReplaceWorkoutExercisesRequest([new WorkoutExerciseRequest(exerciseId, 3), new WorkoutExerciseRequest(exerciseId, 4)]));
+
+        // Assert
+        Assert.Equal("Exercises", Assert.Single(result.Errors).PropertyName);
+    }
 }

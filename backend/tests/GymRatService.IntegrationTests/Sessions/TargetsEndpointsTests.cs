@@ -113,7 +113,7 @@ public sealed class TargetsEndpointsTests : IDisposable
     }
 
     [Fact]
-    public async Task ReplaceExercises_KeepsTheSettingsOfEachOccurrence_WhenTheyAreOmitted()
+    public async Task ReplaceExercises_KeepsTheSettingsOfEachExercise_WhenTheyAreOmitted()
     {
         // Arrange
         var (bench, curl, _) = await SeedExercisesAsync();
@@ -121,24 +121,22 @@ public sealed class TargetsEndpointsTests : IDisposable
         var workoutId = await CreateWorkoutAsync(
             client,
             new WorkoutExerciseRequest(bench.Id, 3, 6, 10, 5),
-            new WorkoutExerciseRequest(curl.Id, 3),
-            new WorkoutExerciseRequest(bench.Id, 2, 12, 15, 1));
+            new WorkoutExerciseRequest(curl.Id, 3, 12, 15, 1));
 
         // Act
         var response = await client.PutAsJsonAsync(
             $"/api/workouts/{workoutId}/exercises",
             new ReplaceWorkoutExercisesRequest(
             [
+                new WorkoutExerciseRequest(curl.Id, 2),
                 new WorkoutExerciseRequest(bench.Id, 4),
-                new WorkoutExerciseRequest(bench.Id, 2),
-                new WorkoutExerciseRequest(bench.Id, 1),
             ]));
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         var workout = await client.GetFromJsonAsync<WorkoutDto>($"/api/workouts/{workoutId}");
         Assert.Equal(
-            [(4, 6, 10, 5m), (2, 12, 15, 1m), (1, 8, 12, 2.5m)],
+            [(2, 12, 15, 1m), (4, 6, 10, 5m)],
             workout!.Exercises.Select(entry => (entry.TargetSets, entry.RepsMin, entry.RepsMax, entry.WeightStepKg)));
     }
 

@@ -75,7 +75,8 @@ public sealed class CoachSuggestionsEndpointsTests : IDisposable
         // Arrange
         var bench = await SeedExerciseAsync();
         var client = await CreateClientAsync("ana@example.com");
-        var workoutId = await CreateWorkoutAsync(client, bench.Id, 4, 4);
+        var workoutId = await CreateWorkoutAsync(client, bench.Id, 4);
+        await _factory.SeedAsync(context => context.WorkoutExercises.Add(new WorkoutExercise { WorkoutId = workoutId, ExerciseId = bench.Id, Position = 2, TargetSets = 4 }));
         Script(Proposal(workoutId, bench.Id, new { targetSets = 3, weightStepKg = 5 }));
         var card = Assert.Single((await SendAsync(client)).Suggestions);
 
