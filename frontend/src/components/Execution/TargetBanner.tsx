@@ -18,7 +18,7 @@ const REASON_LABELS: Record<ProgressionReason, string> = {
 
 const REASON_HINTS: Partial<Record<ProgressionReason, string>> = {
   Hold: 'Same weight and reps until it feels easier.',
-  Stalled: 'Stalled two sessions in a row. Ask your coach for a plan.',
+  Stalled: 'Stalled two sessions in a row. Open the coach after your workout for a plan.',
 }
 
 function formatWeight(weightKg: number, unit: WeightUnit): string {

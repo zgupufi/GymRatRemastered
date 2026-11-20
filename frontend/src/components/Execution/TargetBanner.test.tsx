@@ -59,7 +59,7 @@ describe('TargetBanner', () => {
 
     expect(screen.getByText('Stalled')).toBeInTheDocument()
     expect(screen.getByText('Bodyweight × 10')).toBeInTheDocument()
-    expect(screen.getByText('Stalled two sessions in a row. Ask your coach for a plan.')).toBeInTheDocument()
+    expect(screen.getByText('Stalled two sessions in a row. Open the coach after your workout for a plan.')).toBeInTheDocument()
 
     rerender(<TargetBanner target={{ ...base, reason: 'AddRep', reps: 9 }} unit={WeightUnit.Kilograms} onUse={vi.fn()} />)
     expect(screen.getByText('Add a rep')).toBeInTheDocument()
