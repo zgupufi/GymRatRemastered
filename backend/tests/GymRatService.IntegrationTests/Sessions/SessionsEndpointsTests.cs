@@ -459,6 +459,7 @@ public sealed class SessionsEndpointsTests : IDisposable
         await _factory.SeedAsync(context => context.WorkoutSessions.Single(session => session.Id == dayOne).StartedAt = DateTimeOffset.UtcNow.AddDays(-2));
         var dayTwo = await StartSessionAsync(ana, workoutId);
         await SaveSetsAsync(ana, dayTwo, bench.Id, new SessionSetRequest(1, 105));
+        await ana.PostAsync($"/api/sessions/{dayTwo}/finish", null);
 
         // Act
         var progress = await ana.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress");
@@ -471,6 +472,78 @@ public sealed class SessionsEndpointsTests : IDisposable
         Assert.Equal(progress[0].Date.AddDays(2), progress[1].Date);
         Assert.Equal(new BestSetDto(1, 105), progress[1].BestSet);
         Assert.Equal(105m, progress[1].EstimatedOneRepMax);
+    }
+
+    [Fact]
+    public async Task GetExerciseProgress_BucketsTheSessionByTheCallersTimeZone_WhenItStartedJustAfterLocalMidnight()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push");
+        var sessionId = await StartSessionAsync(client, workoutId);
+        await SaveSetsAsync(client, sessionId, bench.Id, new SessionSetRequest(5, 100));
+        await client.PostAsync($"/api/sessions/{sessionId}/finish", null);
+        await _factory.SeedAsync(context => context.WorkoutSessions.Single(session => session.Id == sessionId).StartedAt = new DateTimeOffset(2026, 11, 10, 22, 30, 0, TimeSpan.Zero));
+
+        // Act
+        var utc = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress");
+        var bucharest = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress?timeZone=Europe%2FBucharest");
+
+        // Assert
+        Assert.Equal(new DateOnly(2026, 11, 10), Assert.Single(utc!).Date);
+        Assert.Equal(new DateOnly(2026, 11, 11), Assert.Single(bucharest!).Date);
+    }
+
+    [Fact]
+    public async Task GetExerciseProgress_IgnoresSessionsThatWereNeverFinished()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push");
+        var unfinished = await StartSessionAsync(client, workoutId);
+        await SaveSetsAsync(client, unfinished, bench.Id, new SessionSetRequest(5, 200));
+
+        // Act
+        var progress = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress");
+
+        // Assert
+        Assert.Empty(progress!);
+    }
+
+    [Fact]
+    public async Task GetExerciseProgress_PicksTheBestSetByEstimatedOneRepMax()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push");
+        var sessionId = await StartSessionAsync(client, workoutId);
+        await SaveSetsAsync(client, sessionId, bench.Id, new SessionSetRequest(1, 110), new SessionSetRequest(10, 85));
+        await client.PostAsync($"/api/sessions/{sessionId}/finish", null);
+
+        // Act
+        var progress = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress");
+
+        // Assert
+        var day = Assert.Single(progress!);
+        Assert.Equal(new BestSetDto(10, 85), day.BestSet);
+        Assert.Equal(113.33m, day.EstimatedOneRepMax);
+    }
+
+    [Fact]
+    public async Task GetExerciseProgress_ReturnsBadRequest_WhenTheTimeZoneIsUnknown()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+
+        // Act
+        var response = await client.GetAsync($"/api/exercises/{bench.Id}/progress?timeZone=Mars%2FOlympus");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]

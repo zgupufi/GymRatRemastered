@@ -75,7 +75,7 @@ public class SessionsRepository(GymRatDbContext context) : ISessionsRepository
         return await context.SessionSets
             .AsNoTracking()
             .Include(set => set.Session)
-            .Where(set => set.ExerciseId == exerciseId && set.Session!.UserId == userId)
+            .Where(set => set.ExerciseId == exerciseId && set.Session!.UserId == userId && set.Session.DurationSeconds != null)
             .ToListAsync(cancellationToken);
     }
 

@@ -1,5 +1,6 @@
 using GymRatService.Common.DTOs.Sessions;
 using GymRatService.Common.DTOs.Targets;
+using GymRatService.Common.Filtering;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
@@ -91,18 +92,24 @@ public class SessionsService(
         return session?.ToLastSessionDto() ?? new LastSessionDto(null, null, null, []);
     }
 
-    public async Task<IReadOnlyList<ExerciseProgressDto>> GetExerciseProgressAsync(Guid userId, Guid exerciseId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ExerciseProgressDto>> GetExerciseProgressAsync(Guid userId, Guid exerciseId, ProgressFilter filter, CancellationToken cancellationToken)
     {
         await EnsureExerciseExistsAsync(exerciseId, cancellationToken);
 
         var sets = await sessionsRepository.GetExerciseSetsAsync(userId, exerciseId, cancellationToken);
 
+        var timeZone = string.IsNullOrEmpty(filter.TimeZone) ? TimeZoneInfo.Utc : TimeZoneInfo.FindSystemTimeZoneById(filter.TimeZone);
+
         return sets
-            .GroupBy(set => DateOnly.FromDateTime(set.Session!.StartedAt.UtcDateTime))
+            .GroupBy(set => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(set.Session!.StartedAt, timeZone).DateTime))
             .OrderBy(day => day.Key)
             .Select(day =>
             {
-                var best = day.OrderByDescending(set => set.WeightKg).ThenByDescending(set => set.Reps).First();
+                var best = day
+                    .OrderByDescending(set => EstimateOneRepMax(set.WeightKg, set.Reps))
+                    .ThenByDescending(set => set.WeightKg)
+                    .ThenByDescending(set => set.Reps)
+                    .First();
 
                 return new ExerciseProgressDto(
                     day.Key,
