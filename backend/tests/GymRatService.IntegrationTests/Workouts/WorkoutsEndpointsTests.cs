@@ -88,7 +88,8 @@ public sealed class WorkoutsEndpointsTests : IDisposable
         var push = await CreateWorkoutAsync(ana, "Push");
         var legs = await CreateWorkoutAsync(ana, "Legs");
         await CreateWorkoutAsync(other, "Other");
-        await ReplaceExercisesAsync(ana, push, (bench.Id, 3), (bench.Id, 4), (squat.Id, 5));
+        await ReplaceExercisesAsync(ana, push, (bench.Id, 3), (squat.Id, 5));
+        await _factory.SeedAsync(context => context.WorkoutExercises.Add(new WorkoutExercise { WorkoutId = push, ExerciseId = bench.Id, Position = 3, TargetSets = 4 }));
         await ReplaceExercisesAsync(ana, legs, (squat.Id, 3));
 
         // Act
@@ -357,6 +358,26 @@ public sealed class WorkoutsEndpointsTests : IDisposable
         Assert.Equal(new ErrorResponse(ErrorCodes.WorkoutExerciseNotFound, expectedMessage), error);
         var workout = await client.GetFromJsonAsync<WorkoutDto>($"/api/workouts/{id}");
         Assert.Equal(bench.Id, Assert.Single(workout!.Exercises).Exercise.Id);
+    }
+
+    [Fact]
+    public async Task ReplaceWorkoutExercises_ReturnsBadRequestWithValidationErrors_WhenAnExerciseIsRepeated()
+    {
+        // Arrange
+        var (bench, _, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var id = await CreateWorkoutAsync(client, "Push");
+
+        // Act
+        var response = await client.PutAsJsonAsync(
+            $"/api/workouts/{id}/exercises",
+            new ReplaceWorkoutExercisesRequest([new WorkoutExerciseRequest(bench.Id, 3), new WorkoutExerciseRequest(bench.Id, 4)]));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(ErrorCodes.InvalidRequest, error?.Code);
+        Assert.Equal("Exercises", Assert.Single(error!.Errors!).Property);
     }
 
     [Fact]

@@ -10,6 +10,10 @@ public class ReplaceWorkoutExercisesRequestValidator : AbstractValidator<Replace
         RuleFor(request => request.Exercises)
             .NotNull();
 
+        RuleFor(request => request.Exercises)
+            .Must(exercises => exercises.Select(exercise => exercise.ExerciseId).Distinct().Count() == exercises.Count)
+            .When(request => request.Exercises is not null);
+
         RuleForEach(request => request.Exercises)
             .SetValidator(new WorkoutExerciseRequestValidator());
     }
