@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using GymRatService.Common.Enums;
 using GymRatService.Repository;
 using GymRatService.Repository.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,8 @@ public sealed partial class LiquibaseChangelogTests
     public void InitialSchema_DefinesEveryColumnOfTheExerciseEntity()
     {
         // Arrange
-        var schema = File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "001-initial-schema.xml"));
+        var schema = File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "001-initial-schema.xml"))
+            + File.ReadAllText(Path.Combine(ChangelogDirectory, "changes", "012-structured-exercise-catalog.xml"));
         var options = new DbContextOptionsBuilder<GymRatDbContext>()
             .UseNpgsql("Host=localhost;Database=gymrat_model_check")
             .Options;
@@ -42,7 +44,7 @@ public sealed partial class LiquibaseChangelogTests
 
         // Assert
         Assert.Equal("Exercises", entityType.GetTableName());
-        Assert.Equal(8, columns.Count);
+        Assert.Equal(7, columns.Count);
         Assert.All(columns, column => Assert.Contains($"<column name=\"{column}\"", schema));
     }
 
@@ -180,6 +182,9 @@ public sealed partial class LiquibaseChangelogTests
 
     [GeneratedRegex("^\\s+\\('([^']+)', '([^']+)', '[^']*', '([^']+)', '([^']+)', '", RegexOptions.Multiline)]
     private static partial Regex ExtendedRowRegex();
+
+    [GeneratedRegex("^\"((?:[^\"]|\"\")*)\",\"([A-Za-z]+)\",\"([^\"]*)\",\"([^\"]*)\"", RegexOptions.Multiline)]
+    private static partial Regex InstructionRowRegex();
 
     [GeneratedRegex("^\"([0-9a-f-]{36})\",\"((?:[^\"]|\"\")*)\"", RegexOptions.Multiline)]
     private static partial Regex SeedRowRegex();

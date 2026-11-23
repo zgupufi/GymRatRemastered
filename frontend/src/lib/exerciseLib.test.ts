@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { difficultyTone } from './difficulty'
-import { howToPerform } from './howToPerform'
+import { muscleLabel, musclesLabel } from './exerciseLabels'
 import { youtubeEmbedUrl } from './youtube'
 
 describe('difficultyTone', () => {
@@ -33,27 +33,17 @@ describe('youtubeEmbedUrl', () => {
   )
 })
 
-describe('howToPerform', () => {
+describe('muscleLabel', () => {
   it.each([
-    ['Barbell', 'Load the barbell'],
-    ['Dumbbell', 'dumbbells'],
-    ['Cable', 'pulley'],
-    ['Machine', 'pulley'],
-    ['Bodyweight', 'stable surface'],
-    [null, 'stable surface'],
-    ['Kettlebell', 'Set up the equipment'],
-  ])('writes the setup for %s equipment', (equipment, text) => {
-    expect(howToPerform(equipment, 'Chest', null).setup).toContain(text)
+    ['Triceps', 'Triceps'],
+    ['FrontDeltoids', 'Front Deltoids'],
+    ['LongHeadOfBiceps', 'Long Head of Biceps'],
+  ])('formats %s as %s', (input, label) => {
+    expect(muscleLabel(input)).toBe(label)
   })
 
-  it('mentions the muscle and appends the description to the execution', () => {
-    const steps = howToPerform('Barbell', 'Chest', ' Keep your back flat. ')
-
-    expect(steps.setup).toContain('chest')
-    expect(steps.execution.endsWith('Keep your back flat.')).toBe(true)
-  })
-
-  it('leaves the execution alone when there is no description', () => {
-    expect(howToPerform('Dumbbell', 'Back', '  ').execution.endsWith('slowly.')).toBe(true)
+  it('joins several muscles and returns an empty string for none', () => {
+    expect(musclesLabel(['Glutes', 'LowerBack'])).toBe('Glutes, Lower Back')
+    expect(musclesLabel([])).toBe('')
   })
 })

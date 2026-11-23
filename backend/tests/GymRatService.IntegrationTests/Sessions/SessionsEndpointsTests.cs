@@ -759,8 +759,8 @@ public sealed class SessionsEndpointsTests : IDisposable
 
     private async Task<(ExerciseCard Bench, ExerciseCard Squat)> SeedExercisesAsync()
     {
-        var bench = new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest" };
-        var squat = new ExerciseCard { Name = "Squat", MainMuscle = "Legs" };
+        var bench = new ExerciseCard { Name = "Bench Press", MainMuscle = MuscleGroup.Chest };
+        var squat = new ExerciseCard { Name = "Squat", MainMuscle = MuscleGroup.Legs };
         await _factory.SeedAsync(context => context.Exercises.AddRange(bench, squat));
 
         return (bench, squat);

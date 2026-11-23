@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check, Plus, Search, X } from 'lucide-react'
 import { searchExercises, type Exercise } from '../../api/exercises'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { musclesLabel } from '../../lib/exerciseLabels'
 import { Input } from '../ui/Input'
 
 const SEARCH_DELAY_MS = 250
@@ -130,7 +131,7 @@ export function ExercisePicker({ selectedIds, onAdd }: ExercisePickerProps) {
                   >
                     <span>
                       {exercise.name}
-                      <small>{[exercise.mainMuscle, exercise.subMuscles, exercise.equipment].filter(Boolean).join(' · ')}</small>
+                      <small>{[exercise.mainMuscle, musclesLabel(exercise.secondaryMuscles), exercise.equipment].filter(Boolean).join(' · ')}</small>
                     </span>
                     {added ? (
                       <Check size={18} className="exercise-picker__added" aria-hidden="true" />

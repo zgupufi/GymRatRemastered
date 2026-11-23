@@ -389,7 +389,7 @@ public sealed class CoachSuggestionsEndpointsTests : IDisposable
 
     private async Task<ExerciseCard> SeedExerciseAsync(string name = "Bench Press")
     {
-        var exercise = new ExerciseCard { Name = name, MainMuscle = "Chest", Equipment = "Barbell" };
+        var exercise = new ExerciseCard { Name = name, MainMuscle = MuscleGroup.Chest, Equipment = Equipment.Barbell };
         await _factory.SeedAsync(context => context.Exercises.Add(exercise));
 
         return exercise;

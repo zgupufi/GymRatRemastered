@@ -1,11 +1,16 @@
+using GymRatService.Common.Enums;
+
 namespace GymRatService.Common.DTOs.Exercises;
 
 public sealed record ExerciseDto(
     Guid Id,
     string Name,
-    string MainMuscle,
-    string? SubMuscles,
-    string? Equipment,
-    string? Difficulty,
+    MuscleGroup MainMuscle,
+    IReadOnlyList<Muscle> SecondaryMuscles,
+    Equipment Equipment,
+    Difficulty Difficulty,
+    MovementPattern MovementPattern,
     string? Description,
+    string? Setup,
+    string? Execution,
     string? YoutubeLink);

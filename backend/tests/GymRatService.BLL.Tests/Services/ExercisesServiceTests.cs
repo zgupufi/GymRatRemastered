@@ -1,3 +1,4 @@
+using GymRatService.Common.Enums;
 using GymRatService.Common.DTOs.Exercises;
 using GymRatService.Common.Errors;
 using GymRatService.Common.Filtering;
@@ -23,8 +24,8 @@ public class ExercisesServiceTests
     public async Task GetExercisesAsync_MapsEveryEntityToADtoAndKeepsThePaging()
     {
         // Arrange
-        var benchPress = new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest", Equipment = "Barbell" };
-        var squat = new ExerciseCard { Name = "Squat", MainMuscle = "Legs", Difficulty = "Intermediate" };
+        var benchPress = new ExerciseCard { Name = "Bench Press", MainMuscle = MuscleGroup.Chest, Equipment = Equipment.Barbell };
+        var squat = new ExerciseCard { Name = "Squat", MainMuscle = MuscleGroup.Legs, Difficulty = Difficulty.Intermediate };
         var filter = new ExerciseFilter { Muscle = "Chest" };
         _repository.GetAllAsync(filter, Arg.Any<CancellationToken>()).Returns(new PagedResult<ExerciseCard>([benchPress, squat], 1, 20, 2));
 
@@ -32,11 +33,21 @@ public class ExercisesServiceTests
         var exercises = await _service.GetExercisesAsync(filter, CancellationToken.None);
 
         // Assert
-        Assert.Equal(
-        [
-            new ExerciseDto(benchPress.Id, "Bench Press", "Chest", null, "Barbell", null, null, null),
-            new ExerciseDto(squat.Id, "Squat", "Legs", null, null, "Intermediate", null, null),
-        ], exercises.Items);
+        Assert.Collection(
+            exercises.Items,
+            first =>
+            {
+                Assert.Equal(benchPress.Id, first.Id);
+                Assert.Equal("Bench Press", first.Name);
+                Assert.Equal(MuscleGroup.Chest, first.MainMuscle);
+                Assert.Equal(Equipment.Barbell, first.Equipment);
+            },
+            second =>
+            {
+                Assert.Equal("Squat", second.Name);
+                Assert.Equal(MuscleGroup.Legs, second.MainMuscle);
+                Assert.Equal(Difficulty.Intermediate, second.Difficulty);
+            });
         Assert.Equal(1, exercises.Page);
         Assert.Equal(20, exercises.PageSize);
         Assert.Equal(2, exercises.TotalCount);
@@ -49,8 +60,8 @@ public class ExercisesServiceTests
         var deadlift = new ExerciseCard
         {
             Name = "Deadlift",
-            MainMuscle = "Back",
-            SubMuscles = "Hamstrings",
+            MainMuscle = MuscleGroup.Back,
+            SecondaryMuscles = [new ExerciseSecondaryMuscle { Muscle = Muscle.Hamstrings }],
             YoutubeLink = "https://youtu.be/deadlift",
         };
         _repository.GetByIdAsync(deadlift.Id, Arg.Any<CancellationToken>()).Returns(deadlift);
@@ -59,9 +70,11 @@ public class ExercisesServiceTests
         var exercise = await _service.GetExerciseAsync(deadlift.Id, CancellationToken.None);
 
         // Assert
-        Assert.Equal(
-            new ExerciseDto(deadlift.Id, "Deadlift", "Back", "Hamstrings", null, null, null, "https://youtu.be/deadlift"),
-            exercise);
+        Assert.Equal(deadlift.Id, exercise.Id);
+        Assert.Equal("Deadlift", exercise.Name);
+        Assert.Equal(MuscleGroup.Back, exercise.MainMuscle);
+        Assert.Equal([Muscle.Hamstrings], exercise.SecondaryMuscles);
+        Assert.Equal("https://youtu.be/deadlift", exercise.YoutubeLink);
     }
 
     [Fact]

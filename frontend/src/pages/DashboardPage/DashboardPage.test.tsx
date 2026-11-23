@@ -24,7 +24,7 @@ const push: WorkoutSummary = { id: 'w1', name: 'Push day', exerciseCount: 2, mai
 const pull: WorkoutSummary = { id: 'w2', name: 'Pull day', exerciseCount: 1, mainMuscles: ['Back'] }
 
 function exercise(id: string, name: string) {
-  return { id, name, mainMuscle: 'Chest', subMuscles: null, equipment: null, difficulty: null, description: null, youtubeLink: null }
+  return { id, name, mainMuscle: 'Chest', secondaryMuscles: [], equipment: 'Barbell', difficulty: 'Beginner', movementPattern: 'Push', description: null, setup: 'Set up.', execution: 'Do it.', youtubeLink: null }
 }
 
 const pushDetails: Workout = {

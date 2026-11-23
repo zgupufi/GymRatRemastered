@@ -1,3 +1,5 @@
+using GymRatService.Common.Enums;
+
 namespace GymRatService.Common.Constants;
 
 public static class WeightSteps
@@ -10,10 +12,10 @@ public static class WeightSteps
 
     public static IReadOnlyList<decimal> Allowed { get; } = [1m, 1.25m, 2m, 2.5m, 5m];
 
-    public static decimal ForEquipment(string? equipment) => equipment?.Trim().ToLowerInvariant() switch
+    public static decimal ForEquipment(Equipment equipment) => equipment switch
     {
-        "barbell" => Barbell,
-        "dumbbell" or "dumbbells" => Dumbbell,
+        Equipment.Barbell => Barbell,
+        Equipment.Dumbbells => Dumbbell,
         _ => Other,
     };
 }

@@ -396,7 +396,7 @@ public sealed class UsersEndpointsTests : IDisposable
     public async Task DeleteAccount_RemovesTheUserAndTheirData_WhenThePasswordMatches()
     {
         // Arrange
-        var bench = new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest" };
+        var bench = new ExerciseCard { Name = "Bench Press", MainMuscle = MuscleGroup.Chest };
         await _factory.SeedAsync(context => context.Exercises.Add(bench));
         var otherToken = await _factory.RegisterAndLoginAsync(
             new RegisterRequest("other@example.com", "password123", "Other", null, WeightUnit.Kilograms));

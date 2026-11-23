@@ -11,8 +11,9 @@ internal static class WorkoutMappings
         workout.Exercises.Count,
         workout.Exercises
             .OrderBy(entry => entry.Position)
-            .Select(entry => entry.Exercise?.MainMuscle)
-            .OfType<string>()
+            .Select(entry => entry.Exercise)
+            .OfType<ExerciseCard>()
+            .Select(exercise => exercise.MainMuscle.ToString())
             .Distinct()
             .ToList());
 

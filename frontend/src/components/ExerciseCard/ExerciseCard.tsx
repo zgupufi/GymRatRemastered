@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { Exercise } from '../../api/exercises'
+import { musclesLabel } from '../../lib/exerciseLabels'
 import { DifficultyChip } from '../ui/DifficultyChip'
 import './ExerciseCard.css'
 
@@ -10,7 +11,7 @@ interface ExerciseCardProps {
 }
 
 export function ExerciseCard({ exercise, onAdd }: ExerciseCardProps) {
-  const muscles = [exercise.mainMuscle, exercise.subMuscles].filter(Boolean).join(' · ')
+  const muscles = [exercise.mainMuscle, musclesLabel(exercise.secondaryMuscles)].filter(Boolean).join(' · ')
   return (
     <article className="exercise-card">
       <div className="exercise-card__text">

@@ -94,6 +94,32 @@ public class FilterValidatorsTests
     }
 
     [Fact]
+    public async Task Validate_Fails_WhenTheEquipmentOrPatternIsNotDefined()
+    {
+        // Arrange
+        var filter = new ExerciseFilter { Equipment = (Equipment)99, Pattern = (MovementPattern)99 };
+
+        // Act
+        var result = await _exerciseValidator.ValidateAsync(filter);
+
+        // Assert
+        Assert.Equal(["Equipment", "Pattern"], result.Errors.Select(error => error.PropertyName));
+    }
+
+    [Fact]
+    public async Task Validate_Passes_WhenTheEquipmentAndPatternAreDefined()
+    {
+        // Arrange
+        var filter = new ExerciseFilter { Equipment = Equipment.Cable, Pattern = MovementPattern.Isolation };
+
+        // Act
+        var result = await _exerciseValidator.ValidateAsync(filter);
+
+        // Assert
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
     public void Skip_IsTheNumberOfItemsOnThePreviousPages()
     {
         // Act

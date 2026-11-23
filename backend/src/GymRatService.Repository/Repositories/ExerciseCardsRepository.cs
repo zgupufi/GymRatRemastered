@@ -1,3 +1,4 @@
+using System.Globalization;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Filtering;
 using GymRatService.Repository.Entities;
@@ -11,23 +12,55 @@ public class ExerciseCardsRepository(GymRatDbContext context) : IExerciseCardsRe
 {
     public async Task<PagedResult<ExerciseCard>> GetAllAsync(ExerciseFilter filter, CancellationToken cancellationToken)
     {
-        var query = context.Exercises.AsNoTracking();
+        var culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+        var query = context.Exercises
+            .AsNoTracking()
+            .Include(exercise => exercise.SecondaryMuscles)
+            .Include(exercise => exercise.Translations)
+            .AsSplitQuery();
 
         if (!string.IsNullOrWhiteSpace(filter.Search.Term))
         {
             var term = filter.Search.Term.Trim().ToLower();
+            var muscleTerm = term.Replace(" ", string.Empty);
+
+            var matchingGroups = Enum.GetValues<MuscleGroup>()
+                .Where(group => group.ToString().Contains(muscleTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            var matchingMuscles = Enum.GetValues<Muscle>()
+                .Where(muscle => muscle.ToString().Contains(muscleTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
             query = query.Where(exercise =>
                 exercise.Name.ToLower().Contains(term)
-                || exercise.MainMuscle.ToLower().Contains(term)
-                || (exercise.SubMuscles != null && exercise.SubMuscles.ToLower().Contains(term)));
+                || exercise.Translations.Any(translation => translation.Culture == culture && translation.Name.ToLower().Contains(term))
+                || matchingGroups.Contains(exercise.MainMuscle)
+                || exercise.SecondaryMuscles.Any(secondary => matchingMuscles.Contains(secondary.Muscle)));
         }
 
         if (!string.IsNullOrWhiteSpace(filter.Muscle))
         {
-            var mainMuscle = filter.Muscle.Trim().ToLower();
+            var muscleName = filter.Muscle.Trim();
 
-            query = query.Where(exercise => exercise.MainMuscle.ToLower() == mainMuscle);
+            MuscleGroup? mainMuscle = Enum.GetValues<MuscleGroup>()
+                .Where(group => string.Equals(group.ToString(), muscleName, StringComparison.OrdinalIgnoreCase))
+                .Select(group => (MuscleGroup?)group)
+                .FirstOrDefault();
+
+            query = mainMuscle is { } selected
+                ? query.Where(exercise => exercise.MainMuscle == selected)
+                : query.Where(_ => false);
+        }
+
+        if (filter.Equipment is { } equipment)
+        {
+            query = query.Where(exercise => exercise.Equipment == equipment);
+        }
+
+        if (filter.Pattern is { } pattern)
+        {
+            query = query.Where(exercise => exercise.MovementPattern == pattern);
         }
 
         var direction = filter.Sort.Direction;
@@ -36,7 +69,11 @@ public class ExerciseCardsRepository(GymRatDbContext context) : IExerciseCardsRe
         {
             ExerciseSortField.MainMuscle => query.OrderByDirection(exercise => exercise.MainMuscle, direction),
             ExerciseSortField.Difficulty => query.OrderByDirection(exercise => exercise.Difficulty, direction),
-            _ => query.OrderByDirection(exercise => exercise.Name, direction),
+            _ => query.OrderByDirection(
+                exercise => exercise.Translations.Where(translation => translation.Culture == culture).Select(translation => translation.Name).FirstOrDefault()
+                    ?? exercise.Translations.Where(translation => translation.Culture == "en").Select(translation => translation.Name).FirstOrDefault()
+                    ?? exercise.Name,
+                direction),
         };
 
         return await sorted
@@ -48,6 +85,9 @@ public class ExerciseCardsRepository(GymRatDbContext context) : IExerciseCardsRe
     {
         return await context.Exercises
             .AsNoTracking()
+            .Include(exercise => exercise.SecondaryMuscles)
+            .Include(exercise => exercise.Translations)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(exercise => exercise.Id == id, cancellationToken);
     }
 

@@ -12,5 +12,11 @@ public class ExerciseFilterValidator : FilterValidator<ExerciseFilter, ExerciseS
     {
         RuleFor(filter => filter.Muscle)
             .MaximumLength(MaximumMuscleLength);
+
+        RuleFor(filter => filter.Equipment)
+            .IsInEnum();
+
+        RuleFor(filter => filter.Pattern)
+            .IsInEnum();
     }
 }

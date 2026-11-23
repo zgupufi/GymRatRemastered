@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="012-1-stage-exercise-instructions" author="gymrat">
+        <createTable tableName="ExerciseInstructionsStaging">
+            <column name="Name" type="varchar(100)">
+                <constraints primaryKey="true" primaryKeyName="PK_ExerciseInstructionsStaging" nullable="false" />
+            </column>
+            <column name="MovementPattern" type="varchar(20)">
+                <constraints nullable="false" />
+            </column>
+            <column name="Setup" type="varchar(1000)">
+                <constraints nullable="false" />
+            </column>
+            <column name="Execution" type="varchar(1500)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <loadData tableName="ExerciseInstructionsStaging" file="../data/exercise-instructions.csv" relativeToChangelogFile="true" encoding="UTF-8" quotchar="&quot;">
+            <column name="Name" type="STRING" />
+            <column name="MovementPattern" type="STRING" />
+            <column name="Setup" type="STRING" />
+            <column name="Execution" type="STRING" />
+        </loadData>
+
+        <rollback>
+            <dropTable tableName="ExerciseInstructionsStaging" />
+        </rollback>
+    </changeSet>
+
+    <changeSet id="012-2-exercise-movement-pattern" author="gymrat">
+        <addColumn tableName="Exercises">
+            <column name="MovementPattern" type="varchar(20)" />
+        </addColumn>
+
+        <sql>
+            UPDATE "Exercises" AS exercise
+            SET "MovementPattern" = staging."MovementPattern"
+            FROM "ExerciseInstructionsStaging" AS staging
+            WHERE staging."Name" = exercise."Name"
+        </sql>
+
+        <addNotNullConstraint tableName="Exercises" columnName="MovementPattern" columnDataType="varchar(20)" />
+
+        <rollback>
+            <dropColumn tableName="Exercises" columnName="MovementPattern" />
+        </rollback>
+    </changeSet>
+
+    <changeSet id="012-3-exercise-secondary-muscles" author="gymrat">
+        <createTable tableName="ExerciseSecondaryMuscles">
+            <column name="ExerciseId" type="uuid">
+                <constraints nullable="false" />
+            </column>
+            <column name="Muscle" type="varchar(30)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="ExerciseSecondaryMuscles" columnNames="ExerciseId, Muscle" constraintName="PK_ExerciseSecondaryMuscles" />
+
+        <addForeignKeyConstraint
+            baseTableName="ExerciseSecondaryMuscles"
+            baseColumnNames="ExerciseId"
+            constraintName="FK_ExerciseSecondaryMuscles_Exercises_ExerciseId"
+            referencedTableName="Exercises"
+            referencedColumnNames="Id"
+            onDelete="CASCADE" />
+
+        <sql>
+            INSERT INTO "ExerciseSecondaryMuscles" ("ExerciseId", "Muscle")
+            SELECT DISTINCT exercise."Id",
+                CASE part.value
+                    WHEN 'Anterior Deltoid' THEN 'FrontDeltoids'
+                    ELSE replace(initcap(part.value), ' ', '')
+                END
+            FROM "Exercises" AS exercise
+            CROSS JOIN LATERAL (
+                SELECT btrim(item) AS value
+                FROM regexp_split_to_table(exercise."SubMuscles", ',') AS item
+            ) AS part
+            WHERE exercise."SubMuscles" IS NOT NULL AND part.value &lt;&gt; ''
+        </sql>
+
+        <rollback>
+            <dropTable tableName="ExerciseSecondaryMuscles" />
+        </rollback>
+    </changeSet>
+
+    <changeSet id="012-4-exercise-translations" author="gymrat">
+        <createTable tableName="ExerciseTranslations">
+            <column name="ExerciseId" type="uuid">
+                <constraints nullable="false" />
+            </column>
+            <column name="Culture" type="varchar(10)">
+                <constraints nullable="false" />
+            </column>
+            <column name="Name" type="varchar(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="Description" type="varchar(1000)" />
+            <column name="Setup" type="varchar(1000)">
+                <constraints nullable="false" />
+            </column>
+            <column name="Execution" type="varchar(1500)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="ExerciseTranslations" columnNames="ExerciseId, Culture" constraintName="PK_ExerciseTranslations" />
+
+        <addForeignKeyConstraint
+            baseTableName="ExerciseTranslations"
+            baseColumnNames="ExerciseId"
+            constraintName="FK_ExerciseTranslations_Exercises_ExerciseId"
+            referencedTableName="Exercises"
+            referencedColumnNames="Id"
+            onDelete="CASCADE" />
+
+        <sql>
+            INSERT INTO "ExerciseTranslations" ("ExerciseId", "Culture", "Name", "Description", "Setup", "Execution")
+            SELECT exercise."Id", 'en', exercise."Name", exercise."Description", staging."Setup", staging."Execution"
+            FROM "Exercises" AS exercise
+            JOIN "ExerciseInstructionsStaging" AS staging ON staging."Name" = exercise."Name"
+        </sql>
+
+        <sql splitStatements="false">
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM "Exercises" AS exercise
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM "ExerciseTranslations" AS translation
+                        WHERE translation."ExerciseId" = exercise."Id" AND translation."Culture" = 'en')
+                ) THEN
+                    RAISE EXCEPTION 'Some exercises have no instructions in the staging data';
+                END IF;
+            END $$;
+        </sql>
+
+        <rollback>
+            <dropTable tableName="ExerciseTranslations" />
+        </rollback>
+    </changeSet>
+
+    <changeSet id="012-5-exercise-enum-constraints" author="gymrat">
+        <addNotNullConstraint tableName="Exercises" columnName="Equipment" columnDataType="varchar(50)" />
+        <addNotNullConstraint tableName="Exercises" columnName="Difficulty" columnDataType="varchar(20)" />
+
+        <sql>
+            ALTER TABLE "Exercises" ADD CONSTRAINT "CK_Exercises_MainMuscle"
+                CHECK ("MainMuscle" IN ('Back', 'Biceps', 'Chest', 'Core', 'Legs', 'Shoulders', 'Triceps'));
+            ALTER TABLE "Exercises" ADD CONSTRAINT "CK_Exercises_Equipment"
+                CHECK ("Equipment" IN ('Barbell', 'Bench', 'Bodyweight', 'Cable', 'Dumbbells', 'Machine'));
+            ALTER TABLE "Exercises" ADD CONSTRAINT "CK_Exercises_Difficulty"
+                CHECK ("Difficulty" IN ('Beginner', 'Intermediate', 'Advanced'));
+            ALTER TABLE "Exercises" ADD CONSTRAINT "CK_Exercises_MovementPattern"
+                CHECK ("MovementPattern" IN ('Push', 'Pull', 'Squat', 'Hinge', 'Core', 'Isolation'));
+            ALTER TABLE "ExerciseSecondaryMuscles" ADD CONSTRAINT "CK_ExerciseSecondaryMuscles_Muscle"
+                CHECK ("Muscle" IN ('Back', 'Biceps', 'Brachialis', 'Calves', 'Chest', 'Core', 'Forearms', 'FrontDeltoids', 'Glutes', 'Hamstrings', 'HipAbductors', 'HipFlexors', 'InnerThighs', 'Lats', 'LongHeadOfBiceps', 'LongHeadOfTriceps', 'LowerAbs', 'LowerBack', 'LowerChest', 'LowerLats', 'MedialDeltoids', 'MiddleTrapezius', 'Obliques', 'Quadriceps', 'RearDeltoids', 'RectusAbdominis', 'Rhomboids', 'RotatorCuff', 'Shoulders', 'TeresMajor', 'Traps', 'Triceps', 'UpperChest', 'UpperTrapezius'));
+        </sql>
+
+        <rollback>
+            <sql>
+                ALTER TABLE "ExerciseSecondaryMuscles" DROP CONSTRAINT "CK_ExerciseSecondaryMuscles_Muscle";
+                ALTER TABLE "Exercises" DROP CONSTRAINT "CK_Exercises_MovementPattern";
+                ALTER TABLE "Exercises" DROP CONSTRAINT "CK_Exercises_Difficulty";
+                ALTER TABLE "Exercises" DROP CONSTRAINT "CK_Exercises_Equipment";
+                ALTER TABLE "Exercises" DROP CONSTRAINT "CK_Exercises_MainMuscle";
+                ALTER TABLE "Exercises" ALTER COLUMN "Difficulty" DROP NOT NULL;
+                ALTER TABLE "Exercises" ALTER COLUMN "Equipment" DROP NOT NULL;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="012-6-drop-legacy-exercise-columns" author="gymrat">
+        <dropColumn tableName="Exercises" columnName="SubMuscles" />
+        <dropColumn tableName="Exercises" columnName="Description" />
+        <dropTable tableName="ExerciseInstructionsStaging" />
+
+        <rollback>
+            <addColumn tableName="Exercises">
+                <column name="SubMuscles" type="varchar(200)" />
+                <column name="Description" type="varchar(1000)" />
+            </addColumn>
+            <sql>
+                UPDATE "Exercises" AS exercise
+                SET "SubMuscles" = (
+                        SELECT string_agg(regexp_replace("Muscle", '([a-z])([A-Z])', '\1 \2', 'g'), ', ' ORDER BY "Muscle")
+                        FROM "ExerciseSecondaryMuscles" AS secondary
+                        WHERE secondary."ExerciseId" = exercise."Id"),
+                    "Description" = (
+                        SELECT translation."Description"
+                        FROM "ExerciseTranslations" AS translation
+                        WHERE translation."ExerciseId" = exercise."Id" AND translation."Culture" = 'en')
+            </sql>
+            <createTable tableName="ExerciseInstructionsStaging">
+                <column name="Name" type="varchar(100)">
+                    <constraints primaryKey="true" primaryKeyName="PK_ExerciseInstructionsStaging" nullable="false" />
+                </column>
+                <column name="MovementPattern" type="varchar(20)">
+                    <constraints nullable="false" />
+                </column>
+                <column name="Setup" type="varchar(1000)">
+                    <constraints nullable="false" />
+                </column>
+                <column name="Execution" type="varchar(1500)">
+                    <constraints nullable="false" />
+                </column>
+            </createTable>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
