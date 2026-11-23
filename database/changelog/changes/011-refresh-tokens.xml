@@ -18,6 +18,9 @@
             <column name="TokenHash" type="varchar(64)">
                 <constraints nullable="false" />
             </column>
+            <column name="SessionStartedAt" type="timestamp with time zone">
+                <constraints nullable="false" />
+            </column>
             <column name="CreatedAt" type="timestamp with time zone">
                 <constraints nullable="false" />
             </column>
@@ -25,6 +28,9 @@
                 <constraints nullable="false" />
             </column>
             <column name="RotatedAt" type="timestamp with time zone" />
+            <column name="RotationCount" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
             <column name="RevokedAt" type="timestamp with time zone" />
         </createTable>
 

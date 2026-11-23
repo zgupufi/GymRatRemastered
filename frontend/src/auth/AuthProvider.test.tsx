@@ -213,6 +213,7 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(getUserProfile).toHaveBeenCalled())
     expect(screen.getByText('status:anonymous')).toBeInTheDocument()
     expect(localStorage.getItem(HINT_KEY)).toBeNull()
+    expect(logout).toHaveBeenCalledTimes(1)
   })
 
   it('registers and then logs in with the same credentials', async () => {

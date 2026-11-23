@@ -191,6 +191,127 @@ public sealed class AuthRefreshEndpointsTests : IDisposable
     }
 
     [Fact]
+    public async Task Refresh_IssuesAtMostTwoSuccessorsPerToken_WhenTheSameTokenIsPresentedRepeatedlyWithinTheGracePeriod()
+    {
+        // Arrange
+        await RegisterAsync(_factory);
+        var client = CreateClient(_factory);
+        var original = ReadCookie(await LoginAsync(client));
+
+        // Act
+        var first = await RefreshAsync(client, original.Value);
+        var second = await RefreshAsync(client, original.Value);
+        var third = await RefreshAsync(client, original.Value);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, second.StatusCode);
+        Assert.NotEqual(ReadCookie(first).Value, ReadCookie(second).Value);
+        await AssertInvalidRefreshTokenAsync(third);
+        Assert.Equal(HttpStatusCode.OK, (await RefreshAsync(client, ReadCookie(second).Value)).StatusCode);
+    }
+
+    [Fact]
+    public async Task Refresh_EndsTheSessionAtTheAbsoluteLifetime_EvenWhenItIsUsedRegularly()
+    {
+        // Arrange
+        await RegisterAsync(_factory);
+        var client = CreateClient(_factory);
+        var cookie = ReadCookie(await LoginAsync(client));
+        HttpResponseMessage response = new();
+
+        // Act
+        for (var visit = 0; visit < 3; visit++)
+        {
+            _factory.Time.Advance(TimeSpan.FromDays(29));
+            response = await RefreshAsync(client, cookie.Value);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            cookie = ReadCookie(response);
+        }
+
+        // Assert
+        Assert.InRange(ReadExpiry(cookie), DateTimeOffset.UtcNow.AddDays(89), DateTimeOffset.UtcNow.AddDays(91));
+        _factory.Time.Advance(TimeSpan.FromDays(4));
+        await AssertInvalidRefreshTokenAsync(await RefreshAsync(client, cookie.Value));
+    }
+
+    [Fact]
+    public async Task Login_StillWorks_WhenTheUserHasExpiredAndRevokedSessionsToCleanUp()
+    {
+        // Arrange
+        await RegisterAsync(_factory);
+        var client = CreateClient(_factory);
+        var expired = ReadCookie(await LoginAsync(client));
+        var revoked = ReadCookie(await LoginAsync(client));
+        await SendWithCookieAsync(client, "/api/auth/logout", revoked.Value);
+        _factory.Time.Advance(TimeSpan.FromDays(31));
+
+        // Act
+        var response = await LoginAsync(client);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await AssertInvalidRefreshTokenAsync(await RefreshAsync(client, expired.Value));
+        await AssertInvalidRefreshTokenAsync(await RefreshAsync(client, revoked.Value));
+        Assert.Equal(HttpStatusCode.OK, (await RefreshAsync(client, ReadCookie(response).Value)).StatusCode);
+    }
+
+    [Theory]
+    [InlineData("/api/auth/refresh")]
+    [InlineData("/api/auth/logout")]
+    public async Task Refresh_AndLogout_RefuseARequestFromAnOriginThatIsNotAllowed(string path)
+    {
+        // Arrange
+        _factory.Settings["Cors:AllowedOrigins:0"] = "https://app.example.com";
+        await _factory.SeedAsync(_ => { });
+        var client = CreateClient(_factory);
+        using var request = new HttpRequestMessage(HttpMethod.Post, path);
+        request.Headers.Add("Origin", "https://evil.example.com");
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(new ErrorResponse(ErrorCodes.OriginNotAllowed, "This request did not come from an allowed origin."), error);
+    }
+
+    [Fact]
+    public async Task Logout_AcceptsTheAllowedOrigin_IgnoringCaseAndATrailingSlash()
+    {
+        // Arrange
+        _factory.Settings["Cors:AllowedOrigins:0"] = "https://App.Example.com/";
+        await _factory.SeedAsync(_ => { });
+        var client = CreateClient(_factory);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
+        request.Headers.Add("Origin", "https://app.example.com");
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Logout_AcceptsAnyOrigin_WhenTheWebAppIsServedFromTheSameOrigin()
+    {
+        // Arrange
+        _factory.Settings["Cors:SameOrigin"] = "true";
+        await _factory.SeedAsync(_ => { });
+        var client = CreateClient(_factory);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
+        request.Headers.Add("Origin", "http://localhost:3000");
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Logout_RevokesTheRefreshTokenAndItsRotations_AndClearsTheCookie()
     {
         // Arrange
@@ -330,6 +451,7 @@ public sealed class AuthRefreshEndpointsTests : IDisposable
     [InlineData("RefreshToken:CookieName", " ", "CookieName")]
     [InlineData("RefreshToken:LifetimeDays", "0", "LifetimeDays")]
     [InlineData("RefreshToken:ReuseGraceSeconds", "-1", "ReuseGraceSeconds")]
+    [InlineData("RefreshToken:AbsoluteLifetimeDays", "29", "AbsoluteLifetimeDays")]
     public void Start_Fails_WhenARefreshTokenSettingIsInvalid(string setting, string value, string expectedName)
     {
         // Arrange

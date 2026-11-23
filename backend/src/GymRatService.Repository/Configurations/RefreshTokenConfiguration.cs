@@ -18,9 +18,13 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
 
         builder.Property(token => token.TokenHash).HasMaxLength(64).IsRequired();
 
+        builder.Property(token => token.SessionStartedAt).IsRequired();
+
         builder.Property(token => token.CreatedAt).IsRequired();
 
         builder.Property(token => token.ExpiresAt).IsRequired();
+
+        builder.Property(token => token.RotationCount).IsRequired();
 
         builder.HasOne<User>().WithMany().HasForeignKey(token => token.UserId).OnDelete(DeleteBehavior.Cascade);
 

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MotionGlobalConfig } from 'motion/react'
 import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom'
@@ -116,6 +116,7 @@ describe('DashboardPage', () => {
   })
 
   afterEach(() => {
+    cleanup()
     localStorage.clear()
     setAccessToken(null)
     vi.resetAllMocks()
@@ -337,6 +338,7 @@ describe('HomePage', () => {
   })
 
   afterEach(() => {
+    cleanup()
     localStorage.clear()
     setAccessToken(null)
     vi.resetAllMocks()

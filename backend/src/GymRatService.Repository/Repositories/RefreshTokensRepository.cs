@@ -6,6 +6,8 @@ namespace GymRatService.Repository.Repositories;
 
 public class RefreshTokensRepository(GymRatDbContext context) : IRefreshTokensRepository
 {
+    private const int RevokePasses = 2;
+
     public async Task AddAsync(RefreshToken token, CancellationToken cancellationToken)
     {
         context.RefreshTokens.Add(token);
@@ -20,34 +22,63 @@ public class RefreshTokensRepository(GymRatDbContext context) : IRefreshTokensRe
             .FirstOrDefaultAsync(token => token.TokenHash == tokenHash, cancellationToken);
     }
 
-    public async Task MarkRotatedAsync(Guid id, DateTimeOffset rotatedAt, CancellationToken cancellationToken)
+    public async Task<bool> TryRotateAsync(Guid id, RefreshToken successor, DateTimeOffset rotatedAt, int maxRotations, CancellationToken cancellationToken)
     {
-        await context.RefreshTokens
-            .Where(token => token.Id == id && token.RotatedAt == null)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.RotatedAt, rotatedAt), cancellationToken);
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+        var claimed = await context.RefreshTokens
+            .Where(token => token.Id == id && token.RevokedAt == null && token.RotationCount < maxRotations)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(token => token.RotatedAt, token => token.RotatedAt ?? rotatedAt)
+                    .SetProperty(token => token.RotationCount, token => token.RotationCount + 1),
+                cancellationToken);
+
+        if (claimed == 0)
+        {
+            return false;
+        }
+
+        context.RefreshTokens.Add(successor);
+        await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return true;
+    }
+
+    public async Task<bool> IsFamilyRevokedAsync(Guid familyId, CancellationToken cancellationToken)
+    {
+        return await context.RefreshTokens
+            .AnyAsync(token => token.FamilyId == familyId && token.RevokedAt != null, cancellationToken);
     }
 
     public async Task RevokeFamilyAsync(Guid familyId, DateTimeOffset revokedAt, CancellationToken cancellationToken)
     {
-        await context.RefreshTokens
-            .Where(token => token.FamilyId == familyId && token.RevokedAt == null)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.RevokedAt, revokedAt), cancellationToken);
+        for (var pass = 0; pass < RevokePasses; pass++)
+        {
+            await context.RefreshTokens
+                .Where(token => token.FamilyId == familyId && token.RevokedAt == null)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.RevokedAt, revokedAt), cancellationToken);
+        }
     }
 
-    public async Task DeleteExpiredAsync(Guid userId, DateTimeOffset now, CancellationToken cancellationToken)
+    public async Task DeleteStaleAsync(Guid userId, DateTimeOffset now, TimeSpan revokedRetention, CancellationToken cancellationToken)
     {
         var candidates = await context.RefreshTokens
             .AsNoTracking()
             .Where(token => token.UserId == userId)
-            .Select(token => new { token.Id, token.ExpiresAt })
+            .Select(token => new { token.Id, token.ExpiresAt, token.RevokedAt })
             .ToListAsync(cancellationToken);
 
-        var expiredIds = candidates.Where(token => token.ExpiresAt <= now).Select(token => token.Id).ToList();
+        var staleIds = candidates
+            .Where(token => token.ExpiresAt <= now || (token.RevokedAt is { } revokedAt && now - revokedAt >= revokedRetention))
+            .Select(token => token.Id)
+            .ToList();
 
-        if (expiredIds.Count > 0)
+        if (staleIds.Count > 0)
         {
             await context.RefreshTokens
-                .Where(token => expiredIds.Contains(token.Id))
+                .Where(token => staleIds.Contains(token.Id))
                 .ExecuteDeleteAsync(cancellationToken);
         }
     }

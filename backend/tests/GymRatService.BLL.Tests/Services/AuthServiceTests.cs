@@ -32,6 +32,7 @@ public class AuthServiceTests
         _passwordHasher.Hash(Arg.Any<string>()).Returns(new HashedPassword("hashed", "salt"));
         _refreshTokenGenerator.Generate().Returns(new GeneratedRefreshToken("new-token", "new-hash"));
         _refreshTokenGenerator.Hash("old-token").Returns("old-hash");
+        _refreshTokens.TryRotateAsync(Arg.Any<Guid>(), Arg.Any<RefreshToken>(), Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(true);
         _time = new AdjustableTimeProvider(Now);
         _service = CreateService(_loginAttemptLimiter);
     }
@@ -117,7 +118,8 @@ public class AuthServiceTests
         Assert.Equal(Now.AddDays(30), issued.ExpiresAt);
         Assert.Equal(7, issued.FamilyId.Version);
         await _repository.Received(1).UpdateLastLoginAsync(user.Id, Now, Arg.Any<CancellationToken>());
-        await _refreshTokens.Received(1).DeleteExpiredAsync(user.Id, Now, Arg.Any<CancellationToken>());
+        await _refreshTokens.Received(1).DeleteStaleAsync(user.Id, Now, TimeSpan.FromDays(1), Arg.Any<CancellationToken>());
+        Assert.Equal(Now, issued.SessionStartedAt);
         _loginAttemptLimiter.Received(1).RegisterAttempt("ana@example.com");
         _loginAttemptLimiter.Received(1).Reset("ana@example.com");
     }
@@ -220,7 +222,9 @@ public class AuthServiceTests
         _refreshTokens.GetByHashAsync("old-hash", Arg.Any<CancellationToken>()).Returns(stored);
         _repository.GetByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
         _tokenGenerator.Generate(user).Returns(access);
-        await _refreshTokens.AddAsync(Arg.Do<RefreshToken>(token => issued = token), Arg.Any<CancellationToken>());
+        _refreshTokens
+            .TryRotateAsync(stored.Id, Arg.Do<RefreshToken>(token => issued = token), Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(true);
         _time.Advance(TimeSpan.FromDays(10));
 
         // Act
@@ -231,7 +235,10 @@ public class AuthServiceTests
         Assert.NotNull(issued);
         Assert.Equal(stored.FamilyId, issued.FamilyId);
         Assert.Equal("new-hash", issued.TokenHash);
-        await _refreshTokens.Received(1).MarkRotatedAsync(stored.Id, Now.AddDays(10), Arg.Any<CancellationToken>());
+        Assert.Equal(stored.SessionStartedAt, issued.SessionStartedAt);
+        Assert.Equal(user.Id, issued.UserId);
+        await _refreshTokens.Received(1).TryRotateAsync(stored.Id, issued, Now.AddDays(10), 2, Arg.Any<CancellationToken>());
+        await _refreshTokens.DidNotReceive().RevokeFamilyAsync(Arg.Any<Guid>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
     }
 
     [Theory]
@@ -255,7 +262,7 @@ public class AuthServiceTests
 
         // Assert
         Assert.Equal(ErrorCodes.InvalidRefreshToken, exception.Code);
-        await _refreshTokens.DidNotReceive().AddAsync(Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>());
+        await _refreshTokens.DidNotReceive().TryRotateAsync(Arg.Any<Guid>(), Arg.Any<RefreshToken>(), Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -271,7 +278,7 @@ public class AuthServiceTests
 
         // Assert
         Assert.Equal(ErrorCodes.InvalidRefreshToken, exception.Code);
-        await _refreshTokens.DidNotReceive().AddAsync(Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>());
+        await _refreshTokens.DidNotReceive().TryRotateAsync(Arg.Any<Guid>(), Arg.Any<RefreshToken>(), Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -286,7 +293,7 @@ public class AuthServiceTests
 
         // Assert
         Assert.Equal(ErrorCodes.InvalidRefreshToken, exception.Code);
-        await _refreshTokens.DidNotReceive().AddAsync(Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>());
+        await _refreshTokens.DidNotReceive().TryRotateAsync(Arg.Any<Guid>(), Arg.Any<RefreshToken>(), Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -304,7 +311,7 @@ public class AuthServiceTests
         // Assert
         Assert.Equal(ErrorCodes.InvalidRefreshToken, exception.Code);
         await _refreshTokens.Received(1).RevokeFamilyAsync(stored.FamilyId, Now.AddSeconds(11), Arg.Any<CancellationToken>());
-        await _refreshTokens.DidNotReceive().AddAsync(Arg.Any<RefreshToken>(), Arg.Any<CancellationToken>());
+        await _refreshTokens.DidNotReceive().TryRotateAsync(Arg.Any<Guid>(), Arg.Any<RefreshToken>(), Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -338,7 +345,71 @@ public class AuthServiceTests
 
         // Assert
         Assert.Equal(ErrorCodes.InvalidRefreshToken, exception.Code);
-        await _refreshTokens.DidNotReceive().MarkRotatedAsync(Arg.Any<Guid>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
+        await _refreshTokens.DidNotReceive().TryRotateAsync(Arg.Any<Guid>(), Arg.Any<RefreshToken>(), Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RefreshAsync_ThrowsInvalidRefreshToken_WhenAnotherRequestAlreadyClaimedTheToken()
+    {
+        // Arrange
+        var user = new User { Id = Guid.CreateVersion7(), Email = "ana@example.com" };
+        _refreshTokens.GetByHashAsync("old-hash", Arg.Any<CancellationToken>()).Returns(StoredToken(user.Id));
+        _repository.GetByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _refreshTokens
+            .TryRotateAsync(Arg.Any<Guid>(), Arg.Any<RefreshToken>(), Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        // Act
+        var exception = await Assert.ThrowsAsync<BusinessLogicException>(() => _service.RefreshAsync("old-token", CancellationToken.None));
+
+        // Assert
+        Assert.Equal(ErrorCodes.InvalidRefreshToken, exception.Code);
+        _tokenGenerator.DidNotReceive().Generate(Arg.Any<User>());
+        await _refreshTokens.DidNotReceive().RevokeFamilyAsync(Arg.Any<Guid>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task RefreshAsync_RevokesTheNewTokenAndThrows_WhenTheFamilyWasRevokedWhileRotating()
+    {
+        // Arrange
+        var user = new User { Id = Guid.CreateVersion7(), Email = "ana@example.com" };
+        var stored = StoredToken(user.Id);
+        _refreshTokens.GetByHashAsync("old-hash", Arg.Any<CancellationToken>()).Returns(stored);
+        _repository.GetByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _refreshTokens.IsFamilyRevokedAsync(stored.FamilyId, Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        var exception = await Assert.ThrowsAsync<BusinessLogicException>(() => _service.RefreshAsync("old-token", CancellationToken.None));
+
+        // Assert
+        Assert.Equal(ErrorCodes.InvalidRefreshToken, exception.Code);
+        await _refreshTokens.Received(1).RevokeFamilyAsync(stored.FamilyId, Now, Arg.Any<CancellationToken>());
+        _tokenGenerator.DidNotReceive().Generate(Arg.Any<User>());
+    }
+
+    [Fact]
+    public async Task RefreshAsync_CapsTheExpiryAtTheAbsoluteSessionLifetime()
+    {
+        // Arrange
+        var user = new User { Id = Guid.CreateVersion7(), Email = "ana@example.com" };
+        var stored = StoredToken(user.Id);
+        stored.ExpiresAt = Now.AddDays(80);
+        RefreshToken? issued = null;
+        _refreshTokens.GetByHashAsync("old-hash", Arg.Any<CancellationToken>()).Returns(stored);
+        _repository.GetByIdAsync(user.Id, Arg.Any<CancellationToken>()).Returns(user);
+        _tokenGenerator.Generate(user).Returns(new LoginResponse("access-token", Now.AddMinutes(15)));
+        _refreshTokens
+            .TryRotateAsync(stored.Id, Arg.Do<RefreshToken>(token => issued = token), Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(true);
+        _time.Advance(TimeSpan.FromDays(70));
+
+        // Act
+        var response = await _service.RefreshAsync("old-token", CancellationToken.None);
+
+        // Assert
+        Assert.Equal(Now.AddDays(90), response.RefreshTokenExpiresAt);
+        Assert.NotNull(issued);
+        Assert.Equal(Now.AddDays(90), issued.ExpiresAt);
     }
 
     [Fact]
@@ -388,6 +459,7 @@ public class AuthServiceTests
             UserId = userId,
             FamilyId = Guid.CreateVersion7(),
             TokenHash = "old-hash",
+            SessionStartedAt = Now,
             CreatedAt = Now,
             ExpiresAt = Now.AddDays(30),
         };

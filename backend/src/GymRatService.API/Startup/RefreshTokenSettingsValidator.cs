@@ -21,6 +21,11 @@ public sealed class RefreshTokenSettingsValidator : IValidateOptions<RefreshToke
             failures.Add($"{Section}:{nameof(RefreshTokenSettings.LifetimeDays)} must be greater than zero.");
         }
 
+        if (options.AbsoluteLifetimeDays < options.LifetimeDays)
+        {
+            failures.Add($"{Section}:{nameof(RefreshTokenSettings.AbsoluteLifetimeDays)} must not be smaller than {nameof(RefreshTokenSettings.LifetimeDays)}.");
+        }
+
         if (options.ReuseGraceSeconds < 0)
         {
             failures.Add($"{Section}:{nameof(RefreshTokenSettings.ReuseGraceSeconds)} must not be negative.");

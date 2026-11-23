@@ -58,18 +58,23 @@ Behind a reverse proxy the API only sees the proxy's address, so every user woul
 
 `POST /api/auth/login` returns a short access token (`JwtSettings:ExpiryMinutes`, 15) in the body and sets a rotating refresh token in an `HttpOnly` cookie. The web app keeps the access token in memory only. The cookie is scoped to `/api/auth`, is `Secure` outside `Development` and `Testing`, and the database stores only its SHA-256 hash in `RefreshTokens`.
 
-- `POST /api/auth/refresh` swaps the cookie for a new one and returns a new access token. Every use extends the session by `RefreshToken:LifetimeDays` (30) from that moment.
-- `POST /api/auth/logout` revokes the session of that cookie (every token rotated from the same login) and clears the cookie. Other devices stay signed in.
-- Presenting a token that was already rotated, more than `RefreshToken:ReuseGraceSeconds` (10) after the rotation, is treated as theft: the whole session is revoked. The grace period absorbs two tabs refreshing at the same time.
+- `POST /api/auth/refresh` swaps the cookie for a new one and returns a new access token. Every use extends the session by `RefreshToken:LifetimeDays` (30) from that moment, but never beyond `RefreshToken:AbsoluteLifetimeDays` (90) after the login, so a kept-alive stolen cookie cannot live forever.
+- `POST /api/auth/logout` revokes the session of that cookie (every token rotated from the same login) and clears the cookie. Other devices stay signed in. If the call fails (for example offline) the browser forgets the session but the server keeps the token valid until it expires.
+- Presenting a token that was already rotated, more than `RefreshToken:ReuseGraceSeconds` (10) after the rotation, is treated as theft: the whole session is revoked. The grace period absorbs two tabs refreshing at the same time; a token can be exchanged at most twice (the second only inside the grace period), enforced by one atomic database update. Rotated rows are kept until their expiry on purpose: they are what lets a replay, even weeks later, be recognised and revoke the session. Expired rows, and rows revoked more than a day ago, are deleted at the user's next login.
 
 | Setting | Environment variable | Default |
 | --- | --- | --- |
 | `RefreshToken:CookieName` | `RefreshToken__CookieName` | `gymrat_refresh` |
 | `RefreshToken:LifetimeDays` | `RefreshToken__LifetimeDays` | `30` |
+| `RefreshToken:AbsoluteLifetimeDays` | `RefreshToken__AbsoluteLifetimeDays` | `90` |
 | `RefreshToken:ReuseGraceSeconds` | `RefreshToken__ReuseGraceSeconds` | `10` |
 | `RefreshToken:SameSite` | `RefreshToken__SameSite` | `Strict` |
 
-`Strict` works when the web app and the API share a site (the nginx proxy in `infra/docker-compose.yml`, the Vite dev proxy, or two subdomains of one registrable domain). When they are on different sites, for example `pages.dev` and `onrender.com`, browsers drop a `Strict` or `Lax` cookie on cross-site requests: either put both behind one origin or custom domain, or set `RefreshToken__SameSite=None` and list the web app in `Cors:AllowedOrigins` (the API allows credentials for those origins). Some browsers block third-party cookies even then, so a shared parent domain is the dependable choice.
+`Strict` works when the web app and the API share a site (the nginx proxy in `infra/docker-compose.yml`, the Vite dev proxy, or two subdomains of one registrable domain). When they are on different sites, for example `pages.dev` and `onrender.com`, browsers drop a `Strict` or `Lax` cookie on cross-site requests: either put both behind one origin or custom domain, or set `RefreshToken__SameSite=None` and list the web app in `Cors:AllowedOrigins` (the API allows credentials for those origins). `SameSite=None` only works over HTTPS, because the cookie is `Secure` outside `Development` and `Testing`. Some browsers block third-party cookies even then, so a shared parent domain is the dependable choice.
+
+`POST /api/auth/refresh` and `POST /api/auth/logout` rely only on the cookie, so they refuse a request whose `Origin` header is not in `Cors:AllowedOrigins` (answer 400 `BLException_AuthService_OriginNotAllowed`). With `Cors:SameOrigin=true` the check is skipped and `SameSite` alone protects them.
+
+The Docker Compose stack defaults to `ASPNETCORE_ENVIRONMENT=Production`, so the cookie is `Secure` while the stack is served over plain `http://localhost:3000`. Chrome and Firefox accept that on localhost; Safari and any other address (for example a LAN IP) drop the cookie and the session then does not survive a reload. Use `Development` in `infra/.env` for local runs, as the example file does.
 
 ## AI coach
 

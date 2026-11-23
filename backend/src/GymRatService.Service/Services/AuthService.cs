@@ -21,6 +21,10 @@ public class AuthService(
     IOptions<RefreshTokenSettings> refreshTokenOptions,
     TimeProvider timeProvider) : IAuthService
 {
+    private const int MaxRotations = 2;
+
+    private static readonly TimeSpan RevokedRetention = TimeSpan.FromDays(1);
+
     public async Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
     {
         var email = request.Email.NormalizeEmail();
@@ -67,9 +71,15 @@ public class AuthService(
         var now = timeProvider.GetUtcNow();
 
         await usersRepository.UpdateLastLoginAsync(user.Id, now, cancellationToken);
-        await refreshTokensRepository.DeleteExpiredAsync(user.Id, now, cancellationToken);
+        await refreshTokensRepository.DeleteStaleAsync(user.Id, now, RevokedRetention, cancellationToken);
 
-        return await IssueSessionAsync(user, Guid.CreateVersion7(), now, cancellationToken);
+        var settings = refreshTokenOptions.Value;
+        var generated = refreshTokenGenerator.Generate();
+        var expiresAt = now.AddDays(Math.Min(settings.LifetimeDays, settings.AbsoluteLifetimeDays));
+
+        await refreshTokensRepository.AddAsync(CreateToken(user.Id, Guid.CreateVersion7(), generated.Hash, now, now, expiresAt), cancellationToken);
+
+        return new AuthSession(tokenGenerator.Generate(user), generated.Token, expiresAt);
     }
 
     public async Task<AuthSession> RefreshAsync(string? refreshToken, CancellationToken cancellationToken)
@@ -99,9 +109,26 @@ public class AuthService(
         var user = await usersRepository.GetByIdAsync(stored.UserId, cancellationToken)
             ?? throw new BusinessLogicException(ErrorCodes.InvalidRefreshToken);
 
-        await refreshTokensRepository.MarkRotatedAsync(stored.Id, now, cancellationToken);
+        var settings = refreshTokenOptions.Value;
+        var generated = refreshTokenGenerator.Generate();
+        var slidingExpiry = now.AddDays(settings.LifetimeDays);
+        var absoluteExpiry = stored.SessionStartedAt.AddDays(settings.AbsoluteLifetimeDays);
+        var expiresAt = slidingExpiry < absoluteExpiry ? slidingExpiry : absoluteExpiry;
+        var successor = CreateToken(user.Id, stored.FamilyId, generated.Hash, stored.SessionStartedAt, now, expiresAt);
 
-        return await IssueSessionAsync(user, stored.FamilyId, now, cancellationToken);
+        if (!await refreshTokensRepository.TryRotateAsync(stored.Id, successor, now, MaxRotations, cancellationToken))
+        {
+            throw new BusinessLogicException(ErrorCodes.InvalidRefreshToken);
+        }
+
+        if (await refreshTokensRepository.IsFamilyRevokedAsync(stored.FamilyId, cancellationToken))
+        {
+            await refreshTokensRepository.RevokeFamilyAsync(stored.FamilyId, now, cancellationToken);
+
+            throw new BusinessLogicException(ErrorCodes.InvalidRefreshToken);
+        }
+
+        return new AuthSession(tokenGenerator.Generate(user), generated.Token, expiresAt);
     }
 
     public async Task LogoutAsync(string? refreshToken, CancellationToken cancellationToken)
@@ -119,22 +146,22 @@ public class AuthService(
         }
     }
 
-    private async Task<AuthSession> IssueSessionAsync(User user, Guid familyId, DateTimeOffset now, CancellationToken cancellationToken)
+    private static RefreshToken CreateToken(
+        Guid userId,
+        Guid familyId,
+        string tokenHash,
+        DateTimeOffset sessionStartedAt,
+        DateTimeOffset createdAt,
+        DateTimeOffset expiresAt)
     {
-        var generated = refreshTokenGenerator.Generate();
-        var expiresAt = now.AddDays(refreshTokenOptions.Value.LifetimeDays);
-
-        await refreshTokensRepository.AddAsync(
-            new RefreshToken
-            {
-                UserId = user.Id,
-                FamilyId = familyId,
-                TokenHash = generated.Hash,
-                CreatedAt = now,
-                ExpiresAt = expiresAt,
-            },
-            cancellationToken);
-
-        return new AuthSession(tokenGenerator.Generate(user), generated.Token, expiresAt);
+        return new RefreshToken
+        {
+            UserId = userId,
+            FamilyId = familyId,
+            TokenHash = tokenHash,
+            SessionStartedAt = sessionStartedAt,
+            CreatedAt = createdAt,
+            ExpiresAt = expiresAt,
+        };
     }
 }

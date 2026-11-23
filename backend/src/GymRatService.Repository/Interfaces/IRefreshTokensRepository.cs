@@ -8,9 +8,11 @@ public interface IRefreshTokensRepository
 
     Task<RefreshToken?> GetByHashAsync(string tokenHash, CancellationToken cancellationToken);
 
-    Task MarkRotatedAsync(Guid id, DateTimeOffset rotatedAt, CancellationToken cancellationToken);
+    Task<bool> TryRotateAsync(Guid id, RefreshToken successor, DateTimeOffset rotatedAt, int maxRotations, CancellationToken cancellationToken);
+
+    Task<bool> IsFamilyRevokedAsync(Guid familyId, CancellationToken cancellationToken);
 
     Task RevokeFamilyAsync(Guid familyId, DateTimeOffset revokedAt, CancellationToken cancellationToken);
 
-    Task DeleteExpiredAsync(Guid userId, DateTimeOffset now, CancellationToken cancellationToken);
+    Task DeleteStaleAsync(Guid userId, DateTimeOffset now, TimeSpan revokedRetention, CancellationToken cancellationToken);
 }

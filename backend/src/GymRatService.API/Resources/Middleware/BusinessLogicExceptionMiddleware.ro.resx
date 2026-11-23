@@ -24,6 +24,9 @@
   <data name="BLException_AuthService_InvalidRefreshToken" xml:space="preserve">
     <value>Sesiunea a expirat. Te rugăm să te autentifici din nou.</value>
   </data>
+  <data name="BLException_AuthService_OriginNotAllowed" xml:space="preserve">
+    <value>Cererea nu provine dintr-o origine permisă.</value>
+  </data>
   <data name="BLException_AuthService_TooManyAttempts" xml:space="preserve">
     <value>Prea multe încercări. Te rugăm să aștepți puțin și să încerci din nou.</value>
   </data>

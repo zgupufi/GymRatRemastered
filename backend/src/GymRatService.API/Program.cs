@@ -45,6 +45,7 @@ builder.Services
 builder.Services.AddAuthorization();
 
 builder.Services.AddSingleton<RefreshTokenCookie>();
+builder.Services.AddSingleton<AllowedOriginFilter>();
 
 builder.Services.AddAiCoach(builder.Configuration);
 

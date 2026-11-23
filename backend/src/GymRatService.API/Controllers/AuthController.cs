@@ -1,5 +1,6 @@
 using GymRatService.API.Cookies;
 using GymRatService.API.Extensions;
+using GymRatService.API.Filters;
 using GymRatService.Common.DTOs.Auth;
 using GymRatService.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -37,6 +38,7 @@ public class AuthController(IAuthService authService, RefreshTokenCookie refresh
 
     [AllowAnonymous]
     [HttpPost("refresh")]
+    [ServiceFilter(typeof(AllowedOriginFilter))]
     [EnableRateLimiting(RateLimitingExtensions.RefreshPolicy)]
     public async Task<IActionResult> RefreshAsync(CancellationToken cancellationToken)
     {
@@ -49,6 +51,7 @@ public class AuthController(IAuthService authService, RefreshTokenCookie refresh
 
     [AllowAnonymous]
     [HttpPost("logout")]
+    [ServiceFilter(typeof(AllowedOriginFilter))]
     [EnableRateLimiting(RateLimitingExtensions.RefreshPolicy)]
     public async Task<IActionResult> LogoutAsync(CancellationToken cancellationToken)
     {

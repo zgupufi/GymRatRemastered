@@ -73,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(await getUserProfile())
     } catch (error) {
       setAccessToken(null)
+      void logoutRequest().catch(() => undefined)
       throw error
     }
     markSessionActive()
