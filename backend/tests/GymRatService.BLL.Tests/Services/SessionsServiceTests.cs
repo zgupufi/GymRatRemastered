@@ -1,5 +1,6 @@
 using GymRatService.Common.DTOs.Sessions;
 using GymRatService.Common.Errors;
+using GymRatService.Common.Filtering;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
@@ -359,7 +360,7 @@ public class SessionsServiceTests
         _sessions.GetExerciseSetsAsync(_userId, _exerciseId, Arg.Any<CancellationToken>()).Returns(sets);
 
         // Act
-        var progress = await _service.GetExerciseProgressAsync(_userId, _exerciseId, CancellationToken.None);
+        var progress = await _service.GetExerciseProgressAsync(_userId, _exerciseId, new ProgressFilter(), CancellationToken.None);
 
         // Assert
         Assert.Equal(2, progress.Count);
@@ -372,6 +373,58 @@ public class SessionsServiceTests
     }
 
     [Fact]
+    public async Task GetExerciseProgressAsync_BucketsTheSessionsByTheRequestedTimeZone()
+    {
+        // Arrange
+        _exercises.GetByIdAsync(_exerciseId, Arg.Any<CancellationToken>()).Returns(new ExerciseCard { Id = _exerciseId });
+        var session = new WorkoutSession { StartedAt = new DateTimeOffset(2026, 11, 10, 22, 30, 0, TimeSpan.Zero) };
+        _sessions.GetExerciseSetsAsync(_userId, _exerciseId, Arg.Any<CancellationToken>())
+            .Returns(new List<SessionSet> { new() { Session = session, Reps = 5, WeightKg = 100 } });
+
+        // Act
+        var progress = await _service.GetExerciseProgressAsync(_userId, _exerciseId, new ProgressFilter { TimeZone = "Europe/Bucharest" }, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(new DateOnly(2026, 11, 11), Assert.Single(progress).Date);
+    }
+
+    [Theory]
+    [InlineData(2026, 3, 28, 21, 30, 28)]
+    [InlineData(2026, 3, 28, 22, 30, 29)]
+    [InlineData(2026, 10, 24, 20, 30, 24)]
+    [InlineData(2026, 10, 24, 21, 30, 25)]
+    public async Task GetExerciseProgressAsync_BucketsTheSessionsAcrossDaylightSavingTransitions(int year, int month, int day, int hour, int minute, int expectedDay)
+    {
+        // Arrange
+        _exercises.GetByIdAsync(_exerciseId, Arg.Any<CancellationToken>()).Returns(new ExerciseCard { Id = _exerciseId });
+        var session = new WorkoutSession { StartedAt = new DateTimeOffset(year, month, day, hour, minute, 0, TimeSpan.Zero) };
+        _sessions.GetExerciseSetsAsync(_userId, _exerciseId, Arg.Any<CancellationToken>())
+            .Returns(new List<SessionSet> { new() { Session = session, Reps = 5, WeightKg = 100 } });
+
+        // Act
+        var progress = await _service.GetExerciseProgressAsync(_userId, _exerciseId, new ProgressFilter { TimeZone = "Europe/Bucharest" }, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(expectedDay, Assert.Single(progress).Date.Day);
+    }
+
+    [Fact]
+    public async Task GetExerciseProgressAsync_UsesUtc_WhenTheTimeZoneIsEmpty()
+    {
+        // Arrange
+        _exercises.GetByIdAsync(_exerciseId, Arg.Any<CancellationToken>()).Returns(new ExerciseCard { Id = _exerciseId });
+        var session = new WorkoutSession { StartedAt = new DateTimeOffset(2026, 11, 10, 22, 30, 0, TimeSpan.Zero) };
+        _sessions.GetExerciseSetsAsync(_userId, _exerciseId, Arg.Any<CancellationToken>())
+            .Returns(new List<SessionSet> { new() { Session = session, Reps = 5, WeightKg = 100 } });
+
+        // Act
+        var progress = await _service.GetExerciseProgressAsync(_userId, _exerciseId, new ProgressFilter { TimeZone = "" }, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(new DateOnly(2026, 11, 10), Assert.Single(progress).Date);
+    }
+
+    [Fact]
     public async Task GetExerciseProgressAsync_ReturnsAnEmptyList_WhenThereAreNoSets()
     {
         // Arrange
@@ -379,7 +432,7 @@ public class SessionsServiceTests
         _sessions.GetExerciseSetsAsync(_userId, _exerciseId, Arg.Any<CancellationToken>()).Returns(new List<SessionSet>());
 
         // Act
-        var progress = await _service.GetExerciseProgressAsync(_userId, _exerciseId, CancellationToken.None);
+        var progress = await _service.GetExerciseProgressAsync(_userId, _exerciseId, new ProgressFilter(), CancellationToken.None);
 
         // Assert
         Assert.Empty(progress);
@@ -390,7 +443,7 @@ public class SessionsServiceTests
     {
         // Act
         var exception = await Assert.ThrowsAsync<BusinessLogicException>(
-            () => _service.GetExerciseProgressAsync(_userId, _exerciseId, CancellationToken.None));
+            () => _service.GetExerciseProgressAsync(_userId, _exerciseId, new ProgressFilter(), CancellationToken.None));
 
         // Assert
         Assert.Equal(ErrorCodes.ExerciseNotFound, exception.Code);

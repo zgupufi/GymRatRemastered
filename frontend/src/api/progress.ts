@@ -11,6 +11,16 @@ export interface ProgressPoint {
   estimatedOneRepMax: number
 }
 
+function localTimeZone(): string | undefined {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined
+  } catch {
+    return undefined
+  }
+}
+
 export function getExerciseProgress(exerciseId: string, signal?: AbortSignal): Promise<ProgressPoint[]> {
-  return apiClient.get<ProgressPoint[]>(`/api/exercises/${exerciseId}/progress`, signal)
+  const timeZone = localTimeZone()
+  const query = timeZone ? `?timeZone=${encodeURIComponent(timeZone)}` : ''
+  return apiClient.get<ProgressPoint[]>(`/api/exercises/${exerciseId}/progress${query}`, signal)
 }
