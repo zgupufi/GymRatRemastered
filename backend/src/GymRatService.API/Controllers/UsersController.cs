@@ -1,4 +1,5 @@
 using GymRatService.API.Extensions;
+using GymRatService.API.Results;
 using GymRatService.Common.DTOs.Users;
 using GymRatService.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ namespace GymRatService.API.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class UsersController(IUsersService usersService) : ControllerBase
+public class UsersController(IUsersService usersService, IExportService exportService) : ControllerBase
 {
     [HttpGet("me")]
     public async Task<IActionResult> GetUserProfileAsync(CancellationToken cancellationToken)
@@ -29,5 +30,47 @@ public class UsersController(IUsersService usersService) : ControllerBase
         await usersService.UpdateSettingsAsync(userId, request, cancellationToken);
 
         return NoContent();
+    }
+
+    [HttpPost("me/password")]
+    public async Task<IActionResult> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+
+        await usersService.ChangePasswordAsync(userId, request, cancellationToken);
+
+        return NoContent();
+    }
+
+    [HttpDelete("me")]
+    public async Task<IActionResult> DeleteAccountAsync(DeleteAccountRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+
+        await usersService.DeleteAccountAsync(userId, request, cancellationToken);
+
+        return NoContent();
+    }
+
+    [HttpGet("me/export")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> GetUserExportAsync(CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+
+        var response = await exportService.GetExportAsync(userId, cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpGet("me/export/sets")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<IActionResult> GetSetsCsvAsync(CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+
+        var response = await exportService.GetSetsCsvLinesAsync(userId, cancellationToken);
+
+        return new CsvStreamResult(response, "gymrat-sets.csv");
     }
 }

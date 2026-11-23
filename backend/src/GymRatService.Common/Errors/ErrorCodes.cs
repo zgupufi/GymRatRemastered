@@ -18,6 +18,8 @@ public static class ErrorCodes
 
     public const string UserNotFound = "BLException_UsersService_UserNotFound";
 
+    public const string InvalidPassword = "BLException_UsersService_InvalidPassword";
+
     public const string WorkoutNotFound = "BLException_WorkoutsService_WorkoutNotFound";
 
     public const string WorkoutExerciseNotFound = "BLException_WorkoutsService_ExerciseNotFound";

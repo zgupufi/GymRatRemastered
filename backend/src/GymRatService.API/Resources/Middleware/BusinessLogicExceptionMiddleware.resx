@@ -81,6 +81,9 @@
   <data name="BLException_CoachService_TooManyProposals" xml:space="preserve">
     <value>The coach can make at most three proposals per reply.</value>
   </data>
+  <data name="BLException_UsersService_InvalidPassword" xml:space="preserve">
+    <value>The password is incorrect.</value>
+  </data>
   <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
     <value>The request is not valid.</value>
   </data>
