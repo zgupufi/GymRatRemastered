@@ -1,0 +1,39 @@
+name: Backup database
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 2 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-database
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    steps:
+      - name: Dump database
+        env:
+          DUMP_URL: ${{ secrets.NEON_DUMP_URL }}
+        run: |
+          docker run --rm -e DUMP_URL postgres:17 sh -c 'pg_dump --format=custom --no-owner --no-privileges "$DUMP_URL"' > gymrat.dump
+          test -s gymrat.dump
+
+      - name: Encrypt dump
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          gpg --batch --yes --pinentry-mode loopback --passphrase-env BACKUP_PASSPHRASE --symmetric --cipher-algo AES256 --output "gymrat-$(date -u +%Y%m%d).dump.gpg" gymrat.dump
+          rm gymrat.dump
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: gymrat-backup
+          path: gymrat-*.dump.gpg
+          retention-days: 30
+          if-no-files-found: error
