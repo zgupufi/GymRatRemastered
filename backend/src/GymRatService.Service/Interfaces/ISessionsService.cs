@@ -1,5 +1,6 @@
 using GymRatService.Common.DTOs.Sessions;
 using GymRatService.Common.DTOs.Targets;
+using GymRatService.Common.Filtering;
 
 namespace GymRatService.Service.Interfaces;
 
@@ -15,7 +16,7 @@ public interface ISessionsService
 
     Task<LastSessionDto> GetLastSessionAsync(Guid userId, Guid workoutId, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<ExerciseProgressDto>> GetExerciseProgressAsync(Guid userId, Guid exerciseId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ExerciseProgressDto>> GetExerciseProgressAsync(Guid userId, Guid exerciseId, ProgressFilter filter, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<ExerciseTargetDto>> GetTargetsAsync(Guid userId, Guid workoutId, CancellationToken cancellationToken);
 

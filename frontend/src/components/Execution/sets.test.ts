@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { WeightUnit } from '../../api/auth'
-import { draftsFromSaved, emptyDrafts, isValidDraft, previousFor, summarize, toEntries } from './sets'
+import { bestSetOf, draftsFromSaved, emptyDrafts, isValidDraft, previousFor, summarize, toEntries } from './sets'
 
 describe('sets', () => {
   it('creates the target number of empty drafts', () => {
@@ -96,5 +96,12 @@ describe('sets', () => {
 
   it('treats exercises without drafts as empty', () => {
     expect(summarize([{ id: 'x', name: 'X' }], {}, WeightUnit.Kilograms)).toEqual({ sets: 0, volumeKg: 0, exercises: [] })
+  })
+
+  it('picks the best set by estimated one rep max, then weight, then reps', () => {
+    expect(bestSetOf([])).toBeNull()
+    expect(bestSetOf([{ reps: 10, weightKg: 80 }, { reps: 5, weightKg: 100 }])).toEqual({ reps: 5, weightKg: 100 })
+    expect(bestSetOf([{ reps: 12, weightKg: 100 }, { reps: 3, weightKg: 100 }])).toEqual({ reps: 12, weightKg: 100 })
+    expect(bestSetOf([{ reps: 1, weightKg: 110 }, { reps: 10, weightKg: 80 }])).toEqual({ reps: 1, weightKg: 110 })
   })
 })

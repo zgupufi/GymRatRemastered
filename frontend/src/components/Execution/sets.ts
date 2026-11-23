@@ -115,8 +115,22 @@ export interface WorkoutResult {
   exercises: ExerciseResult[]
 }
 
-function estimatedOneRepMax(entry: SessionSetEntry): number {
-  return entry.weightKg * (1 + entry.reps / 30)
+export function estimatedOneRepMax(set: { weightKg: number; reps: number }): number {
+  return set.reps === 1 ? set.weightKg : set.weightKg * (1 + set.reps / 30)
+}
+
+export function bestSetOf<T extends { weightKg: number; reps: number }>(sets: T[]): T | null {
+  let best: T | null = null
+  for (const set of sets) {
+    if (best === null || compareSets(set, best) > 0) {
+      best = set
+    }
+  }
+  return best
+}
+
+function compareSets(a: { weightKg: number; reps: number }, b: { weightKg: number; reps: number }): number {
+  return estimatedOneRepMax(a) - estimatedOneRepMax(b) || a.weightKg - b.weightKg || a.reps - b.reps
 }
 
 export function summarize(
@@ -128,15 +142,11 @@ export function summarize(
   let volumeKg = 0
   const results = exercises.map((exercise) => {
     const entries = toEntries(drafts[exercise.id] ?? [], unit)
-    let best: SessionSetEntry | null = null
     for (const entry of entries) {
       sets += 1
       volumeKg += entry.weightKg * entry.reps
-      if (best === null || estimatedOneRepMax(entry) > estimatedOneRepMax(best)) {
-        best = entry
-      }
     }
-    return { name: exercise.name, best }
+    return { name: exercise.name, best: bestSetOf(entries) }
   })
   return { sets, volumeKg, exercises: results.filter((result) => result.best !== null) }
 }
