@@ -1,12 +1,11 @@
 using FluentValidation;
+using GymRatService.Common.Constants;
 using GymRatService.Common.DTOs.Auth;
 
 namespace GymRatService.API.Validators;
 
 public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {
-    private const int MinimumPasswordLength = 8;
-
     private const int MaximumEmailLength = 100;
 
     private const int MaximumNameLength = 50;
@@ -20,7 +19,8 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 
         RuleFor(request => request.Password)
             .NotEmpty()
-            .MinimumLength(MinimumPasswordLength);
+            .MinimumLength(PasswordRules.MinimumLength)
+            .MaximumLength(PasswordRules.MaximumLength);
 
         RuleFor(request => request.FirstName)
             .NotEmpty()

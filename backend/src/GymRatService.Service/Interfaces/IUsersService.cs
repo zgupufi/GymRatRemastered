@@ -8,7 +8,7 @@ public interface IUsersService
 
     Task UpdateSettingsAsync(Guid userId, UpdateUserSettingsRequest request, CancellationToken cancellationToken);
 
-Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken cancellationToken);
+    Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken cancellationToken);
 
     Task DeleteAccountAsync(Guid userId, DeleteAccountRequest request, CancellationToken cancellationToken);
 }

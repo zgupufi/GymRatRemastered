@@ -31,7 +31,7 @@ public class UsersController(IUsersService usersService) : ControllerBase
         return NoContent();
     }
 
-[HttpPost("me/password")]
+    [HttpPost("me/password")]
     public async Task<IActionResult> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();

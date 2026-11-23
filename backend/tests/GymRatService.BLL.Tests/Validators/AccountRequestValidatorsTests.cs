@@ -34,6 +34,19 @@ public class AccountRequestValidatorsTests
     }
 
     [Fact]
+    public async Task ChangePassword_Fails_WhenAPasswordIsLongerThanTheMaximum()
+    {
+        // Act
+        var tooLong = new string('p', 129);
+        var newTooLong = await _changePasswordValidator.ValidateAsync(new ChangePasswordRequest("password123", tooLong));
+        var currentTooLong = await _changePasswordValidator.ValidateAsync(new ChangePasswordRequest(tooLong, "new-password"));
+
+        // Assert
+        Assert.Equal("NewPassword", Assert.Single(newTooLong.Errors).PropertyName);
+        Assert.Equal("CurrentPassword", Assert.Single(currentTooLong.Errors).PropertyName);
+    }
+
+    [Fact]
     public async Task DeleteAccount_Passes_WhenThePasswordIsGiven()
     {
         // Act
@@ -51,6 +64,16 @@ public class AccountRequestValidatorsTests
 
         // Assert
         Assert.False(result.IsValid);
+        Assert.Equal("Password", Assert.Single(result.Errors).PropertyName);
+    }
+
+    [Fact]
+    public async Task DeleteAccount_Fails_WhenThePasswordIsLongerThanTheMaximum()
+    {
+        // Act
+        var result = await _deleteAccountValidator.ValidateAsync(new DeleteAccountRequest(new string('p', 129)));
+
+        // Assert
         Assert.Equal("Password", Assert.Single(result.Errors).PropertyName);
     }
 }

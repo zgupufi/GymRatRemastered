@@ -1,20 +1,21 @@
 using FluentValidation;
+using GymRatService.Common.Constants;
 using GymRatService.Common.DTOs.Users;
 
 namespace GymRatService.API.Validators;
 
 public class ChangePasswordRequestValidator : AbstractValidator<ChangePasswordRequest>
 {
-    private const int MinimumPasswordLength = 8;
-
     public ChangePasswordRequestValidator()
     {
         RuleFor(request => request.CurrentPassword)
-            .NotEmpty();
+            .NotEmpty()
+            .MaximumLength(PasswordRules.MaximumLength);
 
         RuleFor(request => request.NewPassword)
             .NotEmpty()
-            .MinimumLength(MinimumPasswordLength)
+            .MinimumLength(PasswordRules.MinimumLength)
+            .MaximumLength(PasswordRules.MaximumLength)
             .NotEqual(request => request.CurrentPassword);
     }
 }

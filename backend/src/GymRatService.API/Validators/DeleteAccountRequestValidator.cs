@@ -1,4 +1,5 @@
 using FluentValidation;
+using GymRatService.Common.Constants;
 using GymRatService.Common.DTOs.Users;
 
 namespace GymRatService.API.Validators;
@@ -8,6 +9,7 @@ public class DeleteAccountRequestValidator : AbstractValidator<DeleteAccountRequ
     public DeleteAccountRequestValidator()
     {
         RuleFor(request => request.Password)
-            .NotEmpty();
+            .NotEmpty()
+            .MaximumLength(PasswordRules.MaximumLength);
     }
 }

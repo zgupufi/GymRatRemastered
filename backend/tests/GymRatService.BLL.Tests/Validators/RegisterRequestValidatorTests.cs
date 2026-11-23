@@ -52,4 +52,15 @@ public class RegisterRequestValidatorTests
         var error = Assert.Single(result.Errors);
         Assert.Equal(expectedMessage, error.ErrorMessage);
     }
+
+    [Fact]
+    public async Task Validate_Fails_WhenThePasswordIsLongerThanTheMaximum()
+    {
+        // Act
+        var result = await _validator.ValidateAsync(
+            new RegisterRequest("ana@example.com", new string('p', 129), "Ana", null, WeightUnit.Kilograms));
+
+        // Assert
+        Assert.Equal("Password", Assert.Single(result.Errors).PropertyName);
+    }
 }

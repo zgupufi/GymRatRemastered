@@ -122,7 +122,7 @@ public class UsersServiceTests
             Arg.Any<CancellationToken>());
     }
 
-[Fact]
+    [Fact]
     public async Task ChangePasswordAsync_StoresTheNewHash_WhenTheCurrentPasswordMatches()
     {
         // Arrange

@@ -73,7 +73,7 @@ public class UsersRepository(GymRatDbContext context) : IUsersRepository
                 cancellationToken);
     }
 
-public async Task UpdatePasswordAsync(Guid id, string passwordHash, string passwordSalt, CancellationToken cancellationToken)
+    public async Task UpdatePasswordAsync(Guid id, string passwordHash, string passwordSalt, CancellationToken cancellationToken)
     {
         await context.Users
             .Where(user => user.Id == id)

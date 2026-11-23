@@ -33,7 +33,7 @@ public class UsersService(
             cancellationToken);
     }
 
-public async Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken cancellationToken)
+    public async Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken cancellationToken)
     {
         await ConfirmPasswordAsync(userId, request.CurrentPassword, cancellationToken);
 
