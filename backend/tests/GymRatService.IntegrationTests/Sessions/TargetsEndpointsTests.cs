@@ -74,6 +74,7 @@ public sealed class TargetsEndpointsTests : IDisposable
             [squat.Id] = [new(5, 100)],
         });
         await client.GetAsync($"/api/workouts/{single}/targets");
+        var singleHistory = await client.GetFromJsonAsync<List<ExerciseTargetDto>>($"/api/workouts/{single}/targets");
 
         // Act
         var beforeSingle = _factory.Queries.Count;
@@ -85,6 +86,7 @@ public sealed class TargetsEndpointsTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, singleResponse.StatusCode);
+        Assert.Equal(60m, Assert.Single(singleHistory!).LastWeightKg);
         Assert.Equal(3, tripleResponse!.Count);
         Assert.All(tripleResponse, target => Assert.NotNull(target.LastWeightKg));
         Assert.Equal(singleQueries, tripleQueries);

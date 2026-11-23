@@ -648,6 +648,24 @@ public sealed class SessionsEndpointsTests : IDisposable
     }
 
     [Fact]
+    public async Task GetExerciseProgress_PicksTheHeavierSet_WhenTwoSetsHaveTheSameEstimatedOneRepMax()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push");
+        await FinishSessionAsync(client, workoutId, bench.Id, new SessionSetRequest(15, 80), new SessionSetRequest(6, 100));
+
+        // Act
+        var progress = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress");
+
+        // Assert
+        var point = Assert.Single(progress!);
+        Assert.Equal(new BestSetDto(6, 100), point.BestSet);
+        Assert.Equal(120m, point.EstimatedOneRepMax);
+    }
+
+    [Fact]
     public async Task GetExerciseProgress_ReturnsBadRequest_WhenTheRangeIsUnknown()
     {
         // Arrange
