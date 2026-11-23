@@ -15,6 +15,7 @@ import {
   type UserProfile,
 } from '../../api/users'
 import { AuthProvider } from '../../auth/AuthProvider'
+import { RequireAuth } from '../../auth/RequireAuth'
 import { ToastProvider } from '../../components/ui/Toast'
 import { saveBlob } from '../../lib/download'
 import { givenRestorableSession } from '../../test/sessionFixture'
@@ -38,9 +39,10 @@ function renderSettings() {
       <AuthProvider>
         <ToastProvider>
           <Routes>
-            <Route path="settings" element={<SettingsPage />} />
+            <Route element={<RequireAuth />}>
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
             <Route path="login" element={<h1>Login page</h1>} />
-            <Route index element={<h1>Landing page</h1>} />
           </Routes>
         </ToastProvider>
       </AuthProvider>
@@ -198,7 +200,7 @@ describe('SettingsPage', () => {
     expect(screen.getByRole('button', { name: 'Download JSON' })).toBeEnabled()
   })
 
-  it('logs out and returns to the landing page', async () => {
+  it('logs out and sends the user to the login page', async () => {
     await openSettings()
 
     await userEvent.click(screen.getByRole('button', { name: 'Log out' }))
@@ -300,14 +302,14 @@ describe('SettingsPage', () => {
       expect(deleteAccount).not.toHaveBeenCalled()
     })
 
-    it('deletes the account with the password and returns to the landing page', async () => {
+    it('deletes the account with the password and sends the user to the login page', async () => {
       const dialog = await openDialog()
       await userEvent.type(within(dialog).getByLabelText('Enter your current password to confirm'), 'my-password')
 
       await userEvent.click(within(dialog).getByRole('button', { name: 'Delete account' }))
 
       await waitFor(() => expect(deleteAccount).toHaveBeenCalledWith('my-password'))
-      expect(await screen.findByRole('heading', { level: 1, name: 'Landing page' })).toBeInTheDocument()
+      expect(await screen.findByRole('heading', { level: 1, name: 'Login page' })).toBeInTheDocument()
       expect(await screen.findByText('Your account was deleted.')).toBeInTheDocument()
     })
 

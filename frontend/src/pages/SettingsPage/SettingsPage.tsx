@@ -94,7 +94,7 @@ function PreferencesSection({ user }: { user: UserProfile }) {
         </div>
         <div className="settings-page__row">
           <div className="settings-page__text">
-            <span className="settings-page__key">Default rest time</span>
+            <span className="settings-page__key">Default rest<span className="settings-page__long"> time</span></span>
             <span className="settings-page__hint">Between sets</span>
           </div>
           <div className="settings-page__stepper">
@@ -283,7 +283,6 @@ function AccountSection() {
 function DeleteDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { logout } = useAuth()
   const { showToast } = useToast()
-  const navigate = useNavigate()
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string>()
   const [deleting, setDeleting] = useState(false)
@@ -304,7 +303,6 @@ function DeleteDialog({ open, onClose }: { open: boolean; onClose: () => void })
     setDeleting(true)
     try {
       await deleteAccount(password)
-      navigate('/')
       logout()
       showToast('success', 'Your account was deleted.')
     } catch (failure) {
