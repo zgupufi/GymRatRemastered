@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { login, register, WeightUnit } from './auth'
+import { login, logout, register, WeightUnit } from './auth'
 import { getUserProfile } from './users'
 
 describe('auth api', () => {
@@ -29,6 +29,16 @@ describe('auth api', () => {
 
     expect(fetchMock.mock.calls[0][0]).toBe('/api/auth/register')
     expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({ weightUnit: 1, lastName: null })
+  })
+
+  it('posts to the logout endpoint', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await logout()
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/auth/logout')
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST', credentials: 'include' })
   })
 
   it('loads the current user profile', async () => {

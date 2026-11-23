@@ -34,8 +34,13 @@ function isApiErrorBody(value: unknown): value is ApiErrorBody {
   )
 }
 
+const INVALID_REFRESH_TOKEN_CODE = 'BLException_AuthService_InvalidRefreshToken'
+
+export type RefreshOutcome = 'refreshed' | 'rejected' | 'unavailable'
+
 let accessToken: string | null = null
 let unauthorizedHandler: (() => void) | null = null
+let refreshInFlight: Promise<RefreshOutcome> | null = null
 
 export function setUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler
@@ -45,10 +50,42 @@ export function setAccessToken(token: string | null): void {
   accessToken = token
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function requestRefresh(): Promise<RefreshOutcome> {
+  let response: Response
+  try {
+    response = await fetch(`${BASE_URL}/api/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { Accept: 'application/json', 'Accept-Language': 'en' },
+    })
+  } catch {
+    return 'unavailable'
+  }
+
+  const body: unknown = await response.json().catch(() => null)
+  if (!response.ok) {
+    const rejected = response.status === 401 || (isApiErrorBody(body) && body.code === INVALID_REFRESH_TOKEN_CODE)
+    return rejected ? 'rejected' : 'unavailable'
+  }
+  if (typeof body === 'object' && body !== null && typeof (body as { accessToken?: unknown }).accessToken === 'string') {
+    accessToken = (body as { accessToken: string }).accessToken
+    return 'refreshed'
+  }
+  return 'unavailable'
+}
+
+export function refreshSession(): Promise<RefreshOutcome> {
+  refreshInFlight ??= requestRefresh().finally(() => {
+    refreshInFlight = null
+  })
+  return refreshInFlight
+}
+
+async function request<T>(path: string, init?: RequestInit, retried = false): Promise<T> {
   let response: Response
   try {
     response = await fetch(`${BASE_URL}${path}`, {
+      credentials: 'include',
       ...init,
       headers: {
         Accept: 'application/json',
@@ -66,7 +103,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     if (response.status === 401 && accessToken) {
-      unauthorizedHandler?.()
+      const outcome = retried ? 'rejected' : await refreshSession()
+      if (outcome === 'refreshed') {
+        return request<T>(path, init, true)
+      }
+      if (outcome === 'rejected') {
+        unauthorizedHandler?.()
+      }
     }
     const body: unknown = await response.json().catch(() => null)
     if (isApiErrorBody(body)) {

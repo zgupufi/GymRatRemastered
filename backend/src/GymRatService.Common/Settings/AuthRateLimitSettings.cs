@@ -12,6 +12,10 @@ public sealed class AuthRateLimitSettings
 
     public int RegisterWindowSeconds { get; set; } = 60;
 
+    public int RefreshPermitLimit { get; set; } = 30;
+
+    public int RefreshWindowSeconds { get; set; } = 60;
+
     public int FailedLoginLimit { get; set; } = 5;
 
     public int FailedLoginWindowSeconds { get; set; } = 900;

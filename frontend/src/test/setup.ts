@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import { afterEach, vi } from 'vitest'
 
 class TestIntersectionObserver {
   readonly root = null
@@ -20,4 +20,5 @@ if (!('IntersectionObserver' in globalThis)) {
 
 afterEach(() => {
   cleanup()
+  vi.unstubAllGlobals()
 })

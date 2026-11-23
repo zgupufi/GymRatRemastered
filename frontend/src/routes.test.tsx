@@ -7,7 +7,7 @@ import { apiClient, setAccessToken } from './api/client'
 import { login, WeightUnit } from './api/auth'
 import { getUserProfile } from './api/users'
 import { AuthProvider } from './auth/AuthProvider'
-import { saveSession } from './auth/sessionStorage'
+import { givenRestorableSession } from './test/sessionFixture'
 import { getActiveSession } from './api/sessions'
 import { getSplit } from './api/split'
 import { getWorkoutSummaries } from './api/workouts'
@@ -33,6 +33,17 @@ function renderAt(path: string) {
   )
 }
 
+function rejectAfterRestoring() {
+  let restored = false
+  return vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+    if (String(input) === '/api/auth/refresh' && !restored) {
+      restored = true
+      return Promise.resolve(Response.json({ accessToken: 'token', expiresAt: '2999-01-01T00:00:00Z' }))
+    }
+    return Promise.resolve(new Response('{}', { status: 401 }))
+  })
+}
+
 describe('AppRoutes', () => {
   beforeEach(() => {
     vi.mocked(searchExercises).mockResolvedValue({ items: [], page: 1, pageSize: 24, totalCount: 0 })
@@ -56,7 +67,7 @@ describe('AppRoutes', () => {
       weightUnit: WeightUnit.Kilograms,
       defaultRestTimeSeconds: 90,
     })
-    saveSession({ accessToken: 'token', expiresAt: '2999-01-01T00:00:00Z' })
+    givenRestorableSession()
     window.scrollTo = vi.fn()
     Element.prototype.scrollIntoView = vi.fn()
   })
@@ -133,7 +144,7 @@ describe('AppRoutes', () => {
     expect(await guest.findByRole('heading', { level: 1, name: 'Log workouts. Get stronger. Stay motivated.' })).toBeInTheDocument()
     guest.unmount()
 
-    saveSession({ accessToken: 'token', expiresAt: '2999-01-01T00:00:00Z' })
+    givenRestorableSession()
     renderAt('/')
     expect(await screen.findByRole('heading', { level: 1, name: 'Let’s set up your first week' })).toBeInTheDocument()
   })
@@ -162,7 +173,7 @@ describe('AppRoutes', () => {
   })
 
   it('explains an expired session on the home page too', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 401 }))
+    const fetchSpy = rejectAfterRestoring()
     vi.mocked(getSplit).mockImplementation(() => apiClient.get('/api/split'))
     renderAt('/')
 
@@ -186,7 +197,7 @@ describe('AppRoutes', () => {
   })
 
   it('returns to the login page with a notice when the server rejects the session', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 401 }))
+    const fetchSpy = rejectAfterRestoring()
     vi.mocked(getWorkoutSummaries).mockImplementation(() => apiClient.get('/api/workouts'))
     renderAt('/workouts')
 

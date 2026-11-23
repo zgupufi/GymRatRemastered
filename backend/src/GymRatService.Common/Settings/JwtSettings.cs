@@ -10,5 +10,5 @@ public sealed class JwtSettings
 
     public string Audience { get; set; } = string.Empty;
 
-    public int ExpiryMinutes { get; set; } = 360;
+    public int ExpiryMinutes { get; set; } = 15;
 }

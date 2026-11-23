@@ -12,11 +12,13 @@ public static class StartupSettingsExtensions
         services.AddSingleton<IValidateOptions<PasswordSettings>, PasswordSettingsValidator>();
         services.AddSingleton<IValidateOptions<CorsSettings>, CorsSettingsValidator>();
         services.AddSingleton<IValidateOptions<ConnectionStringSettings>, ConnectionStringSettingsValidator>();
+        services.AddSingleton<IValidateOptions<RefreshTokenSettings>, RefreshTokenSettingsValidator>();
 
         services.AddOptions<JwtSettings>().Bind(configuration.GetSection(JwtSettings.SectionName)).ValidateOnStart();
         services.AddOptions<PasswordSettings>().Bind(configuration.GetSection(PasswordSettings.SectionName)).ValidateOnStart();
         services.AddOptions<CorsSettings>().Bind(configuration.GetSection(CorsSettings.SectionName)).ValidateOnStart();
         services.AddOptions<ConnectionStringSettings>().Bind(configuration.GetSection(ConnectionStringSettings.SectionName)).ValidateOnStart();
+        services.AddOptions<RefreshTokenSettings>().Bind(configuration.GetSection(RefreshTokenSettings.SectionName)).ValidateOnStart();
 
         return services;
     }

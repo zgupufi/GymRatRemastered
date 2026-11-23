@@ -47,12 +47,29 @@ Add a new XML changeset under `database/changelog/changes`, include it in `db.ch
 
 `POST /api/auth/login` and `POST /api/auth/register` are rate limited. A refused request answers 400 `BLException_AuthService_TooManyAttempts` with a `Retry-After` header in seconds. The limits live in the `AuthRateLimit` section and every value must be greater than zero, otherwise the API refuses to start:
 
-- Per client IP: `LoginPermitLimit` (10) per `LoginWindowSeconds` (60) and `RegisterPermitLimit` (5) per `RegisterWindowSeconds` (60). IPv6 clients are grouped by their /64 prefix.
+- Per client IP: `LoginPermitLimit` (10) per `LoginWindowSeconds` (60), `RegisterPermitLimit` (5) per `RegisterWindowSeconds` (60) and `RefreshPermitLimit` (30) per `RefreshWindowSeconds` (60) for `POST /api/auth/refresh` and `POST /api/auth/logout`. IPv6 clients are grouped by their /64 prefix.
 - Per email, from any IP: `FailedLoginLimit` (5) login attempts per `FailedLoginWindowSeconds` (900). A successful login clears the count for that email.
 
 The counters are kept in memory, so they reset when the API restarts.
 
 Behind a reverse proxy the API only sees the proxy's address, so every user would share one limit. List the proxy in `ForwardedHeaders:TrustedNetworks` (CIDR notation, for example `ForwardedHeaders__TrustedNetworks__0=10.0.0.5/32`) and the API takes the client address from the last `X-Forwarded-For` entry of requests that come from those networks. The list is empty by default, which ignores the header. Docker Compose gives the web container a fixed address and trusts only that one; if `172.28.0.0/24` is taken on your machine, or you run a second copy of the stack, set `NETWORK_SUBNET` and `PROXY_IP` in `infra/.env`.
+
+## Sessions and refresh tokens
+
+`POST /api/auth/login` returns a short access token (`JwtSettings:ExpiryMinutes`, 15) in the body and sets a rotating refresh token in an `HttpOnly` cookie. The web app keeps the access token in memory only. The cookie is scoped to `/api/auth`, is `Secure` outside `Development` and `Testing`, and the database stores only its SHA-256 hash in `RefreshTokens`.
+
+- `POST /api/auth/refresh` swaps the cookie for a new one and returns a new access token. Every use extends the session by `RefreshToken:LifetimeDays` (30) from that moment.
+- `POST /api/auth/logout` revokes the session of that cookie (every token rotated from the same login) and clears the cookie. Other devices stay signed in.
+- Presenting a token that was already rotated, more than `RefreshToken:ReuseGraceSeconds` (10) after the rotation, is treated as theft: the whole session is revoked. The grace period absorbs two tabs refreshing at the same time.
+
+| Setting | Environment variable | Default |
+| --- | --- | --- |
+| `RefreshToken:CookieName` | `RefreshToken__CookieName` | `gymrat_refresh` |
+| `RefreshToken:LifetimeDays` | `RefreshToken__LifetimeDays` | `30` |
+| `RefreshToken:ReuseGraceSeconds` | `RefreshToken__ReuseGraceSeconds` | `10` |
+| `RefreshToken:SameSite` | `RefreshToken__SameSite` | `Strict` |
+
+`Strict` works when the web app and the API share a site (the nginx proxy in `infra/docker-compose.yml`, the Vite dev proxy, or two subdomains of one registrable domain). When they are on different sites, for example `pages.dev` and `onrender.com`, browsers drop a `Strict` or `Lax` cookie on cross-site requests: either put both behind one origin or custom domain, or set `RefreshToken__SameSite=None` and list the web app in `Cors:AllowedOrigins` (the API allows credentials for those origins). Some browsers block third-party cookies even then, so a shared parent domain is the dependable choice.
 
 ## AI coach
 

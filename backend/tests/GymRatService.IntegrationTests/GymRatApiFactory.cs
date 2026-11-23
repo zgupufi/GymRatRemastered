@@ -30,6 +30,8 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
     public IChatClient? ChatClient { get; set; }
 
+    public OffsetTimeProvider Time { get; } = new();
+
     public Dictionary<string, string> Settings { get; } = [];
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -55,6 +57,8 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
             }
 
             services.AddSingleton<IStartupFilter, ClientIpStartupFilter>();
+            services.RemoveAll<TimeProvider>();
+            services.AddSingleton<TimeProvider>(Time);
 
             _connection.Open();
             _connection.CreateFunction("uuid_generate_v7", () => Guid.CreateVersion7().ToString().ToUpperInvariant());

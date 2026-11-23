@@ -1,23 +1,17 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { login as loginRequest, register as registerRequest, type RegisterRequest } from '../api/auth'
-import { ApiError, setAccessToken, setUnauthorizedHandler } from '../api/client'
+import { login as loginRequest, logout as logoutRequest, register as registerRequest, type RegisterRequest } from '../api/auth'
+import { ApiError, refreshSession, setAccessToken, setUnauthorizedHandler } from '../api/client'
 import { getUserProfile, updateUserSettings, type UserProfile, type UserSettings } from '../api/users'
 import { AuthContext, LoginAfterRegisterError, type AuthApi, type AuthStatus } from './AuthContext'
-import { clearSession, loadSession, saveSession } from './sessionStorage'
-
-function restoreToken(): boolean {
-  const session = loadSession()
-  setAccessToken(session?.accessToken ?? null)
-  return session !== null
-}
+import { clearSessionHint, hasSessionHint, markSessionActive } from './sessionHint'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [status, setStatus] = useState<AuthStatus>(() => (restoreToken() ? 'loading' : 'anonymous'))
+  const [status, setStatus] = useState<AuthStatus>(() => (hasSessionHint() ? 'loading' : 'anonymous'))
   const [user, setUser] = useState<UserProfile | null>(null)
   const [sessionExpired, setSessionExpired] = useState(false)
 
   const endSession = useCallback(() => {
-    clearSession()
+    clearSessionHint()
     setAccessToken(null)
     setUser(null)
     setStatus('anonymous')
@@ -36,12 +30,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
     const controller = new AbortController()
-    getUserProfile(controller.signal)
-      .then((profile) => {
+
+    async function restore() {
+      const outcome = await refreshSession()
+      if (controller.signal.aborted) {
+        return
+      }
+      if (outcome === 'rejected') {
+        endSession()
+        return
+      }
+      if (outcome === 'unavailable') {
+        setStatus('anonymous')
+        return
+      }
+      try {
+        const profile = await getUserProfile(controller.signal)
         setUser(profile)
         setStatus('authenticated')
-      })
-      .catch((error: unknown) => {
+      } catch (error) {
         if (controller.signal.aborted) {
           return
         }
@@ -51,12 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setAccessToken(null)
           setStatus('anonymous')
         }
-      })
+      }
+    }
+
+    void restore()
     return () => controller.abort()
   }, [status, endSession])
 
   const login = useCallback(async (email: string, password: string) => {
-    const { accessToken, expiresAt } = await loginRequest({ email, password })
+    const { accessToken } = await loginRequest({ email, password })
     setAccessToken(accessToken)
     setSessionExpired(false)
     try {
@@ -65,9 +75,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAccessToken(null)
       throw error
     }
-    saveSession({ accessToken, expiresAt })
+    markSessionActive()
     setStatus('authenticated')
   }, [])
+
+  const logout = useCallback(() => {
+    void logoutRequest().catch(() => undefined)
+    endSession()
+  }, [endSession])
 
   const register = useCallback(
     async (request: RegisterRequest) => {
@@ -87,8 +102,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo<AuthApi>(
-    () => ({ status, user, sessionExpired, login, register, logout: endSession, updateSettings }),
-    [status, user, sessionExpired, login, register, endSession, updateSettings],
+    () => ({ status, user, sessionExpired, login, register, logout, updateSettings }),
+    [status, user, sessionExpired, login, register, logout, updateSettings],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

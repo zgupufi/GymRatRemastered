@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="011-refresh-tokens" author="gymrat">
+        <createTable tableName="RefreshTokens">
+            <column name="Id" type="uuid" defaultValueComputed="uuid_generate_v7()">
+                <constraints primaryKey="true" primaryKeyName="PK_RefreshTokens" nullable="false" />
+            </column>
+            <column name="UserId" type="uuid">
+                <constraints nullable="false" />
+            </column>
+            <column name="FamilyId" type="uuid">
+                <constraints nullable="false" />
+            </column>
+            <column name="TokenHash" type="varchar(64)">
+                <constraints nullable="false" />
+            </column>
+            <column name="CreatedAt" type="timestamp with time zone">
+                <constraints nullable="false" />
+            </column>
+            <column name="ExpiresAt" type="timestamp with time zone">
+                <constraints nullable="false" />
+            </column>
+            <column name="RotatedAt" type="timestamp with time zone" />
+            <column name="RevokedAt" type="timestamp with time zone" />
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="RefreshTokens"
+            baseColumnNames="UserId"
+            constraintName="FK_RefreshTokens_Users_UserId"
+            referencedTableName="Users"
+            referencedColumnNames="Id"
+            onDelete="CASCADE" />
+
+        <createIndex tableName="RefreshTokens" indexName="IX_RefreshTokens_TokenHash" unique="true">
+            <column name="TokenHash" />
+        </createIndex>
+
+        <createIndex tableName="RefreshTokens" indexName="IX_RefreshTokens_FamilyId">
+            <column name="FamilyId" />
+        </createIndex>
+
+        <createIndex tableName="RefreshTokens" indexName="IX_RefreshTokens_UserId">
+            <column name="UserId" />
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
