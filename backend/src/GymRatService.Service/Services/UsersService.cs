@@ -10,7 +10,6 @@ namespace GymRatService.Service.Services;
 
 public class UsersService(
     IUsersRepository usersRepository,
-    IRefreshTokensRepository refreshTokensRepository,
     IPasswordHasher passwordHasher,
     ILoginAttemptLimiter loginAttemptLimiter,
     TimeProvider timeProvider) : IUsersService
@@ -41,15 +40,13 @@ public class UsersService(
 
         var hashedPassword = passwordHasher.Hash(request.NewPassword);
 
-        await usersRepository.UpdatePasswordAsync(userId, hashedPassword.Hash, hashedPassword.Salt, cancellationToken);
-        await refreshTokensRepository.RevokeAllForUserAsync(userId, timeProvider.GetUtcNow(), cancellationToken);
+        await usersRepository.UpdatePasswordAndRevokeSessionsAsync(userId, hashedPassword.Hash, hashedPassword.Salt, timeProvider.GetUtcNow(), cancellationToken);
     }
 
     public async Task DeleteAccountAsync(Guid userId, DeleteAccountRequest request, CancellationToken cancellationToken)
     {
         await ConfirmPasswordAsync(userId, request.Password, cancellationToken);
 
-        await refreshTokensRepository.RevokeAllForUserAsync(userId, timeProvider.GetUtcNow(), cancellationToken);
         await usersRepository.DeleteAsync(userId, cancellationToken);
     }
 

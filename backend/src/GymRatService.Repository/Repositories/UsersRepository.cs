@@ -73,8 +73,10 @@ public class UsersRepository(GymRatDbContext context) : IUsersRepository
                 cancellationToken);
     }
 
-    public async Task UpdatePasswordAsync(Guid id, string passwordHash, string passwordSalt, CancellationToken cancellationToken)
+    public async Task UpdatePasswordAndRevokeSessionsAsync(Guid id, string passwordHash, string passwordSalt, DateTimeOffset revokedAt, CancellationToken cancellationToken)
     {
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         await context.Users
             .Where(user => user.Id == id)
             .ExecuteUpdateAsync(
@@ -82,6 +84,12 @@ public class UsersRepository(GymRatDbContext context) : IUsersRepository
                     .SetProperty(user => user.PasswordHash, passwordHash)
                     .SetProperty(user => user.PasswordSalt, passwordSalt),
                 cancellationToken);
+
+        await context.RefreshTokens
+            .Where(token => token.UserId == id && token.RevokedAt == null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.RevokedAt, revokedAt), cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)

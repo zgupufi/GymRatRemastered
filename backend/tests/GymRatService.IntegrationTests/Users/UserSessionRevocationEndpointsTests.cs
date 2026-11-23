@@ -1,17 +1,16 @@
 using System.Net;
 using System.Net.Http.Json;
-using GymRatService.Common.DTOs.Auth;
 using GymRatService.Common.DTOs.Users;
-using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
-using Microsoft.AspNetCore.Mvc.Testing;
+using GymRatService.Repository;
+using GymRatService.Repository.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GymRatService.IntegrationTests.Users;
 
 public sealed class UserSessionRevocationEndpointsTests : IDisposable
 {
-    private const string CookieName = "gymrat_refresh";
-
     private const string Email = "ana@example.com";
 
     private const string Password = "password123";
@@ -26,11 +25,9 @@ public sealed class UserSessionRevocationEndpointsTests : IDisposable
     public async Task ChangePassword_RevokesEveryRefreshSession_WhenTheCurrentPasswordMatches()
     {
         // Arrange
-        await _factory.SeedAsync(_ => { });
-        var anonymous = CreateCookielessClient();
-        await RegisterAsync(anonymous);
-        var first = await LoginAsync(anonymous);
-        var second = await LoginAsync(anonymous);
+        var anonymous = await CreateAnonymousClientWithUserAsync();
+        var first = await anonymous.LoginWithRefreshAsync(Email, Password);
+        var second = await anonymous.LoginWithRefreshAsync(Email, Password);
         var client = _factory.CreateBearerClient(first.AccessToken);
 
         // Act
@@ -46,11 +43,9 @@ public sealed class UserSessionRevocationEndpointsTests : IDisposable
     public async Task ChangePassword_RevokesRotatedSessions_AndStillAllowsLoginWithTheNewPassword()
     {
         // Arrange
-        await _factory.SeedAsync(_ => { });
-        var anonymous = CreateCookielessClient();
-        await RegisterAsync(anonymous);
-        var login = await LoginAsync(anonymous);
-        var rotated = await RefreshAsync(anonymous, login.RefreshToken);
+        var anonymous = await CreateAnonymousClientWithUserAsync();
+        var login = await anonymous.LoginWithRefreshAsync(Email, Password);
+        var rotated = await anonymous.RefreshAsync(login.RefreshToken);
         var client = _factory.CreateBearerClient(rotated.AccessToken);
 
         // Act
@@ -59,21 +54,63 @@ public sealed class UserSessionRevocationEndpointsTests : IDisposable
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         await AssertRefreshRejectedAsync(anonymous, rotated.RefreshToken);
-        var newLogin = await anonymous.PostAsJsonAsync("/api/auth/login", new LoginRequest(Email, NewPassword));
-        Assert.Equal(HttpStatusCode.OK, newLogin.StatusCode);
-        var fresh = ReadCookie(newLogin);
-        var refreshed = await SendRefreshAsync(anonymous, fresh);
+        var fresh = await anonymous.LoginWithRefreshAsync(Email, NewPassword);
+        var refreshed = await anonymous.SendRefreshAsync(fresh.RefreshToken);
         Assert.Equal(HttpStatusCode.OK, refreshed.StatusCode);
     }
 
     [Fact]
-    public async Task ChangePassword_KeepsTheRefreshSessions_WhenTheCurrentPasswordIsWrong()
+    public async Task ChangePassword_StampsEveryActiveSessionWithTheSameRevocationTime()
     {
         // Arrange
-        await _factory.SeedAsync(_ => { });
-        var anonymous = CreateCookielessClient();
-        await RegisterAsync(anonymous);
-        var login = await LoginAsync(anonymous);
+        var anonymous = await CreateAnonymousClientWithUserAsync();
+        var login = await anonymous.LoginWithRefreshAsync(Email, Password);
+        await anonymous.LoginWithRefreshAsync(Email, Password);
+        var client = _factory.CreateBearerClient(login.AccessToken);
+        var before = DateTimeOffset.UtcNow;
+
+        // Act
+        await client.PostAsJsonAsync("/api/users/me/password", new ChangePasswordRequest(Password, NewPassword));
+
+        // Assert
+        var revokedAt = await ReadRevocationTimesAsync();
+        Assert.Equal(2, revokedAt.Count);
+        Assert.All(revokedAt, value => Assert.NotNull(value));
+        Assert.Single(revokedAt.Distinct());
+        Assert.InRange(revokedAt[0]!.Value, before.AddSeconds(-1), DateTimeOffset.UtcNow.AddSeconds(1));
+    }
+
+    [Fact]
+    public async Task ChangePassword_KeepsThePasswordAndTheSessions_WhenRevokingFails()
+    {
+        // Arrange
+        var anonymous = await CreateAnonymousClientWithUserAsync();
+        var login = await anonymous.LoginWithRefreshAsync(Email, Password);
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<GymRatDbContext>();
+        await context.Database.ExecuteSqlRawAsync(
+            "CREATE TRIGGER block_revoke BEFORE UPDATE OF RevokedAt ON RefreshTokens BEGIN SELECT RAISE(ABORT, 'revoke blocked'); END;");
+        var repository = scope.ServiceProvider.GetRequiredService<IUsersRepository>();
+        var user = await context.Users.AsNoTracking().SingleAsync();
+
+        // Act
+        await Assert.ThrowsAnyAsync<Exception>(
+            () => repository.UpdatePasswordAndRevokeSessionsAsync(user.Id, "new-hash", "new-salt", DateTimeOffset.UtcNow, CancellationToken.None));
+
+        // Assert
+        var unchanged = await context.Users.AsNoTracking().SingleAsync();
+        Assert.Equal(user.PasswordHash, unchanged.PasswordHash);
+        Assert.Equal(user.PasswordSalt, unchanged.PasswordSalt);
+        var refreshed = await anonymous.SendRefreshAsync(login.RefreshToken);
+        Assert.Equal(HttpStatusCode.OK, refreshed.StatusCode);
+    }
+
+    [Fact]
+    public async Task ChangePassword_ReturnsInvalidPasswordAndKeepsTheRefreshSessions_WhenTheCurrentPasswordIsWrong()
+    {
+        // Arrange
+        var anonymous = await CreateAnonymousClientWithUserAsync();
+        var login = await anonymous.LoginWithRefreshAsync(Email, Password);
         var client = _factory.CreateBearerClient(login.AccessToken);
 
         // Act
@@ -81,7 +118,9 @@ public sealed class UserSessionRevocationEndpointsTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var refreshed = await SendRefreshAsync(anonymous, login.RefreshToken);
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(ErrorCodes.InvalidPassword, error?.Code);
+        var refreshed = await anonymous.SendRefreshAsync(login.RefreshToken);
         Assert.Equal(HttpStatusCode.OK, refreshed.StatusCode);
     }
 
@@ -89,12 +128,10 @@ public sealed class UserSessionRevocationEndpointsTests : IDisposable
     public async Task ChangePassword_DoesNotRevokeTheSessionsOfOtherUsers()
     {
         // Arrange
-        await _factory.SeedAsync(_ => { });
-        var anonymous = CreateCookielessClient();
-        await RegisterAsync(anonymous);
-        await RegisterAsync(anonymous, "other@example.com");
-        var login = await LoginAsync(anonymous);
-        var other = await LoginAsync(anonymous, "other@example.com");
+        var anonymous = await CreateAnonymousClientWithUserAsync();
+        await anonymous.RegisterAsync("other@example.com", Password);
+        var login = await anonymous.LoginWithRefreshAsync(Email, Password);
+        var other = await anonymous.LoginWithRefreshAsync("other@example.com", Password);
         var client = _factory.CreateBearerClient(login.AccessToken);
 
         // Act
@@ -102,19 +139,19 @@ public sealed class UserSessionRevocationEndpointsTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        var refreshed = await SendRefreshAsync(anonymous, other.RefreshToken);
+        var refreshed = await anonymous.SendRefreshAsync(other.RefreshToken);
         Assert.Equal(HttpStatusCode.OK, refreshed.StatusCode);
     }
 
     [Fact]
-    public async Task DeleteAccount_RemovesEveryRefreshSession_WhenThePasswordMatches()
+    public async Task DeleteAccount_RemovesEveryRefreshSessionOfTheUser_AndLeavesOtherUsersAlone()
     {
         // Arrange
-        await _factory.SeedAsync(_ => { });
-        var anonymous = CreateCookielessClient();
-        await RegisterAsync(anonymous);
-        var first = await LoginAsync(anonymous);
-        var second = await LoginAsync(anonymous);
+        var anonymous = await CreateAnonymousClientWithUserAsync();
+        await anonymous.RegisterAsync("other@example.com", Password);
+        var first = await anonymous.LoginWithRefreshAsync(Email, Password);
+        var second = await anonymous.LoginWithRefreshAsync(Email, Password);
+        var other = await anonymous.LoginWithRefreshAsync("other@example.com", Password);
         var client = _factory.CreateBearerClient(first.AccessToken);
 
         // Act
@@ -127,16 +164,17 @@ public sealed class UserSessionRevocationEndpointsTests : IDisposable
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         await AssertRefreshRejectedAsync(anonymous, first.RefreshToken);
         await AssertRefreshRejectedAsync(anonymous, second.RefreshToken);
+        Assert.Equal(1, await CountRefreshTokensAsync());
+        var refreshed = await anonymous.SendRefreshAsync(other.RefreshToken);
+        Assert.Equal(HttpStatusCode.OK, refreshed.StatusCode);
     }
 
     [Fact]
-    public async Task DeleteAccount_KeepsTheRefreshSessions_WhenThePasswordIsWrong()
+    public async Task DeleteAccount_ReturnsInvalidPasswordAndKeepsTheRefreshSessions_WhenThePasswordIsWrong()
     {
         // Arrange
-        await _factory.SeedAsync(_ => { });
-        var anonymous = CreateCookielessClient();
-        await RegisterAsync(anonymous);
-        var login = await LoginAsync(anonymous);
+        var anonymous = await CreateAnonymousClientWithUserAsync();
+        var login = await anonymous.LoginWithRefreshAsync(Email, Password);
         var client = _factory.CreateBearerClient(login.AccessToken);
 
         // Act
@@ -147,65 +185,43 @@ public sealed class UserSessionRevocationEndpointsTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var refreshed = await SendRefreshAsync(anonymous, login.RefreshToken);
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(ErrorCodes.InvalidPassword, error?.Code);
+        var refreshed = await anonymous.SendRefreshAsync(login.RefreshToken);
         Assert.Equal(HttpStatusCode.OK, refreshed.StatusCode);
     }
 
-    private HttpClient CreateCookielessClient()
+    private async Task<HttpClient> CreateAnonymousClientWithUserAsync()
     {
-        return _factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
-    }
+        await _factory.SeedAsync(_ => { });
+        var anonymous = _factory.CreateCookielessClient();
+        await anonymous.RegisterAsync(Email, Password);
 
-    private static async Task RegisterAsync(HttpClient client, string email = Email)
-    {
-        var response = await client.PostAsJsonAsync(
-            "/api/auth/register",
-            new RegisterRequest(email, Password, "Ana", null, WeightUnit.Kilograms));
-
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-    }
-
-    private static async Task<(string AccessToken, string RefreshToken)> LoginAsync(HttpClient client, string email = Email)
-    {
-        var response = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest(email, Password));
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var body = await response.Content.ReadFromJsonAsync<LoginResponse>();
-
-        return (body!.AccessToken, ReadCookie(response));
-    }
-
-    private static async Task<(string AccessToken, string RefreshToken)> RefreshAsync(HttpClient client, string token)
-    {
-        var response = await SendRefreshAsync(client, token);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var body = await response.Content.ReadFromJsonAsync<LoginResponse>();
-
-        return (body!.AccessToken, ReadCookie(response));
-    }
-
-    private static async Task<HttpResponseMessage> SendRefreshAsync(HttpClient client, string token)
-    {
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
-        request.Headers.Add("Cookie", $"{CookieName}={token}");
-
-        return await client.SendAsync(request);
+        return anonymous;
     }
 
     private static async Task AssertRefreshRejectedAsync(HttpClient client, string token)
     {
-        var response = await SendRefreshAsync(client, token);
+        var response = await client.SendRefreshAsync(token);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
         Assert.Equal(ErrorCodes.InvalidRefreshToken, error?.Code);
     }
 
-    private static string ReadCookie(HttpResponseMessage response)
+    private async Task<List<DateTimeOffset?>> ReadRevocationTimesAsync()
     {
-        var header = Assert.Single(response.Headers.GetValues("Set-Cookie"), value => value.StartsWith($"{CookieName}=", StringComparison.Ordinal));
-        var separator = header.IndexOf(';', StringComparison.Ordinal);
-        var pair = separator < 0 ? header : header[..separator];
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<GymRatDbContext>();
 
-        return pair[(CookieName.Length + 1)..];
+        return await context.RefreshTokens.AsNoTracking().Select(token => token.RevokedAt).ToListAsync();
+    }
+
+    private async Task<int> CountRefreshTokensAsync()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<GymRatDbContext>();
+
+        return await context.RefreshTokens.CountAsync();
     }
 }
