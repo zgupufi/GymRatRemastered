@@ -7,6 +7,7 @@ const TITLES: Record<string, string> = {
   '/progress': 'Progression',
   '/exercises': 'Exercise library',
   '/workout-execution': 'Workout',
+  '/settings': 'Settings',
 }
 
 export function pageTitle(pathname: string): string {

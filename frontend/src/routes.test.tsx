@@ -86,6 +86,7 @@ describe('AppRoutes', () => {
     ['/split', 'My split'],
     ['/workout-execution', 'Rest day'],
     ['/progress', 'Progression'],
+    ['/settings', 'Settings'],
     ['/nowhere', 'Page not found'],
   ])('renders %s', async (path, heading) => {
     renderAt(path)
