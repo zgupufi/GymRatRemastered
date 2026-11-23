@@ -12,7 +12,7 @@ namespace GymRatService.IntegrationTests.Auth;
 
 public sealed class AuthRefreshEndpointsTests : IDisposable
 {
-    private const string CookieName = "gymrat_refresh";
+    private const string CookieName = RefreshSessionHelpers.RefreshCookieName;
 
     private const string Email = "ana@example.com";
 
@@ -467,7 +467,7 @@ public sealed class AuthRefreshEndpointsTests : IDisposable
 
     private static HttpClient CreateClient(GymRatApiFactory factory)
     {
-        return factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        return factory.CreateCookielessClient();
     }
 
     private static async Task RegisterAsync(GymRatApiFactory factory)
@@ -488,7 +488,7 @@ public sealed class AuthRefreshEndpointsTests : IDisposable
 
     private static Task<HttpResponseMessage> RefreshAsync(HttpClient client, string token)
     {
-        return SendWithCookieAsync(client, "/api/auth/refresh", token);
+        return client.SendRefreshAsync(token);
     }
 
     private static async Task<HttpResponseMessage> SendWithCookieAsync(HttpClient client, string path, string token)

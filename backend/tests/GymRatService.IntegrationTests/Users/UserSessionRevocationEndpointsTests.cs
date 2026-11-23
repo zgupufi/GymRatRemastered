@@ -193,7 +193,7 @@ public sealed class UserSessionRevocationEndpointsTests : IDisposable
 
     private async Task<HttpClient> CreateAnonymousClientWithUserAsync()
     {
-        await _factory.SeedAsync(_ => { });
+        await _factory.EnsureDatabaseAsync();
         var anonymous = _factory.CreateCookielessClient();
         await anonymous.RegisterAsync(Email, Password);
 
