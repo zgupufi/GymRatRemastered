@@ -1,7 +1,7 @@
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MotionGlobalConfig } from 'motion/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WeightUnit } from '../../api/auth'
 import { ApiError, setAccessToken } from '../../api/client'
@@ -32,6 +32,11 @@ const PROFILE: UserProfile = {
   defaultRestTimeSeconds: 90,
 }
 
+function LoginProbe() {
+  const location = useLocation()
+  return <h1 data-from={JSON.stringify(location.state)}>Login page</h1>
+}
+
 function renderSettings() {
   givenRestorableSession()
   return render(
@@ -42,7 +47,7 @@ function renderSettings() {
             <Route element={<RequireAuth />}>
               <Route path="settings" element={<SettingsPage />} />
             </Route>
-            <Route path="login" element={<h1>Login page</h1>} />
+            <Route path="login" element={<LoginProbe />} />
           </Routes>
         </ToastProvider>
       </AuthProvider>
@@ -311,6 +316,7 @@ describe('SettingsPage', () => {
       await waitFor(() => expect(deleteAccount).toHaveBeenCalledWith('my-password'))
       expect(await screen.findByRole('heading', { level: 1, name: 'Login page' })).toBeInTheDocument()
       expect(await screen.findByText('Your account was deleted.')).toBeInTheDocument()
+      await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Login page' })).toHaveAttribute('data-from', '{}'))
     })
 
     it('keeps the dialog open and shows the error when the password is wrong', async () => {

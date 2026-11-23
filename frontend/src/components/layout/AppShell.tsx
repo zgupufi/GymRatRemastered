@@ -36,7 +36,7 @@ export function AppShell() {
           <div className="app-shell__glow app-shell__glow--emerald" aria-hidden="true" />
           {showNav ? <AppNav /> : null}
           <Outlet />
-          {status === 'authenticated' && pathname !== '/workout-execution' ? (
+          {status === 'authenticated' && pathname !== '/workout-execution' && pathname !== '/settings' ? (
             <ChatErrorBoundary>
               <ChatWidget />
             </ChatErrorBoundary>
