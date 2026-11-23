@@ -81,6 +81,7 @@ describe('SettingsPage', () => {
 
     expect(screen.getByText('Rafael Foica')).toBeInTheDocument()
     expect(screen.getByText('rafael@example.com')).toBeInTheDocument()
+    expect(screen.getByText('RF')).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: 'Kg' })).toBeChecked()
     expect(screen.getByLabelText('Default rest time in seconds')).toHaveTextContent('90')
     for (const name of ['Profile', 'Preferences', 'Data', 'Account', 'Danger zone']) {

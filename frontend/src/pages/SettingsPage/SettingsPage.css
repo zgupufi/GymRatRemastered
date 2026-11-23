@@ -109,9 +109,6 @@
   font-weight: 700;
 }
 
-.settings-page__control {
-  width: 11.25rem;
-}
 
 .settings-page__stepper {
   display: flex;
@@ -196,11 +193,41 @@
     padding: var(--space-3) var(--space-4);
   }
 
-  .settings-page__control {
-    width: 8.5rem;
-  }
 
   .settings-page__save .button {
     width: 100%;
+  }
+}
+
+.settings-page .button {
+  white-space: nowrap;
+}
+
+.settings-page .segmented__option--on {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: none;
+}
+
+.settings-page__form .field {
+  max-width: 18.75rem;
+}
+
+@media (max-width: 40rem) {
+  .settings-page__long {
+    display: none;
+  }
+
+  .settings-page__row--danger {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .settings-page__row--danger .button {
+    width: 100%;
+  }
+
+  .settings-page__form .field {
+    max-width: none;
   }
 }

@@ -30,6 +30,13 @@ function fullNameOf(user: UserProfile): string {
   return [user.firstName, user.lastName].filter(Boolean).join(' ')
 }
 
+function initialsOf(user: UserProfile): string {
+  return [user.firstName, user.lastName]
+    .filter(Boolean)
+    .map((name) => (name as string).slice(0, 1).toUpperCase())
+    .join('')
+}
+
 function ProfileSection({ user }: { user: UserProfile }) {
   return (
     <section className="settings-page__section" aria-labelledby="settings-profile">
@@ -37,7 +44,7 @@ function ProfileSection({ user }: { user: UserProfile }) {
       <div className="settings-page__group">
         <div className="settings-page__row settings-page__row--profile">
           <span className="settings-page__avatar" aria-hidden="true">
-            {user.firstName.slice(0, 1).toUpperCase()}
+            {initialsOf(user)}
           </span>
           <div className="settings-page__text">
             <strong>{fullNameOf(user)}</strong>
@@ -81,14 +88,14 @@ function PreferencesSection({ user }: { user: UserProfile }) {
       <div className="settings-page__group">
         <div className="settings-page__row">
           <span className="settings-page__key">Weight unit</span>
-          <div className="settings-page__control">
-            <SegmentedControl label="Weight unit" options={unitOptions} value={unit} onChange={setUnit} wide />
+          <div>
+            <SegmentedControl label="Weight unit" options={unitOptions} value={unit} onChange={setUnit} />
           </div>
         </div>
         <div className="settings-page__row">
           <div className="settings-page__text">
             <span className="settings-page__key">Default rest time</span>
-            <span className="settings-page__hint">Used between sets unless an exercise overrides it</span>
+            <span className="settings-page__hint">Between sets</span>
           </div>
           <div className="settings-page__stepper">
             <button
@@ -147,8 +154,8 @@ function DataSection() {
             <span className="settings-page__key">Export everything</span>
             <span className="settings-page__hint">Profile, workouts, split and every session with its sets (JSON)</span>
           </div>
-          <Button variant="secondary" size="sm" loading={busy === 'json'} disabled={busy !== null} onClick={() => download('json')}>
-            Download JSON
+          <Button variant="secondary" size="sm" loading={busy === 'json'} aria-label="Download JSON" disabled={busy !== null} onClick={() => download('json')}>
+            Download<span className="settings-page__long"> JSON</span>
           </Button>
         </div>
         <div className="settings-page__row">
@@ -156,8 +163,8 @@ function DataSection() {
             <span className="settings-page__key">Export sets</span>
             <span className="settings-page__hint">One row per logged set, opens in a spreadsheet (CSV)</span>
           </div>
-          <Button variant="secondary" size="sm" loading={busy === 'csv'} disabled={busy !== null} onClick={() => download('csv')}>
-            Download CSV
+          <Button variant="secondary" size="sm" loading={busy === 'csv'} aria-label="Download CSV" disabled={busy !== null} onClick={() => download('csv')}>
+            Download<span className="settings-page__long"> CSV</span>
           </Button>
         </div>
       </div>
@@ -297,9 +304,9 @@ function DeleteDialog({ open, onClose }: { open: boolean; onClose: () => void })
     setDeleting(true)
     try {
       await deleteAccount(password)
+      navigate('/')
       logout()
       showToast('success', 'Your account was deleted.')
-      navigate('/')
     } catch (failure) {
       setError(friendlyErrorMessage(failure))
       setDeleting(false)
@@ -346,7 +353,7 @@ function DangerSection() {
         Danger zone
       </h2>
       <div className="settings-page__group settings-page__group--danger">
-        <div className="settings-page__row">
+        <div className="settings-page__row settings-page__row--danger">
           <div className="settings-page__text">
             <span className="settings-page__key">Delete account</span>
             <span className="settings-page__hint">
