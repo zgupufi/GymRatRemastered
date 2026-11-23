@@ -9,6 +9,7 @@ import { SplitPage } from './pages/SplitPage/SplitPage'
 import { ExercisesPage } from './pages/ExercisesPage/ExercisesPage'
 import { ExerciseDetailsPage } from './pages/ExerciseDetailsPage/ExerciseDetailsPage'
 import { HomePage } from './pages/HomePage'
+import { SettingsPage } from './pages/SettingsPage/SettingsPage'
 import { LoginPage } from './pages/LoginPage/LoginPage'
 import { RegisterPage } from './pages/RegisterPage/RegisterPage'
 
@@ -26,6 +27,7 @@ export function AppRoutes() {
           <Route path="split" element={<SplitPage />} />
           <Route path="workout-execution" element={<WorkoutExecutionPage />} />
           <Route path="progress" element={<ProgressionPage />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
         <Route path="*" element={<PlaceholderPage title="Page not found" description="That page does not exist." homeLink />} />
       </Route>

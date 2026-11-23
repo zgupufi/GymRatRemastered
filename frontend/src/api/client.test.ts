@@ -164,6 +164,26 @@ describe('apiClient', () => {
     expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'DELETE' })
   })
 
+  it('sends a DELETE request with a JSON body when one is given', async () => {
+    const fetchMock = mockFetch(new Response(null, { status: 204 }))
+
+    await apiClient.delete('/api/things/1', { password: 'x' })
+
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      method: 'DELETE',
+      body: '{"password":"x"}',
+      headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+    })
+  })
+
+  it('downloads a response as a blob', async () => {
+    mockFetch(new Response('a,b', { status: 200 }))
+
+    const blob = await apiClient.download('/api/things/export')
+
+    expect(await blob.text()).toBe('a,b')
+  })
+
   it('throws an ApiError with status 0 when the network fails', async () => {
     vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockRejectedValue(new TypeError('offline')))
 

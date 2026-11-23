@@ -68,6 +68,7 @@
   background: var(--fill-subtle);
   font-size: 0.875rem;
   font-weight: 600;
+  color: var(--text);
 }
 
 .appnav__action span {
@@ -127,4 +128,8 @@
   .appnav {
     background: var(--bg);
   }
+}
+
+.appnav__action.active {
+  background: var(--fill-pressed);
 }

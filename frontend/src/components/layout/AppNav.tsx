@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { BookOpen, CalendarDays, CircleHelp, Dumbbell, House, LineChart, Settings, type LucideIcon } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { HowToModal } from '../../pages/DashboardPage/HowToModal'
-import { SettingsModal } from '../../pages/DashboardPage/SettingsModal'
 import './AppNav.css'
 
 interface NavItem {
@@ -20,7 +19,6 @@ const navItems: NavItem[] = [
 ]
 
 export function AppNav() {
-  const [settingsOpen, setSettingsOpen] = useState(false)
   const [howToOpen, setHowToOpen] = useState(false)
 
   return (
@@ -42,10 +40,10 @@ export function AppNav() {
               <CircleHelp size={16} aria-hidden="true" />
               <span>How to use</span>
             </button>
-            <button type="button" className="appnav__action" aria-label="Settings" onClick={() => setSettingsOpen(true)}>
+            <NavLink to="/settings" className="appnav__action" aria-label="Settings">
               <Settings size={16} aria-hidden="true" />
               <span>Settings</span>
-            </button>
+            </NavLink>
           </div>
         </div>
       </header>
@@ -60,7 +58,6 @@ export function AppNav() {
           )
         })}
       </nav>
-      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <HowToModal open={howToOpen} onClose={() => setHowToOpen(false)} />
     </>
   )

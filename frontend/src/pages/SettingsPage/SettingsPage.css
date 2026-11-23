@@ -1,0 +1,233 @@
+.settings-page {
+  max-width: 51rem;
+}
+
+.settings-page__section {
+  margin-bottom: var(--space-8);
+}
+
+.settings-page__section h2 {
+  margin: 0 0 var(--space-2) var(--space-1);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.settings-page__section h2.settings-page__danger-title {
+  color: var(--danger);
+}
+
+.settings-page__group {
+  border-radius: var(--radius-lg);
+  background: var(--material);
+  border: 1px solid var(--hairline);
+}
+
+.settings-page__group--danger {
+  background: color-mix(in srgb, var(--red) 5%, transparent);
+  border-color: var(--danger-border);
+}
+
+.settings-page__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 3.75rem;
+  padding: var(--space-4) 1.25rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.settings-page__row--profile {
+  justify-content: flex-start;
+  gap: var(--space-3);
+}
+
+.settings-page__row + .settings-page__row,
+.settings-page__row + .settings-page__form,
+.settings-page__form + .settings-page__row {
+  border-top: 1px solid var(--hairline);
+}
+
+.settings-page__row--button {
+  cursor: pointer;
+}
+
+.settings-page__row--button svg {
+  color: var(--text-3);
+  transition: transform 160ms ease;
+}
+
+.settings-page__row--button svg.settings-page__chevron--open {
+  transform: rotate(90deg);
+}
+
+.settings-page__row--button:focus-visible {
+  outline: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--focus-ring);
+}
+
+.settings-page__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.1875rem;
+}
+
+.settings-page__text strong,
+.settings-page__key {
+  font-size: 1rem;
+}
+
+.settings-page__hint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-3);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.settings-page__avatar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--glow-emerald-strong);
+  border: 1px solid color-mix(in srgb, var(--emerald) 40%, transparent);
+  color: var(--emerald);
+  font-weight: 700;
+}
+
+
+.settings-page__stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.settings-page__stepper button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--fill-pressed);
+  color: var(--text-2);
+}
+
+.settings-page__stepper button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.settings-page__stepper output {
+  min-width: 4.75rem;
+  text-align: center;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.settings-page__stepper small {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+.settings-page__save {
+  margin-top: var(--space-4);
+}
+
+.settings-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-2) 1.25rem 1.25rem;
+}
+
+.settings-page__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.settings-page__note {
+  margin: var(--space-2) var(--space-1) 0;
+  color: var(--text-3);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.settings-page__dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  color: var(--text-2);
+}
+
+.settings-page__dialog p {
+  margin: 0;
+}
+
+.settings-page__dialog ul {
+  margin: 0 0 var(--space-2);
+  padding-left: 1.25rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 40rem) {
+  .settings-page__row {
+    padding: var(--space-3) var(--space-4);
+  }
+
+
+  .settings-page__save .button {
+    width: 100%;
+  }
+}
+
+.settings-page .button {
+  white-space: nowrap;
+}
+
+.settings-page .segmented__option--on {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: none;
+}
+
+.settings-page__form .field {
+  max-width: 18.75rem;
+}
+
+@media (max-width: 40rem) {
+  .settings-page__long {
+    display: none;
+  }
+
+  .settings-page__row--danger {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .settings-page__row--danger .button {
+    width: 100%;
+  }
+
+  .settings-page__form .field {
+    max-width: none;
+  }
+}

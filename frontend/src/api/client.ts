@@ -81,7 +81,7 @@ export function refreshSession(): Promise<RefreshOutcome> {
   return refreshInFlight
 }
 
-async function request<T>(path: string, init?: RequestInit, retried = false): Promise<T> {
+async function send(path: string, init?: RequestInit, retried = false): Promise<Response> {
   let response: Response
   try {
     response = await fetch(`${BASE_URL}${path}`, {
@@ -105,7 +105,7 @@ async function request<T>(path: string, init?: RequestInit, retried = false): Pr
     if (response.status === 401 && accessToken) {
       const outcome = retried ? 'rejected' : await refreshSession()
       if (outcome === 'refreshed') {
-        return request<T>(path, init, true)
+        return send(path, init, true)
       }
       if (outcome === 'rejected') {
         unauthorizedHandler?.()
@@ -118,6 +118,11 @@ async function request<T>(path: string, init?: RequestInit, retried = false): Pr
     throw new ApiError(response.status, `Request failed with status ${response.status}`)
   }
 
+  return response
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await send(path, init)
   const text = await response.text()
   return (text ? JSON.parse(text) : undefined) as T
 }
@@ -135,5 +140,7 @@ export const apiClient = {
   post: <T = void>(path: string, body: unknown) => request<T>(path, withJsonBody('POST', body)),
   put: (path: string, body: unknown) => request<void>(path, withJsonBody('PUT', body)),
   patch: (path: string, body: unknown) => request<void>(path, withJsonBody('PATCH', body)),
-  delete: (path: string) => request<void>(path, { method: 'DELETE' }),
+  delete: (path: string, body?: unknown) =>
+    request<void>(path, body === undefined ? { method: 'DELETE' } : withJsonBody('DELETE', body)),
+  download: async (path: string, signal?: AbortSignal) => (await send(path, { signal })).blob(),
 }
