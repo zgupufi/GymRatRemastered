@@ -100,6 +100,21 @@ describe('ui components', () => {
     expect(input).toHaveValue('62.5')
   })
 
+  it('tidies a trailing or lone separator on blur', async () => {
+    const user = userEvent.setup()
+    render(<DecimalHarness />)
+    const input = screen.getByRole('textbox', { name: 'Weight' })
+
+    await user.type(input, '62.')
+    await user.tab()
+    expect(input).toHaveValue('62')
+
+    await user.clear(input)
+    await user.type(input, '.')
+    await user.tab()
+    expect(input).toHaveValue('')
+  })
+
   it('switches the segmented control selection', async () => {
     const onChange = vi.fn()
     render(

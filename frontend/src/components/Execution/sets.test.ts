@@ -40,6 +40,9 @@ describe('sets', () => {
     ['50', '1001', false],
     ['50', '2.5', false],
     ['62.5', '5', true],
+    ['2000', '5', true],
+    ['2000.5', '5', false],
+    ['62.', '5', true],
     ['62,5', '5', true],
     ['.', '5', false],
     ['-5', '5', false],
@@ -48,6 +51,16 @@ describe('sets', () => {
     ['50', '8', true],
   ])('validates weight %s and reps %s', (weight, reps, expected) => {
     expect(isValidDraft({ weight, reps, done: true, effort: null }, WeightUnit.Kilograms)).toBe(expected)
+  })
+
+  it('applies the maximum weight in pounds', () => {
+    expect(isValidDraft({ weight: '4409.24', reps: '5', done: true, effort: null }, WeightUnit.Pounds)).toBe(true)
+    expect(isValidDraft({ weight: '4409.5', reps: '5', done: true, effort: null }, WeightUnit.Pounds)).toBe(false)
+  })
+
+  it('keeps a decimal weight exactly when restoring saved sets', () => {
+    const drafts = draftsFromSaved(1, [{ setNumber: 1, reps: 5, weightKg: 62.55 }], WeightUnit.Kilograms)
+    expect(drafts[0].weight).toBe('62.55')
   })
 
   it('parses weights typed with a comma or a dot', () => {

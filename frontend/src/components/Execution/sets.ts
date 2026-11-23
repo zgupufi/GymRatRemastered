@@ -1,6 +1,6 @@
 import type { WeightUnit } from '../../api/auth'
 import type { ExerciseTarget, SessionSet, SessionSetEntry } from '../../api/sessions'
-import { displayWeight, toKilograms } from '../../lib/weight'
+import { displayWeight, restoredWeight, toKilograms } from '../../lib/weight'
 
 export interface SetDraft {
   weight: string
@@ -42,7 +42,7 @@ export function draftsFromSaved(targetSets: number, saved: SessionSet[] | undefi
   }
   sets.forEach((set, position) => {
     drafts[position] = {
-      weight: String(displayWeight(set.weightKg, unit)),
+      weight: String(restoredWeight(set.weightKg, unit)),
       reps: String(set.reps),
       done: true,
       effort: set.repsInReserve ?? null,

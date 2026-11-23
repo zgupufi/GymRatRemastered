@@ -1,4 +1,4 @@
-import type { ChangeEvent, InputHTMLAttributes, KeyboardEvent } from 'react'
+import type { ChangeEvent, FocusEvent, InputHTMLAttributes, KeyboardEvent } from 'react'
 import './Input.css'
 
 const BLOCKED_KEYS = new Set(['e', 'E', '+', '-', '.', ','])
@@ -27,6 +27,15 @@ export function NumberInput({ value, onValueChange, decimal = false, className, 
       onValueChange(next)
     }
   }
+  const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
+    if (decimal) {
+      const tidy = value === '.' ? '' : value.replace(/\.$/, '')
+      if (tidy !== value) {
+        onValueChange(tidy)
+      }
+    }
+    rest.onBlur?.(event)
+  }
   return (
     <input
       {...rest}
@@ -36,6 +45,7 @@ export function NumberInput({ value, onValueChange, decimal = false, className, 
       className={['number-input', className].filter(Boolean).join(' ')}
       onKeyDown={handleKeyDown}
       onChange={handleChange}
+      onBlur={handleBlur}
       onFocus={(event) => event.target.select()}
     />
   )
