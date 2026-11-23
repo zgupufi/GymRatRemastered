@@ -341,6 +341,29 @@ describe('WorkoutExecutionPage', () => {
     expect(screen.getByRole('timer')).toHaveTextContent(/00:5[0-5]/)
   })
 
+  it('shows rest over when the rest ends and lets the sound be muted', async () => {
+    localStorage.clear()
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    renderPage()
+    await startToday(user)
+    await fillSet(user, 1, '60', '8')
+
+    const timer = await screen.findByRole('timer', { name: 'Rest timer' })
+    await user.click(within(timer).getByRole('button', { name: 'Mute rest sound' }))
+    expect(within(timer).getByRole('button', { name: 'Unmute rest sound' })).toHaveAttribute('aria-pressed', 'true')
+    expect(localStorage.getItem('gymrat.restSound')).toBe('off')
+
+    act(() => {
+      vi.advanceTimersByTime(61_000)
+    })
+
+    expect(screen.getByRole('timer')).toHaveTextContent('Rest over')
+    await user.click(screen.getByRole('button', { name: 'Dismiss' }))
+    await waitFor(() => expect(screen.queryByRole('timer')).not.toBeInTheDocument())
+    localStorage.clear()
+  })
+
   it('saves completed sets and moves between exercises', async () => {
     const user = userEvent.setup()
     renderPage()

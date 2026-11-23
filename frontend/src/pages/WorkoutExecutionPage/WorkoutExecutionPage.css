@@ -372,6 +372,34 @@
   color: var(--text-2);
 }
 
+.rest-pill .rest-pill__sound {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  color: var(--text-2);
+}
+
+.rest-pill--over {
+  border-color: var(--emerald);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rest-pill--over .rest-pill__dot {
+    animation: rest-pill-pulse 0.8s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes rest-pill-pulse {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.3;
+  }
+}
+
 .picker {
   display: grid;
   gap: var(--space-2);

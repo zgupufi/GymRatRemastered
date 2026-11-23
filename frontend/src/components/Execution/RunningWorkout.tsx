@@ -243,7 +243,15 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
         onAdd={() => updateDrafts(addDraft)}
         onRemove={() => updateDrafts(removeLastDraft)}
       />
-      <RestTimerPill remaining={rest.remaining} onExtend={rest.extend} onReduce={rest.reduce} onSkip={rest.skip} />
+      <RestTimerPill
+        remaining={rest.remaining}
+        finished={rest.finished}
+        soundEnabled={rest.soundEnabled}
+        onExtend={rest.extend}
+        onReduce={rest.reduce}
+        onSkip={rest.skip}
+        onToggleSound={rest.toggleSound}
+      />
       <div className="execution__controls">
         <Button variant="danger" disabled={busy} onClick={() => setConfirmingEnd(true)}>
           End

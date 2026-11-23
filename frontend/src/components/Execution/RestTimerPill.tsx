@@ -1,20 +1,25 @@
 import { AnimatePresence, motion } from 'motion/react'
+import { Volume2, VolumeX } from 'lucide-react'
 import { spring } from '../../lib/motion'
 import { formatClock } from '../../lib/clock'
 
 interface RestTimerPillProps {
   remaining: number | null
+  finished: boolean
+  soundEnabled: boolean
   onExtend: () => void
   onReduce: () => void
   onSkip: () => void
+  onToggleSound: () => void
 }
 
-export function RestTimerPill({ remaining, onExtend, onReduce, onSkip }: RestTimerPillProps) {
+export function RestTimerPill({ remaining, finished, soundEnabled, onExtend, onReduce, onSkip, onToggleSound }: RestTimerPillProps) {
+  const visible = remaining !== null || finished
   return (
     <AnimatePresence>
-      {remaining !== null ? (
+      {visible ? (
         <motion.div
-          className="rest-pill"
+          className={finished ? 'rest-pill rest-pill--over' : 'rest-pill'}
           role="timer"
           aria-label="Rest timer"
           initial={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -23,15 +28,37 @@ export function RestTimerPill({ remaining, onExtend, onReduce, onSkip }: RestTim
           transition={spring}
         >
           <span className="rest-pill__dot" aria-hidden="true" />
-          <strong className="rest-pill__time">{formatClock(remaining)}</strong>
-          <button type="button" onClick={onExtend}>
-            +30s
-          </button>
-          <button type="button" onClick={onReduce}>
-            −10s
-          </button>
-          <button type="button" className="rest-pill__skip" onClick={onSkip}>
-            Skip
+          {remaining !== null ? (
+            <>
+              <strong className="rest-pill__time">{formatClock(remaining)}</strong>
+              <button type="button" onClick={onExtend}>
+                +30s
+              </button>
+              <button type="button" onClick={onReduce}>
+                −10s
+              </button>
+              <button type="button" className="rest-pill__skip" onClick={onSkip}>
+                Skip
+              </button>
+            </>
+          ) : (
+            <>
+              <strong className="rest-pill__time" role="status">
+                Rest over
+              </strong>
+              <button type="button" className="rest-pill__skip" onClick={onSkip}>
+                Dismiss
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            className="rest-pill__sound"
+            aria-label={soundEnabled ? 'Mute rest sound' : 'Unmute rest sound'}
+            aria-pressed={!soundEnabled}
+            onClick={onToggleSound}
+          >
+            {soundEnabled ? <Volume2 size={16} aria-hidden="true" /> : <VolumeX size={16} aria-hidden="true" />}
           </button>
         </motion.div>
       ) : null}
