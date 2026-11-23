@@ -17,6 +17,7 @@ public static class RepositoryLayerExtensions
         services.AddScoped<IWorkoutsRepository, WorkoutsRepository>();
         services.AddScoped<ISplitRepository, SplitRepository>();
         services.AddScoped<ICoachSuggestionsRepository, CoachSuggestionsRepository>();
+        services.AddScoped<IExportRepository, ExportRepository>();
 
         return services;
     }
