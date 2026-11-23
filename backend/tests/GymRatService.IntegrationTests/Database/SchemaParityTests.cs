@@ -51,7 +51,7 @@ public sealed class SchemaParityTests
 
     private static KeyValuePair<string, string> ExpectedColumn(IEntityType entityType, IProperty property)
     {
-        var storeType = (property.GetColumnType() ?? string.Empty).ToLowerInvariant();
+        var storeType = (property.GetColumnType() ?? throw new InvalidOperationException($"No store type is mapped for {entityType.GetTableName()}.{property.GetColumnName()}.")).ToLowerInvariant();
         var parenthesis = storeType.IndexOf('(');
         var baseType = parenthesis >= 0 ? storeType[..parenthesis] : storeType;
         var nullability = property.IsNullable ? "null" : "not null";

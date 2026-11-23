@@ -17,7 +17,7 @@ public sealed class PostgresSmokeTests : IDisposable
 
     public void Dispose() => _factory.Dispose();
 
-    [Fact]
+    [PostgresFact]
     public async Task Register_StoresTheUserAndTheProfileCanBeRead()
     {
         // Arrange
@@ -31,7 +31,7 @@ public sealed class PostgresSmokeTests : IDisposable
         Assert.Equal(new UserProfileDto("Ana", "Pop", email, WeightUnit.Pounds, 90), profile);
     }
 
-    [Fact]
+    [PostgresFact]
     public async Task GetExercises_ReturnsTheCatalogSeededByLiquibase()
     {
         // Arrange
@@ -46,7 +46,7 @@ public sealed class PostgresSmokeTests : IDisposable
         Assert.All(page.Items, item => Assert.Equal(7, item.Id.Version));
     }
 
-    [Fact]
+    [PostgresFact]
     public async Task WorkoutSession_CanBeStartedLoggedAndFinished()
     {
         // Arrange
@@ -73,7 +73,7 @@ public sealed class PostgresSmokeTests : IDisposable
         Assert.Equal(new BestSetDto(8, 62.5m), day.BestSet);
     }
 
-    [Fact]
+    [PostgresFact]
     public async Task StartSession_ReturnsTheOpenSession_WhenTheSameWorkoutIsStartedTwice()
     {
         // Arrange
