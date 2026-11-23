@@ -6,13 +6,11 @@ namespace GymRatService.API.Validators;
 
 public class LoginRequestValidator : AbstractValidator<LoginRequest>
 {
-    private const int MaximumEmailLength = 100;
-
     public LoginRequestValidator()
     {
         RuleFor(request => request.Email)
             .NotEmpty()
-            .MaximumLength(MaximumEmailLength);
+            .MaximumLength(RegisterRequestValidator.MaximumEmailLength);
 
         RuleFor(request => request.Password)
             .NotEmpty()

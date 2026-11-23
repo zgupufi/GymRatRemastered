@@ -6,7 +6,7 @@ namespace GymRatService.API.Validators;
 
 public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {
-    private const int MaximumEmailLength = 100;
+    public const int MaximumEmailLength = 100;
 
     private const int MaximumNameLength = 50;
 

@@ -30,7 +30,7 @@ public class LoginRequestValidatorTests
     }
 
     [Fact]
-    public async Task Validate_AcceptsTheMaximumLengths()
+    public async Task Validate_Passes_WhenTheLengthsAreAtTheMaximum()
     {
         // Act
         var result = await _validator.ValidateAsync(new LoginRequest(new string('e', 100), new string('p', 128)));

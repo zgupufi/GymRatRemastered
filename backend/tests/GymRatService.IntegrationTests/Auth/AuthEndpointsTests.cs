@@ -183,16 +183,18 @@ public sealed class AuthEndpointsTests : IDisposable
     }
 
     [Theory]
-    [InlineData("", "password123", "Email")]
-    [InlineData("ana@example.com", "", "Password")]
-    [InlineData("ana@example.com", "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp", "Password")]
-    public async Task Login_ReturnsInvalidRequest_WhenAFieldIsEmptyOrTooLong(string email, string password, string expectedProperty)
+    [InlineData(0, 11, "Email")]
+    [InlineData(101, 11, "Email")]
+    [InlineData(15, 0, "Password")]
+    [InlineData(15, 129, "Password")]
+    public async Task Login_ReturnsInvalidRequest_WhenAFieldIsEmptyOrTooLong(int emailLength, int passwordLength, string expectedProperty)
     {
         // Arrange
         var client = _factory.CreateClient();
+        var request = new LoginRequest(new string('e', emailLength), new string('p', passwordLength));
 
         // Act
-        var response = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest(email, password));
+        var response = await client.PostAsJsonAsync("/api/auth/login", request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
