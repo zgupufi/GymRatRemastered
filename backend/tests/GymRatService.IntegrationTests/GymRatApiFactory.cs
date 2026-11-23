@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.AI;
@@ -26,7 +28,7 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
     private const string JwtKey = "integration-test-signing-key-that-is-long-enough";
 
-    private readonly SqliteConnection _connection = new("DataSource=:memory:");
+    private readonly string _databasePath = Path.Combine(Path.GetTempPath(), $"gymrat-tests-{Guid.NewGuid():N}.db");
 
     public IChatClient? ChatClient { get; set; }
 
@@ -56,9 +58,9 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
             services.AddSingleton<IStartupFilter, ClientIpStartupFilter>();
 
-            _connection.Open();
-            _connection.CreateFunction("uuid_generate_v7", () => Guid.CreateVersion7().ToString().ToUpperInvariant());
-            services.AddDbContext<GymRatDbContext>(options => options.UseSqlite(_connection));
+            services.AddDbContext<GymRatDbContext>(options => options
+                .UseSqlite($"Data Source={_databasePath};Pooling=False")
+                .AddInterceptors(UuidFunctionInterceptor.Instance));
 
             services
                 .AddAuthentication(SchemeSelector)
@@ -142,7 +144,34 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
         if (disposing)
         {
-            _connection.Dispose();
+            File.Delete(_databasePath);
         }
+    }
+}
+
+internal sealed class UuidFunctionInterceptor : DbConnectionInterceptor
+{
+    public static UuidFunctionInterceptor Instance { get; } = new();
+
+    public override void ConnectionOpened(DbConnection connection, ConnectionEndEventData eventData)
+    {
+        Register(connection);
+    }
+
+    public override Task ConnectionOpenedAsync(DbConnection connection, ConnectionEndEventData eventData, CancellationToken cancellationToken = default)
+    {
+        Register(connection);
+
+        return Task.CompletedTask;
+    }
+
+    private static void Register(DbConnection connection)
+    {
+        var sqlite = (SqliteConnection)connection;
+        sqlite.CreateFunction("uuid_generate_v7", () => Guid.CreateVersion7().ToString().ToUpperInvariant());
+
+        using var command = sqlite.CreateCommand();
+        command.CommandText = "PRAGMA journal_mode=MEMORY; PRAGMA synchronous=OFF;";
+        command.ExecuteNonQuery();
     }
 }
