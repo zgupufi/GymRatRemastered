@@ -62,6 +62,16 @@ public class RefreshTokensRepository(GymRatDbContext context) : IRefreshTokensRe
         }
     }
 
+    public async Task RevokeAllForUserAsync(Guid userId, DateTimeOffset revokedAt, CancellationToken cancellationToken)
+    {
+        for (var pass = 0; pass < RevokePasses; pass++)
+        {
+            await context.RefreshTokens
+                .Where(token => token.UserId == userId && token.RevokedAt == null)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.RevokedAt, revokedAt), cancellationToken);
+        }
+    }
+
     public async Task DeleteStaleAsync(Guid userId, DateTimeOffset now, TimeSpan revokedRetention, CancellationToken cancellationToken)
     {
         var candidates = await context.RefreshTokens

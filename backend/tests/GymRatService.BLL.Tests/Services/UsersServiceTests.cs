@@ -14,13 +14,14 @@ namespace GymRatService.BLL.Tests.Services;
 public class UsersServiceTests
 {
     private readonly IUsersRepository _repository = Substitute.For<IUsersRepository>();
+    private readonly IRefreshTokensRepository _refreshTokens = Substitute.For<IRefreshTokensRepository>();
     private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
     private readonly ILoginAttemptLimiter _loginAttemptLimiter = Substitute.For<ILoginAttemptLimiter>();
     private readonly UsersService _service;
 
     public UsersServiceTests()
     {
-        _service = new UsersService(_repository, _passwordHasher, _loginAttemptLimiter);
+        _service = new UsersService(_repository, _refreshTokens, _passwordHasher, _loginAttemptLimiter, TimeProvider.System);
     }
 
     [Fact]
@@ -136,6 +137,7 @@ public class UsersServiceTests
 
         // Assert
         await _repository.Received(1).UpdatePasswordAsync(user.Id, "new-hash", "new-salt", Arg.Any<CancellationToken>());
+        await _refreshTokens.Received(1).RevokeAllForUserAsync(user.Id, Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
         _loginAttemptLimiter.Received(1).RegisterAttempt("ana@example.com");
         _loginAttemptLimiter.Received(1).Reset("ana@example.com");
     }
@@ -155,6 +157,7 @@ public class UsersServiceTests
         // Assert
         Assert.Equal(ErrorCodes.InvalidPassword, exception.Code);
         await _repository.DidNotReceive().UpdatePasswordAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _refreshTokens.DidNotReceive().RevokeAllForUserAsync(Arg.Any<Guid>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
         _loginAttemptLimiter.DidNotReceive().Reset(Arg.Any<string>());
     }
 
@@ -186,6 +189,7 @@ public class UsersServiceTests
 
         // Assert
         await _repository.Received(1).DeleteAsync(user.Id, Arg.Any<CancellationToken>());
+        await _refreshTokens.Received(1).RevokeAllForUserAsync(user.Id, Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -203,6 +207,7 @@ public class UsersServiceTests
         // Assert
         Assert.Equal(ErrorCodes.InvalidPassword, exception.Code);
         await _repository.DidNotReceive().DeleteAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await _refreshTokens.DidNotReceive().RevokeAllForUserAsync(Arg.Any<Guid>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

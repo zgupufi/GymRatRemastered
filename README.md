@@ -62,6 +62,8 @@ Behind a reverse proxy the API only sees the proxy's address, so every user woul
 - `POST /api/auth/logout` revokes the session of that cookie (every token rotated from the same login) and clears the cookie. Other devices stay signed in. If the call fails (for example offline) the browser forgets the session but the server keeps the token valid until it expires.
 - Presenting a token that was already rotated, more than `RefreshToken:ReuseGraceSeconds` (10) after the rotation, is treated as theft: the whole session is revoked. The grace period absorbs two tabs refreshing at the same time; a token can be exchanged at most twice (the second only inside the grace period), enforced by one atomic database update. Rotated rows are kept until their expiry on purpose: they are what lets a replay, even weeks later, be recognised and revoke the session. Expired rows, and rows revoked more than a day ago, are deleted at the user's next login.
 
+- `POST /api/users/me/password` revokes every refresh session of the user, the caller's own included, so every device (and the caller after the current access token expires) has to log in again with the new password. The refresh cookie is scoped to `/api/auth` and never reaches the users endpoints, so the caller's session cannot be told apart; revoking all of them is the simple, safe choice. `DELETE /api/users/me` revokes them too and then removes the user, whose refresh rows also disappear through the cascading foreign key.
+
 | Setting | Environment variable | Default |
 | --- | --- | --- |
 | `RefreshToken:CookieName` | `RefreshToken__CookieName` | `gymrat_refresh` |
