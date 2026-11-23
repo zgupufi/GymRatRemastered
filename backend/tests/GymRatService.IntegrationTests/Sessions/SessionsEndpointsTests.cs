@@ -519,10 +519,11 @@ public sealed class SessionsEndpointsTests : IDisposable
         var (bench, _) = await SeedExercisesAsync();
         var client = await CreateClientAsync("ana@example.com");
         var workoutId = await CreateWorkoutAsync(client, "Push");
+        var lateEvening = new DateTimeOffset(DateTimeOffset.UtcNow.Date.AddDays(-10).AddHours(22).AddMinutes(30), TimeSpan.Zero);
         var sessionId = await StartSessionAsync(client, workoutId);
         await SaveSetsAsync(client, sessionId, bench.Id, new SessionSetRequest(5, 100));
         await client.PostAsync($"/api/sessions/{sessionId}/finish", null);
-        await _factory.SeedAsync(context => context.WorkoutSessions.Single(session => session.Id == sessionId).StartedAt = new DateTimeOffset(2026, 11, 10, 22, 30, 0, TimeSpan.Zero));
+        await _factory.SeedAsync(context => context.WorkoutSessions.Single(session => session.Id == sessionId).StartedAt = lateEvening);
 
         // Act
         var utc = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress");
@@ -530,9 +531,9 @@ public sealed class SessionsEndpointsTests : IDisposable
         var bucharest = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress?timeZone=Europe%2FBucharest");
 
         // Assert
-        Assert.Equal(new DateOnly(2026, 11, 10), Assert.Single(utc!).Date);
-        Assert.Equal(new DateOnly(2026, 11, 10), Assert.Single(empty!).Date);
-        Assert.Equal(new DateOnly(2026, 11, 11), Assert.Single(bucharest!).Date);
+        Assert.Equal(DateOnly.FromDateTime(lateEvening.UtcDateTime), Assert.Single(utc!).Date);
+        Assert.Equal(DateOnly.FromDateTime(lateEvening.UtcDateTime), Assert.Single(empty!).Date);
+        Assert.Equal(DateOnly.FromDateTime(lateEvening.UtcDateTime).AddDays(1), Assert.Single(bucharest!).Date);
     }
 
     [Fact]
@@ -570,6 +571,94 @@ public sealed class SessionsEndpointsTests : IDisposable
         var day = Assert.Single(progress!);
         Assert.Equal(new BestSetDto(10, 85), day.BestSet);
         Assert.Equal(113.33m, day.EstimatedOneRepMax);
+    }
+
+    [Fact]
+    public async Task GetExerciseProgress_DefaultsToTheLastYear_AndHonoursTheRequestedRange()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push");
+        var recent = await FinishSessionAsync(client, workoutId, bench.Id, new SessionSetRequest(5, 100));
+        var sixMonths = await FinishSessionAsync(client, workoutId, bench.Id, new SessionSetRequest(5, 90));
+        var twoYears = await FinishSessionAsync(client, workoutId, bench.Id, new SessionSetRequest(5, 80));
+        await _factory.SeedAsync(context =>
+        {
+            context.WorkoutSessions.Single(session => session.Id == recent).StartedAt = DateTimeOffset.UtcNow.AddDays(-20);
+            context.WorkoutSessions.Single(session => session.Id == sixMonths).StartedAt = DateTimeOffset.UtcNow.AddMonths(-6);
+            context.WorkoutSessions.Single(session => session.Id == twoYears).StartedAt = DateTimeOffset.UtcNow.AddYears(-2);
+        });
+
+        // Act
+        var byDefault = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress");
+        var threeMonths = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress?range=ThreeMonths");
+        var oneYear = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress?range=OneYear");
+        var all = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress?range=All");
+
+        // Assert
+        Assert.Equal([80m, 90m, 100m], all!.Select(point => point.BestSet.WeightKg).Order());
+        Assert.Equal([90m, 100m], byDefault!.Select(point => point.BestSet.WeightKg));
+        Assert.Equal([90m, 100m], oneYear!.Select(point => point.BestSet.WeightKg));
+        Assert.Equal([100m], threeMonths!.Select(point => point.BestSet.WeightKg));
+    }
+
+    [Fact]
+    public async Task GetExerciseProgress_ReturnsOneBestSetPerDay_WhenTwoSessionsShareTheDay()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push");
+        var morning = await FinishSessionAsync(client, workoutId, bench.Id, new SessionSetRequest(5, 100), new SessionSetRequest(5, 100), new SessionSetRequest(8, 70));
+        var evening = await FinishSessionAsync(client, workoutId, bench.Id, new SessionSetRequest(3, 110));
+        var day = DateTimeOffset.UtcNow.Date.AddDays(-3);
+        await _factory.SeedAsync(context =>
+        {
+            context.WorkoutSessions.Single(session => session.Id == morning).StartedAt = new DateTimeOffset(day.AddHours(8), TimeSpan.Zero);
+            context.WorkoutSessions.Single(session => session.Id == evening).StartedAt = new DateTimeOffset(day.AddHours(18), TimeSpan.Zero);
+        });
+
+        // Act
+        var progress = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress");
+
+        // Assert
+        var point = Assert.Single(progress!);
+        Assert.Equal(DateOnly.FromDateTime(day), point.Date);
+        Assert.Equal(new BestSetDto(3, 110), point.BestSet);
+        Assert.Equal(121m, point.EstimatedOneRepMax);
+    }
+
+    [Fact]
+    public async Task GetExerciseProgress_ReturnsASingleBestSet_WhenSeveralSetsAreIdentical()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push");
+        await FinishSessionAsync(client, workoutId, bench.Id, new SessionSetRequest(5, 100), new SessionSetRequest(5, 100), new SessionSetRequest(5, 100));
+
+        // Act
+        var progress = await client.GetFromJsonAsync<List<ExerciseProgressDto>>($"/api/exercises/{bench.Id}/progress");
+
+        // Assert
+        var point = Assert.Single(progress!);
+        Assert.Equal(new BestSetDto(5, 100), point.BestSet);
+        Assert.Equal(116.67m, point.EstimatedOneRepMax);
+    }
+
+    [Fact]
+    public async Task GetExerciseProgress_ReturnsBadRequest_WhenTheRangeIsUnknown()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+
+        // Act
+        var response = await client.GetAsync($"/api/exercises/{bench.Id}/progress?range=42");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -665,6 +754,16 @@ public sealed class SessionsEndpointsTests : IDisposable
         var created = await response.Content.ReadFromJsonAsync<CreateWorkoutResponse>();
 
         return created?.Id ?? throw new InvalidOperationException("Create workout did not return an id.");
+    }
+
+    private static async Task<Guid> FinishSessionAsync(HttpClient client, Guid workoutId, Guid exerciseId, params SessionSetRequest[] sets)
+    {
+        var sessionId = await StartSessionAsync(client, workoutId);
+        await SaveSetsAsync(client, sessionId, exerciseId, sets);
+        var finish = await client.PostAsync($"/api/sessions/{sessionId}/finish", null);
+        finish.EnsureSuccessStatusCode();
+
+        return sessionId;
     }
 
     private static async Task<Guid> StartSessionAsync(HttpClient client, Guid workoutId)

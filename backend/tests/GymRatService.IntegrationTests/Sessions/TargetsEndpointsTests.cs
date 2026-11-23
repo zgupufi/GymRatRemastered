@@ -56,6 +56,61 @@ public sealed class TargetsEndpointsTests : IDisposable
     }
 
     [Fact]
+    public async Task GetTargets_RunsTheSameNumberOfQueries_WhateverTheNumberOfExercises()
+    {
+        // Arrange
+        var (bench, curl, squat) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var single = await CreateWorkoutAsync(client, new WorkoutExerciseRequest(bench.Id, 3));
+        var triple = await CreateWorkoutAsync(
+            client,
+            new WorkoutExerciseRequest(bench.Id, 3),
+            new WorkoutExerciseRequest(curl.Id, 3),
+            new WorkoutExerciseRequest(squat.Id, 3));
+        await CompleteSessionAsync(client, triple, new()
+        {
+            [bench.Id] = [new(10, 60)],
+            [curl.Id] = [new(10, 14)],
+            [squat.Id] = [new(5, 100)],
+        });
+        await client.GetAsync($"/api/workouts/{single}/targets");
+
+        // Act
+        var beforeSingle = _factory.Queries.Count;
+        var singleResponse = await client.GetAsync($"/api/workouts/{single}/targets");
+        var singleQueries = _factory.Queries.Count - beforeSingle;
+        var beforeTriple = _factory.Queries.Count;
+        var tripleResponse = await client.GetFromJsonAsync<List<ExerciseTargetDto>>($"/api/workouts/{triple}/targets");
+        var tripleQueries = _factory.Queries.Count - beforeTriple;
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, singleResponse.StatusCode);
+        Assert.Equal(3, tripleResponse!.Count);
+        Assert.All(tripleResponse, target => Assert.NotNull(target.LastWeightKg));
+        Assert.Equal(singleQueries, tripleQueries);
+    }
+
+    [Fact]
+    public async Task GetTargets_UsesOnlyTheTwoLatestFinishedSessionsOfEachExercise()
+    {
+        // Arrange
+        var (bench, curl, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, new WorkoutExerciseRequest(bench.Id, 1), new WorkoutExerciseRequest(curl.Id, 1));
+        await CompleteSessionAsync(client, workoutId, new() { [bench.Id] = [new(12, 20)], [curl.Id] = [new(10, 10)] });
+        await CompleteSessionAsync(client, workoutId, new() { [bench.Id] = [new(8, 60)] });
+        await CompleteSessionAsync(client, workoutId, new() { [bench.Id] = [new(8, 60)], [curl.Id] = [new(12, 12)] });
+
+        // Act
+        var targets = await client.GetFromJsonAsync<List<ExerciseTargetDto>>($"/api/workouts/{workoutId}/targets");
+
+        // Assert
+        Assert.Equal(60m, targets![0].LastWeightKg);
+        Assert.Equal(12m, targets[1].LastWeightKg);
+        Assert.Equal(12, targets[1].LastReps.Single());
+    }
+
+    [Fact]
     public async Task GetTargets_AppliesDoubleProgressionToTheLatestFinishedSession()
     {
         // Arrange
