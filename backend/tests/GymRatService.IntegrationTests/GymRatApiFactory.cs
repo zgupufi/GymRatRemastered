@@ -28,7 +28,13 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
     private const string JwtKey = "integration-test-signing-key-that-is-long-enough";
 
+    public const string PostgresConnectionVariable = "GYMRAT_TEST_POSTGRES";
+
     private readonly string _databasePath = Path.Combine(Path.GetTempPath(), $"gymrat-tests-{Guid.NewGuid():N}.db");
+
+    public static string? PostgresConnection { get; } = Environment.GetEnvironmentVariable(PostgresConnectionVariable);
+
+    public static bool UsesPostgres => !string.IsNullOrWhiteSpace(PostgresConnection);
 
     public IChatClient? ChatClient { get; set; }
 
@@ -64,10 +70,20 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
             services.RemoveAll<TimeProvider>();
             services.AddSingleton<TimeProvider>(Time);
 
-            services.AddDbContext<GymRatDbContext>(options => options
-                .UseSqlite($"Data Source={_databasePath};Pooling=False")
-                .ReplaceService<IModelCustomizer, SqliteDateTimeOffsetModelCustomizer>()
-                .AddInterceptors(UuidFunctionInterceptor.Instance, Queries));
+            services.AddDbContext<GymRatDbContext>(options =>
+            {
+                if (UsesPostgres)
+                {
+                    options.UseNpgsql(PostgresConnection).AddInterceptors(Queries);
+                }
+                else
+                {
+                    options
+                        .UseSqlite($"Data Source={_databasePath};Pooling=False")
+                        .ReplaceService<IModelCustomizer, SqliteDateTimeOffsetModelCustomizer>()
+                        .AddInterceptors(UuidFunctionInterceptor.Instance, Queries);
+                }
+            });
 
             services
                 .AddAuthentication(SchemeSelector)
@@ -140,7 +156,10 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<GymRatDbContext>();
 
-        await context.Database.EnsureCreatedAsync();
+        if (!UsesPostgres)
+        {
+            await context.Database.EnsureCreatedAsync();
+        }
     }
 
     public async Task SeedAsync(Action<GymRatDbContext> seed)
@@ -148,7 +167,11 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
         using var scope = Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<GymRatDbContext>();
 
-        await context.Database.EnsureCreatedAsync();
+        if (!UsesPostgres)
+        {
+            await context.Database.EnsureCreatedAsync();
+        }
+
         seed(context);
         await context.SaveChangesAsync();
     }

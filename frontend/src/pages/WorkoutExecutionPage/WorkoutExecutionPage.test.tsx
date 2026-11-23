@@ -198,7 +198,7 @@ describe('WorkoutExecutionPage', () => {
     renderPage()
 
     expect(await screen.findByText('Exercise 1 of 2')).toBeInTheDocument()
-    expect(screen.getByLabelText('Set 1 weight')).toHaveValue(60)
+    expect(screen.getByLabelText('Set 1 weight')).toHaveValue('60')
     expect(screen.getByLabelText('Set 1 reps')).toHaveValue(8)
     expect(screen.getByLabelText('Elapsed time')).toHaveTextContent(/^0?2:0[5-9]$/)
     expect(startSession).not.toHaveBeenCalled()
@@ -272,6 +272,25 @@ describe('WorkoutExecutionPage', () => {
     expect(saveExerciseSets).toHaveBeenCalledWith('s1', 'e1', [{ reps: 5, weightKg: 99.75 }])
   })
 
+  it('logs 62.5 kg typed with a dot or a comma and keeps reps whole', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await startToday(user)
+
+    await user.type(screen.getByLabelText('Set 1 reps'), '5.,')
+    expect(screen.getByLabelText('Set 1 reps')).toHaveValue(5)
+    await user.clear(screen.getByLabelText('Set 1 reps'))
+    await fillSet(user, 1, '62.5', '5')
+    await fillSet(user, 2, '62,5', '5')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    await screen.findByText('Exercise 2 of 2')
+
+    expect(saveExerciseSets).toHaveBeenCalledWith('s1', 'e1', [
+      { reps: 5, weightKg: 62.5 },
+      { reps: 5, weightKg: 62.5 },
+    ])
+  })
+
   it('only enables the check once both fields are valid and can undo a set', async () => {
     const user = userEvent.setup()
     renderPage()
@@ -338,7 +357,7 @@ describe('WorkoutExecutionPage', () => {
     await user.click(screen.getByRole('button', { name: 'Previous' }))
 
     await screen.findByText('Exercise 1 of 2')
-    expect(screen.getByLabelText('Set 1 weight')).toHaveValue(60)
+    expect(screen.getByLabelText('Set 1 weight')).toHaveValue('60')
     expect(saveExerciseSets).toHaveBeenCalledTimes(2)
   })
 

@@ -49,6 +49,7 @@ export function SetsCard({ drafts, previous, target, unit, onChange, onToggle, o
               <span className="sets-card__number">{number}</span>
               <NumberInput
                 aria-label={`Set ${number} weight`}
+                decimal
                 value={draft.weight}
                 placeholder={hint.weight}
                 disabled={draft.done}

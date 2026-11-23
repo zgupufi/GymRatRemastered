@@ -1,6 +1,6 @@
 import type { WeightUnit } from '../../api/auth'
 import type { ExerciseTarget, SessionSet, SessionSetEntry } from '../../api/sessions'
-import { displayWeight, toKilograms } from '../../lib/weight'
+import { displayWeight, restoredWeight, toKilograms } from '../../lib/weight'
 
 export interface SetDraft {
   weight: string
@@ -42,7 +42,7 @@ export function draftsFromSaved(targetSets: number, saved: SessionSet[] | undefi
   }
   sets.forEach((set, position) => {
     drafts[position] = {
-      weight: String(displayWeight(set.weightKg, unit)),
+      weight: String(restoredWeight(set.weightKg, unit)),
       reps: String(set.reps),
       done: true,
       effort: set.repsInReserve ?? null,
@@ -74,11 +74,15 @@ export function applyTarget(drafts: SetDraft[], target: ExerciseTarget, unit: We
   )
 }
 
+export function parseWeight(value: string): number {
+  return Number(value.replace(',', '.'))
+}
+
 export function isValidDraft(draft: SetDraft, unit: WeightUnit): boolean {
   if (draft.weight === '' || draft.reps === '') {
     return false
   }
-  const weight = Number(draft.weight)
+  const weight = parseWeight(draft.weight)
   const reps = Number(draft.reps)
   return (
     Number.isFinite(weight) &&
@@ -95,7 +99,7 @@ export function toEntries(drafts: SetDraft[], unit: WeightUnit): SessionSetEntry
     .filter((draft) => draft.done && isValidDraft(draft, unit))
     .map((draft) => ({
       reps: Number(draft.reps),
-      weightKg: toKilograms(Number(draft.weight), unit),
+      weightKg: toKilograms(parseWeight(draft.weight), unit),
       ...(draft.effort === null ? {} : { repsInReserve: draft.effort }),
     }))
 }

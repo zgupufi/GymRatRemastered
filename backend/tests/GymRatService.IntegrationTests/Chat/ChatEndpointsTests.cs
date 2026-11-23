@@ -143,6 +143,22 @@ public sealed class ChatEndpointsTests : IDisposable
     }
 
     [Fact]
+    public async Task SendMessage_ReturnsInvalidRequest_WhenTheHistoryHasMoreThanTwentyItems()
+    {
+        // Arrange
+        UseChatClient((_, _) => ScriptedChatClient.Reply("unused"));
+        var client = await CreateClientAsync("ana@example.com");
+        var history = Enumerable.Range(0, 21).Select(_ => new ChatHistoryItem(ChatRole.User, "hello")).ToList();
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("Hi", history));
+
+        // Assert
+        var error = await AssertBadRequestAsync(response, ErrorCodes.InvalidRequest);
+        Assert.Equal("History", Assert.Single(error.Errors!).Property);
+    }
+
+    [Fact]
     public async Task SendMessage_ReturnsInvalidRequest_WhenAHistoryItemIsEmpty()
     {
         // Arrange

@@ -117,4 +117,20 @@ public class WorkoutValidatorsTests
         // Assert
         Assert.Equal("Exercises", Assert.Single(result.Errors).PropertyName);
     }
+
+    [Theory]
+    [InlineData(50, true)]
+    [InlineData(51, false)]
+    public async Task ReplaceWorkoutExercisesRequestValidator_LimitsTheListToFiftyExercises(int count, bool valid)
+    {
+        // Arrange
+        var exercises = Enumerable.Range(0, count).Select(_ => new WorkoutExerciseRequest(Guid.CreateVersion7(), 3)).ToList();
+
+        // Act
+        var result = await new ReplaceWorkoutExercisesRequestValidator().ValidateAsync(new ReplaceWorkoutExercisesRequest(exercises));
+
+        // Assert
+        Assert.Equal(valid, result.IsValid);
+        Assert.All(result.Errors, error => Assert.Equal("Exercises", error.PropertyName));
+    }
 }
