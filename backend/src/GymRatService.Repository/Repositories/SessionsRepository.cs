@@ -6,6 +6,10 @@ namespace GymRatService.Repository.Repositories;
 
 public class SessionsRepository(GymRatDbContext context) : ISessionsRepository
 {
+    private const double EpleyRepsDivisor = 30d;
+
+    private const double OneRepMaxTolerance = 0.0001d;
+
     public async Task<WorkoutSession?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await context.WorkoutSessions
@@ -96,13 +100,61 @@ public class SessionsRepository(GymRatDbContext context) : ISessionsRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<SessionSet>> GetExerciseSetsAsync(Guid userId, Guid exerciseId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<SessionSet>> GetBestSetPerSessionAsync(Guid userId, Guid exerciseId, DateTimeOffset? since, CancellationToken cancellationToken)
     {
+        var sets = context.SessionSets
+            .AsNoTracking()
+            .Where(set => set.ExerciseId == exerciseId && set.Session!.UserId == userId && set.Session.FinishedAt != null);
+
+        if (since is not null)
+        {
+            sets = sets.Where(set => set.Session!.StartedAt >= since);
+        }
+
+        var scored = sets.Select(set => new
+        {
+            set.Id,
+            set.SessionId,
+            OneRepMax = set.Reps == 1 ? (double)set.WeightKg : (double)set.WeightKg * (1 + set.Reps / EpleyRepsDivisor),
+        });
+
+        var bestIds = scored
+            .Where(set => !scored.Any(other =>
+                other.SessionId == set.SessionId && other.OneRepMax > set.OneRepMax + OneRepMaxTolerance))
+            .Select(set => set.Id);
+
         return await context.SessionSets
             .AsNoTracking()
             .Include(set => set.Session)
-            .Where(set => set.ExerciseId == exerciseId && set.Session!.UserId == userId && set.Session.FinishedAt != null)
+            .Where(set => bestIds.Contains(set.Id))
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<SessionSet>> GetRecentSetsAsync(Guid userId, IReadOnlyCollection<Guid> exerciseIds, int sessionCount, CancellationToken cancellationToken)
+    {
+        var pairs = await context.SessionSets
+            .AsNoTracking()
+            .Where(set => exerciseIds.Contains(set.ExerciseId) && set.Session!.UserId == userId && set.Session.DurationSeconds != null)
+            .Select(set => new { set.ExerciseId, set.SessionId })
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        var recent = pairs
+            .GroupBy(pair => pair.ExerciseId)
+            .SelectMany(group => group.OrderByDescending(pair => pair.SessionId).Take(sessionCount))
+            .ToList();
+
+        var sessionIds = recent.Select(pair => pair.SessionId).Distinct().ToList();
+
+        var sets = await context.SessionSets
+            .AsNoTracking()
+            .Include(set => set.Session)
+            .Where(set => exerciseIds.Contains(set.ExerciseId) && sessionIds.Contains(set.SessionId))
+            .ToListAsync(cancellationToken);
+
+        var keys = recent.Select(pair => (pair.ExerciseId, pair.SessionId)).ToHashSet();
+
+        return sets.Where(set => keys.Contains((set.ExerciseId, set.SessionId))).ToList();
     }
 
     public async Task<IReadOnlyList<SessionSet>> GetRecentExerciseSetsAsync(Guid userId, Guid exerciseId, int sessionCount, CancellationToken cancellationToken)

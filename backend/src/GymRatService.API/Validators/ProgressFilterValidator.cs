@@ -9,6 +9,8 @@ public class ProgressFilterValidator : AbstractValidator<ProgressFilter>
 
     public ProgressFilterValidator()
     {
+        RuleFor(filter => filter.Range).IsInEnum();
+
         RuleFor(filter => filter.TimeZone)
             .MaximumLength(MaximumTimeZoneLength)
             .Must(BeKnownTimeZone)

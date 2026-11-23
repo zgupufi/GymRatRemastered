@@ -19,8 +19,13 @@ function localTimeZone(): string | undefined {
   }
 }
 
-export function getExerciseProgress(exerciseId: string, signal?: AbortSignal): Promise<ProgressPoint[]> {
+export type ProgressRange = 'ThreeMonths' | 'OneYear' | 'All'
+
+export function getExerciseProgress(exerciseId: string, signal?: AbortSignal, range?: ProgressRange): Promise<ProgressPoint[]> {
+  const params = new URLSearchParams()
   const timeZone = localTimeZone()
-  const query = timeZone ? `?timeZone=${encodeURIComponent(timeZone)}` : ''
+  if (timeZone) params.set('timeZone', timeZone)
+  if (range) params.set('range', range)
+  const query = params.size > 0 ? `?${params.toString()}` : ''
   return apiClient.get<ProgressPoint[]>(`/api/exercises/${exerciseId}/progress${query}`, signal)
 }

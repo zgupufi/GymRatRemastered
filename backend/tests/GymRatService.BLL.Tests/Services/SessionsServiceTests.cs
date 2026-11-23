@@ -1,4 +1,5 @@
 using GymRatService.Common.DTOs.Sessions;
+using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
 using GymRatService.Common.Filtering;
 using GymRatService.Repository.Entities;
@@ -357,7 +358,7 @@ public class SessionsServiceTests
             new() { Session = day1, Reps = 5, WeightKg = 100 },
             new() { Session = day1, Reps = 3, WeightKg = 100 },
         };
-        _sessions.GetExerciseSetsAsync(_userId, _exerciseId, Arg.Any<CancellationToken>()).Returns(sets);
+        _sessions.GetBestSetPerSessionAsync(_userId, _exerciseId, Arg.Any<DateTimeOffset?>(), Arg.Any<CancellationToken>()).Returns(sets);
 
         // Act
         var progress = await _service.GetExerciseProgressAsync(_userId, _exerciseId, new ProgressFilter(), CancellationToken.None);
@@ -378,7 +379,7 @@ public class SessionsServiceTests
         // Arrange
         _exercises.GetByIdAsync(_exerciseId, Arg.Any<CancellationToken>()).Returns(new ExerciseCard { Id = _exerciseId });
         var session = new WorkoutSession { StartedAt = new DateTimeOffset(2026, 11, 10, 22, 30, 0, TimeSpan.Zero) };
-        _sessions.GetExerciseSetsAsync(_userId, _exerciseId, Arg.Any<CancellationToken>())
+        _sessions.GetBestSetPerSessionAsync(_userId, _exerciseId, Arg.Any<DateTimeOffset?>(), Arg.Any<CancellationToken>())
             .Returns(new List<SessionSet> { new() { Session = session, Reps = 5, WeightKg = 100 } });
 
         // Act
@@ -398,7 +399,7 @@ public class SessionsServiceTests
         // Arrange
         _exercises.GetByIdAsync(_exerciseId, Arg.Any<CancellationToken>()).Returns(new ExerciseCard { Id = _exerciseId });
         var session = new WorkoutSession { StartedAt = new DateTimeOffset(year, month, day, hour, minute, 0, TimeSpan.Zero) };
-        _sessions.GetExerciseSetsAsync(_userId, _exerciseId, Arg.Any<CancellationToken>())
+        _sessions.GetBestSetPerSessionAsync(_userId, _exerciseId, Arg.Any<DateTimeOffset?>(), Arg.Any<CancellationToken>())
             .Returns(new List<SessionSet> { new() { Session = session, Reps = 5, WeightKg = 100 } });
 
         // Act
@@ -414,7 +415,7 @@ public class SessionsServiceTests
         // Arrange
         _exercises.GetByIdAsync(_exerciseId, Arg.Any<CancellationToken>()).Returns(new ExerciseCard { Id = _exerciseId });
         var session = new WorkoutSession { StartedAt = new DateTimeOffset(2026, 11, 10, 22, 30, 0, TimeSpan.Zero) };
-        _sessions.GetExerciseSetsAsync(_userId, _exerciseId, Arg.Any<CancellationToken>())
+        _sessions.GetBestSetPerSessionAsync(_userId, _exerciseId, Arg.Any<DateTimeOffset?>(), Arg.Any<CancellationToken>())
             .Returns(new List<SessionSet> { new() { Session = session, Reps = 5, WeightKg = 100 } });
 
         // Act
@@ -424,12 +425,38 @@ public class SessionsServiceTests
         Assert.Equal(new DateOnly(2026, 11, 10), Assert.Single(progress).Date);
     }
 
+    [Theory]
+    [InlineData(ProgressRange.ThreeMonths, 3)]
+    [InlineData(ProgressRange.OneYear, 12)]
+    [InlineData(ProgressRange.All, 0)]
+    public async Task GetExerciseProgressAsync_AsksTheRepositoryOnlyForTheRequestedRange(ProgressRange range, int months)
+    {
+        // Arrange
+        _exercises.GetByIdAsync(_exerciseId, Arg.Any<CancellationToken>()).Returns(new ExerciseCard { Id = _exerciseId });
+        _sessions.GetBestSetPerSessionAsync(_userId, _exerciseId, Arg.Any<DateTimeOffset?>(), Arg.Any<CancellationToken>()).Returns(new List<SessionSet>());
+        var before = DateTimeOffset.UtcNow;
+
+        // Act
+        await _service.GetExerciseProgressAsync(_userId, _exerciseId, new ProgressFilter { Range = range }, CancellationToken.None);
+
+        // Assert
+        var since = (DateTimeOffset?)_sessions.ReceivedCalls().Single(call => call.GetMethodInfo().Name == nameof(ISessionsRepository.GetBestSetPerSessionAsync)).GetArguments()[2];
+        if (months == 0)
+        {
+            Assert.Null(since);
+        }
+        else
+        {
+            Assert.InRange(since!.Value, before.AddMonths(-months), DateTimeOffset.UtcNow.AddMonths(-months));
+        }
+    }
+
     [Fact]
     public async Task GetExerciseProgressAsync_ReturnsAnEmptyList_WhenThereAreNoSets()
     {
         // Arrange
         _exercises.GetByIdAsync(_exerciseId, Arg.Any<CancellationToken>()).Returns(new ExerciseCard { Id = _exerciseId });
-        _sessions.GetExerciseSetsAsync(_userId, _exerciseId, Arg.Any<CancellationToken>()).Returns(new List<SessionSet>());
+        _sessions.GetBestSetPerSessionAsync(_userId, _exerciseId, Arg.Any<DateTimeOffset?>(), Arg.Any<CancellationToken>()).Returns(new List<SessionSet>());
 
         // Act
         var progress = await _service.GetExerciseProgressAsync(_userId, _exerciseId, new ProgressFilter(), CancellationToken.None);

@@ -1,5 +1,6 @@
 using GymRatService.Common.DTOs.Sessions;
 using GymRatService.Common.DTOs.Targets;
+using GymRatService.Common.Enums;
 using GymRatService.Common.Filtering;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
@@ -136,7 +137,7 @@ public class SessionsService(
     {
         await EnsureExerciseExistsAsync(exerciseId, cancellationToken);
 
-        var sets = await sessionsRepository.GetExerciseSetsAsync(userId, exerciseId, cancellationToken);
+        var sets = await sessionsRepository.GetBestSetPerSessionAsync(userId, exerciseId, GetRangeStart(filter.Range), cancellationToken);
 
         var timeZone = string.IsNullOrEmpty(filter.TimeZone) ? TimeZoneInfo.Utc : TimeZoneInfo.FindSystemTimeZoneById(filter.TimeZone);
 
@@ -163,16 +164,20 @@ public class SessionsService(
     {
         var workout = await GetOwnedWorkoutAsync(userId, workoutId, cancellationToken);
 
-        var history = new Dictionary<Guid, IReadOnlyList<IReadOnlyList<LoggedSet>>>();
+        var exerciseIds = workout.Exercises.Select(entry => entry.ExerciseId).Distinct().ToList();
+        var sets = exerciseIds.Count == 0
+            ? []
+            : await sessionsRepository.GetRecentSetsAsync(userId, exerciseIds, TargetSessionCount, cancellationToken);
+
+        var history = sets
+            .GroupBy(set => set.ExerciseId)
+            .ToDictionary(group => group.Key, group => GroupIntoSessions(group));
+
         var targets = new List<ExerciseTargetDto>();
 
         foreach (var (entry, index) in workout.Exercises.OrderBy(entry => entry.Position).Select((entry, index) => (entry, index)))
         {
-            if (!history.TryGetValue(entry.ExerciseId, out var sessions))
-            {
-                sessions = await GetRecentSessionsAsync(userId, entry.ExerciseId, TargetSessionCount, cancellationToken);
-                history[entry.ExerciseId] = sessions;
-            }
+            var sessions = history.GetValueOrDefault(entry.ExerciseId) ?? [];
 
             var target = ProgressionCalculator.Calculate(
                 new ProgressionSettings(entry.RepsMin, entry.RepsMax, entry.WeightStepKg),
@@ -210,15 +215,25 @@ public class SessionsService(
             .ToList();
     }
 
-    private async Task<IReadOnlyList<IReadOnlyList<LoggedSet>>> GetRecentSessionsAsync(Guid userId, Guid exerciseId, int sessionCount, CancellationToken cancellationToken)
+    private static IReadOnlyList<IReadOnlyList<LoggedSet>> GroupIntoSessions(IEnumerable<SessionSet> sets)
     {
-        var sets = await sessionsRepository.GetRecentExerciseSetsAsync(userId, exerciseId, sessionCount, cancellationToken);
-
         return sets
             .GroupBy(set => set.SessionId)
             .OrderByDescending(group => group.First().Session!.StartedAt)
             .Select(group => (IReadOnlyList<LoggedSet>)group.OrderBy(set => set.SetNumber).Select(set => set.ToLoggedSet()).ToList())
             .ToList();
+    }
+
+    private static DateTimeOffset? GetRangeStart(ProgressRange range)
+    {
+        var now = TimeProvider.System.GetUtcNow();
+
+        return range switch
+        {
+            ProgressRange.ThreeMonths => now.AddMonths(-3),
+            ProgressRange.OneYear => now.AddYears(-1),
+            _ => null,
+        };
     }
 
     private static decimal EstimateOneRepMax(decimal weightKg, int reps)

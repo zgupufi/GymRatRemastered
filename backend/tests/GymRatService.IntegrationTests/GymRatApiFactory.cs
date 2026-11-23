@@ -40,6 +40,8 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
     public OffsetTimeProvider Time { get; } = new();
 
+    public QueryCounter Queries { get; } = new();
+
     public Dictionary<string, string> Settings { get; } = [];
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -72,13 +74,14 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
             {
                 if (UsesPostgres)
                 {
-                    options.UseNpgsql(PostgresConnection);
+                    options.UseNpgsql(PostgresConnection).AddInterceptors(Queries);
                 }
                 else
                 {
                     options
                         .UseSqlite($"Data Source={_databasePath};Pooling=False")
-                        .AddInterceptors(UuidFunctionInterceptor.Instance);
+                        .ReplaceService<IModelCustomizer, SqliteDateTimeOffsetModelCustomizer>()
+                        .AddInterceptors(UuidFunctionInterceptor.Instance, Queries);
                 }
             });
 

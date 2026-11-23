@@ -39,4 +39,13 @@ describe('progress api', () => {
 
     expect(apiClient.get).toHaveBeenCalledWith('/api/exercises/e1/progress', undefined)
   })
+
+  it('sends the requested range next to the time zone', async () => {
+    vi.spyOn(Intl, 'DateTimeFormat').mockReturnValue({ resolvedOptions: () => ({ timeZone: 'Europe/Bucharest' }) } as Intl.DateTimeFormat)
+    vi.mocked(apiClient.get).mockResolvedValue([])
+
+    await getExerciseProgress('e1', undefined, 'ThreeMonths')
+
+    expect(apiClient.get).toHaveBeenCalledWith('/api/exercises/e1/progress?timeZone=Europe%2FBucharest&range=ThreeMonths', undefined)
+  })
 })
