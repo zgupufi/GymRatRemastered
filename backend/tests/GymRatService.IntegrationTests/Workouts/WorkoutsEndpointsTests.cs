@@ -293,6 +293,26 @@ public sealed class WorkoutsEndpointsTests : IDisposable
     }
 
     [Fact]
+    public async Task ReplaceWorkoutExercises_ReturnsInvalidRequest_WhenTheListHasMoreThanFiftyExercises()
+    {
+        // Arrange
+        await _factory.SeedAsync(_ => { });
+        var client = await CreateClientAsync("ana@example.com");
+        var id = await CreateWorkoutAsync(client, "Push");
+        var request = new ReplaceWorkoutExercisesRequest(
+            [.. Enumerable.Range(0, 51).Select(_ => new WorkoutExerciseRequest(Guid.CreateVersion7(), 3))]);
+
+        // Act
+        var response = await client.PutAsJsonAsync($"/api/workouts/{id}/exercises", request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(ErrorCodes.InvalidRequest, error?.Code);
+        Assert.Equal("Exercises", Assert.Single(error!.Errors!).Property);
+    }
+
+    [Fact]
     public async Task ReplaceWorkoutExercises_ReplacesThePreviousListAndReturnsNoContent()
     {
         // Arrange

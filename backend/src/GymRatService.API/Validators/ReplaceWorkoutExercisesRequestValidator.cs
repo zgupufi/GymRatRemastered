@@ -5,10 +5,15 @@ namespace GymRatService.API.Validators;
 
 public class ReplaceWorkoutExercisesRequestValidator : AbstractValidator<ReplaceWorkoutExercisesRequest>
 {
+    private const int MaximumExercises = 50;
+
     public ReplaceWorkoutExercisesRequestValidator()
     {
         RuleFor(request => request.Exercises)
             .NotNull();
+
+        RuleFor(request => request.Exercises)
+            .Must(exercises => exercises is not { Count: > MaximumExercises });
 
         RuleFor(request => request.Exercises)
             .Must(exercises => exercises.Select(exercise => exercise.ExerciseId).Distinct().Count() == exercises.Count)

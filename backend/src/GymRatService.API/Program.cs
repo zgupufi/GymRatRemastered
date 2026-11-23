@@ -13,6 +13,8 @@ string[] supportedCultures = ["en", "ro"];
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options => options.LimitRequestBodySize());
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(FrontendCorsPolicy, policy => policy
