@@ -9,8 +9,10 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using System.Data.Common;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.AI;
@@ -58,7 +60,7 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
             services.AddDbContext<GymRatDbContext>(options => options
                 .UseSqlite($"Data Source={_databasePath};Pooling=False")
-                .AddInterceptors(new UuidFunctionInterceptor()));
+                .AddInterceptors(UuidFunctionInterceptor.Instance));
 
             services
                 .AddAuthentication(SchemeSelector)
@@ -142,28 +144,34 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
         if (disposing)
         {
-            SqliteConnection.ClearAllPools();
             File.Delete(_databasePath);
         }
     }
 }
 
-internal sealed class UuidFunctionInterceptor : Microsoft.EntityFrameworkCore.Diagnostics.DbConnectionInterceptor
+internal sealed class UuidFunctionInterceptor : DbConnectionInterceptor
 {
-    public override void ConnectionOpened(System.Data.Common.DbConnection connection, Microsoft.EntityFrameworkCore.Diagnostics.ConnectionEndEventData eventData)
+    public static UuidFunctionInterceptor Instance { get; } = new();
+
+    public override void ConnectionOpened(DbConnection connection, ConnectionEndEventData eventData)
     {
         Register(connection);
     }
 
-    public override Task ConnectionOpenedAsync(System.Data.Common.DbConnection connection, Microsoft.EntityFrameworkCore.Diagnostics.ConnectionEndEventData eventData, CancellationToken cancellationToken = default)
+    public override Task ConnectionOpenedAsync(DbConnection connection, ConnectionEndEventData eventData, CancellationToken cancellationToken = default)
     {
         Register(connection);
 
         return Task.CompletedTask;
     }
 
-    private static void Register(System.Data.Common.DbConnection connection)
+    private static void Register(DbConnection connection)
     {
-        ((SqliteConnection)connection).CreateFunction("uuid_generate_v7", () => Guid.CreateVersion7().ToString().ToUpperInvariant());
+        var sqlite = (SqliteConnection)connection;
+        sqlite.CreateFunction("uuid_generate_v7", () => Guid.CreateVersion7().ToString().ToUpperInvariant());
+
+        using var command = sqlite.CreateCommand();
+        command.CommandText = "PRAGMA journal_mode=MEMORY; PRAGMA synchronous=OFF;";
+        command.ExecuteNonQuery();
     }
 }
