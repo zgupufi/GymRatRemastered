@@ -14,7 +14,7 @@ public static class ForwardedHeadersExtensions
             .AddOptions<ForwardedHeadersOptions>()
             .Configure<IOptions<ForwardedHeadersSettings>>((options, settings) =>
             {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
                 options.KnownProxies.Clear();
                 options.KnownIPNetworks.Clear();
 
