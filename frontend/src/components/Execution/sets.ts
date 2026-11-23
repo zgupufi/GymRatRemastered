@@ -74,11 +74,15 @@ export function applyTarget(drafts: SetDraft[], target: ExerciseTarget, unit: We
   )
 }
 
+export function parseWeight(value: string): number {
+  return Number(value.replace(',', '.'))
+}
+
 export function isValidDraft(draft: SetDraft, unit: WeightUnit): boolean {
   if (draft.weight === '' || draft.reps === '') {
     return false
   }
-  const weight = Number(draft.weight)
+  const weight = parseWeight(draft.weight)
   const reps = Number(draft.reps)
   return (
     Number.isFinite(weight) &&
@@ -95,7 +99,7 @@ export function toEntries(drafts: SetDraft[], unit: WeightUnit): SessionSetEntry
     .filter((draft) => draft.done && isValidDraft(draft, unit))
     .map((draft) => ({
       reps: Number(draft.reps),
-      weightKg: toKilograms(Number(draft.weight), unit),
+      weightKg: toKilograms(parseWeight(draft.weight), unit),
       ...(draft.effort === null ? {} : { repsInReserve: draft.effort }),
     }))
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { WeightUnit } from '../../api/auth'
-import { bestSetOf, draftsFromSaved, emptyDrafts, isValidDraft, previousFor, summarize, toEntries } from './sets'
+import { bestSetOf, draftsFromSaved, emptyDrafts, isValidDraft, parseWeight, previousFor, summarize, toEntries } from './sets'
 
 describe('sets', () => {
   it('creates the target number of empty drafts', () => {
@@ -39,12 +39,28 @@ describe('sets', () => {
     ['50', '0', false],
     ['50', '1001', false],
     ['50', '2.5', false],
+    ['62.5', '5', true],
+    ['62,5', '5', true],
+    ['.', '5', false],
     ['-5', '5', false],
     ['2001', '5', false],
     ['0', '5', true],
     ['50', '8', true],
   ])('validates weight %s and reps %s', (weight, reps, expected) => {
     expect(isValidDraft({ weight, reps, done: true, effort: null }, WeightUnit.Kilograms)).toBe(expected)
+  })
+
+  it('parses weights typed with a comma or a dot', () => {
+    expect(parseWeight('62,5')).toBe(62.5)
+    expect(parseWeight('62.5')).toBe(62.5)
+  })
+
+  it('sends decimal weights and round-trips pound halves', () => {
+    const kilograms = toEntries([{ weight: '62,5', reps: '5', done: true, effort: null }], WeightUnit.Kilograms)
+    expect(kilograms).toEqual([{ reps: 5, weightKg: 62.5 }])
+    const pounds = toEntries([{ weight: '137.5', reps: '5', done: true, effort: null }], WeightUnit.Pounds)
+    const restored = draftsFromSaved(1, [{ setNumber: 1, reps: 5, weightKg: pounds[0].weightKg }], WeightUnit.Pounds)
+    expect(restored[0].weight).toBe('137.5')
   })
 
   it('only sends completed valid sets converted to kilograms', () => {
