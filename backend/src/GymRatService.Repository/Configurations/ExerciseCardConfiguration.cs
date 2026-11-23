@@ -16,18 +16,26 @@ public class ExerciseCardConfiguration : IEntityTypeConfiguration<ExerciseCard>
 
         builder.Property(exercise => exercise.Name).HasMaxLength(100).IsRequired();
 
-        builder.Property(exercise => exercise.MainMuscle).HasMaxLength(50).IsRequired();
+        builder.Property(exercise => exercise.MainMuscle).HasConversion<string>().HasMaxLength(50).IsRequired();
 
-        builder.Property(exercise => exercise.SubMuscles).HasMaxLength(200);
+        builder.Property(exercise => exercise.Equipment).HasConversion<string>().HasMaxLength(50).IsRequired();
 
-        builder.Property(exercise => exercise.Equipment).HasMaxLength(50);
+        builder.Property(exercise => exercise.Difficulty).HasConversion<string>().HasMaxLength(20).IsRequired();
 
-        builder.Property(exercise => exercise.Difficulty).HasMaxLength(20);
-
-        builder.Property(exercise => exercise.Description).HasMaxLength(1000);
+        builder.Property(exercise => exercise.MovementPattern).HasConversion<string>().HasMaxLength(20).IsRequired();
 
         builder.Property(exercise => exercise.YoutubeLink).HasMaxLength(200);
 
         builder.HasIndex(exercise => exercise.Name).IsUnique();
+
+        builder.HasMany(exercise => exercise.SecondaryMuscles)
+            .WithOne()
+            .HasForeignKey(secondary => secondary.ExerciseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(exercise => exercise.Translations)
+            .WithOne()
+            .HasForeignKey(translation => translation.ExerciseId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -11,23 +11,46 @@ public class ExerciseCardsRepository(GymRatDbContext context) : IExerciseCardsRe
 {
     public async Task<PagedResult<ExerciseCard>> GetAllAsync(ExerciseFilter filter, CancellationToken cancellationToken)
     {
-        var query = context.Exercises.AsNoTracking();
+        var query = context.Exercises
+            .AsNoTracking()
+            .Include(exercise => exercise.SecondaryMuscles)
+            .Include(exercise => exercise.Translations)
+            .AsSplitQuery();
 
         if (!string.IsNullOrWhiteSpace(filter.Search.Term))
         {
             var term = filter.Search.Term.Trim().ToLower();
+            var muscleTerm = term.Replace(" ", string.Empty);
+
+            var matchingGroups = Enum.GetValues<MuscleGroup>()
+                .Where(group => group.ToString().Contains(muscleTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            var matchingMuscles = Enum.GetValues<Muscle>()
+                .Where(muscle => muscle.ToString().Contains(muscleTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
             query = query.Where(exercise =>
                 exercise.Name.ToLower().Contains(term)
-                || exercise.MainMuscle.ToLower().Contains(term)
-                || (exercise.SubMuscles != null && exercise.SubMuscles.ToLower().Contains(term)));
+                || matchingGroups.Contains(exercise.MainMuscle)
+                || exercise.SecondaryMuscles.Any(secondary => matchingMuscles.Contains(secondary.Muscle)));
         }
 
         if (!string.IsNullOrWhiteSpace(filter.Muscle))
         {
-            var mainMuscle = filter.Muscle.Trim().ToLower();
+            query = Enum.TryParse<MuscleGroup>(filter.Muscle.Trim(), true, out var mainMuscle)
+                ? query.Where(exercise => exercise.MainMuscle == mainMuscle)
+                : query.Where(_ => false);
+        }
 
-            query = query.Where(exercise => exercise.MainMuscle.ToLower() == mainMuscle);
+        if (filter.Equipment is { } equipment)
+        {
+            query = query.Where(exercise => exercise.Equipment == equipment);
+        }
+
+        if (filter.Pattern is { } pattern)
+        {
+            query = query.Where(exercise => exercise.MovementPattern == pattern);
         }
 
         var direction = filter.Sort.Direction;
@@ -48,6 +71,9 @@ public class ExerciseCardsRepository(GymRatDbContext context) : IExerciseCardsRe
     {
         return await context.Exercises
             .AsNoTracking()
+            .Include(exercise => exercise.SecondaryMuscles)
+            .Include(exercise => exercise.Translations)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(exercise => exercise.Id == id, cancellationToken);
     }
 

@@ -1,3 +1,4 @@
+using GymRatService.Common.Enums;
 using System.Net;
 using System.Net.Http.Json;
 using GymRatService.Common.DTOs.Exercises;
@@ -32,8 +33,8 @@ public sealed class ExercisesEndpointsTests : IDisposable
     {
         // Arrange
         await _factory.SeedAsync(context => context.Exercises.AddRange(
-            new ExerciseCard { Name = "Squat", MainMuscle = "Legs", Equipment = "Barbell" },
-            new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest", Difficulty = "Intermediate" }));
+            new ExerciseCard { Name = "Squat", MainMuscle = MuscleGroup.Legs, Equipment = Equipment.Barbell },
+            new ExerciseCard { Name = "Bench Press", MainMuscle = MuscleGroup.Chest, Difficulty = Difficulty.Intermediate }));
         var client = _factory.CreateAuthenticatedClient();
 
         // Act
@@ -49,14 +50,14 @@ public sealed class ExercisesEndpointsTests : IDisposable
             first =>
             {
                 Assert.Equal("Bench Press", first.Name);
-                Assert.Equal("Chest", first.MainMuscle);
-                Assert.Equal("Intermediate", first.Difficulty);
+                Assert.Equal(MuscleGroup.Chest, first.MainMuscle);
+                Assert.Equal(Difficulty.Intermediate, first.Difficulty);
             },
             second =>
             {
                 Assert.Equal("Squat", second.Name);
-                Assert.Equal("Legs", second.MainMuscle);
-                Assert.Equal("Barbell", second.Equipment);
+                Assert.Equal(MuscleGroup.Legs, second.MainMuscle);
+                Assert.Equal(Equipment.Barbell, second.Equipment);
             });
     }
 
@@ -78,9 +79,9 @@ public sealed class ExercisesEndpointsTests : IDisposable
     {
         // Arrange
         await _factory.SeedAsync(context => context.Exercises.AddRange(
-            new ExerciseCard { Name = "Squat", MainMuscle = "Legs", SubMuscles = "Glutes" },
-            new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest" },
-            new ExerciseCard { Name = "Shoulder Press", MainMuscle = "Shoulders" }));
+            new ExerciseCard { Name = "Squat", MainMuscle = MuscleGroup.Legs, SecondaryMuscles = [new ExerciseSecondaryMuscle { Muscle = Muscle.Glutes }] },
+            new ExerciseCard { Name = "Bench Press", MainMuscle = MuscleGroup.Chest },
+            new ExerciseCard { Name = "Shoulder Press", MainMuscle = MuscleGroup.Shoulders }));
         var client = _factory.CreateAuthenticatedClient();
 
         // Act
@@ -97,9 +98,9 @@ public sealed class ExercisesEndpointsTests : IDisposable
     {
         // Arrange
         await _factory.SeedAsync(context => context.Exercises.AddRange(
-            new ExerciseCard { Name = "Squat", MainMuscle = "Legs" },
-            new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest" },
-            new ExerciseCard { Name = "Shoulder Press", MainMuscle = "Shoulders" }));
+            new ExerciseCard { Name = "Squat", MainMuscle = MuscleGroup.Legs },
+            new ExerciseCard { Name = "Bench Press", MainMuscle = MuscleGroup.Chest },
+            new ExerciseCard { Name = "Shoulder Press", MainMuscle = MuscleGroup.Shoulders }));
         var client = _factory.CreateAuthenticatedClient();
 
         // Act
@@ -139,7 +140,7 @@ public sealed class ExercisesEndpointsTests : IDisposable
     public async Task GetExercise_ReturnsTheExercise_WhenItExists()
     {
         // Arrange
-        var deadlift = new ExerciseCard { Name = "Deadlift", MainMuscle = "Back", SubMuscles = "Hamstrings" };
+        var deadlift = new ExerciseCard { Name = "Deadlift", MainMuscle = MuscleGroup.Back, SecondaryMuscles = [new ExerciseSecondaryMuscle { Muscle = Muscle.Hamstrings }], MovementPattern = MovementPattern.Hinge };
         await _factory.SeedAsync(context => context.Exercises.Add(deadlift));
         var client = _factory.CreateAuthenticatedClient();
 
@@ -149,9 +150,96 @@ public sealed class ExercisesEndpointsTests : IDisposable
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var exercise = await response.Content.ReadFromJsonAsync<ExerciseDto>();
-        Assert.Equal(
-            new ExerciseDto(deadlift.Id, "Deadlift", "Back", "Hamstrings", null, null, null, null),
-            exercise);
+        Assert.NotNull(exercise);
+        Assert.Equal(deadlift.Id, exercise.Id);
+        Assert.Equal("Deadlift", exercise.Name);
+        Assert.Equal(MuscleGroup.Back, exercise.MainMuscle);
+        Assert.Equal([Muscle.Hamstrings], exercise.SecondaryMuscles);
+        Assert.Equal(MovementPattern.Hinge, exercise.MovementPattern);
+        Assert.Null(exercise.Setup);
+    }
+
+    [Theory]
+    [InlineData("en", "Deadlift", "Pull the bar from the floor.", "Set up over the bar.", "Stand up with the bar.")]
+    [InlineData("ro", "Îndreptări", "Ridică bara de pe podea.", "Așază-te deasupra barei.", "Ridică-te cu bara.")]
+    [InlineData("fr", "Deadlift", "Pull the bar from the floor.", "Set up over the bar.", "Stand up with the bar.")]
+    public async Task GetExercise_ReturnsTheTranslationForTheRequestedCultureOrEnglish(
+        string language,
+        string expectedName,
+        string expectedDescription,
+        string expectedSetup,
+        string expectedExecution)
+    {
+        // Arrange
+        var deadlift = new ExerciseCard
+        {
+            Name = "Deadlift",
+            MainMuscle = MuscleGroup.Back,
+            Translations =
+            [
+                new ExerciseTranslation { Culture = "en", Name = "Deadlift", Description = "Pull the bar from the floor.", Setup = "Set up over the bar.", Execution = "Stand up with the bar." },
+                new ExerciseTranslation { Culture = "ro", Name = "Îndreptări", Description = "Ridică bara de pe podea.", Setup = "Așază-te deasupra barei.", Execution = "Ridică-te cu bara." },
+            ],
+        };
+        await _factory.SeedAsync(context => context.Exercises.Add(deadlift));
+        var client = _factory.CreateAuthenticatedClient();
+        client.DefaultRequestHeaders.AcceptLanguage.ParseAdd(language);
+
+        // Act
+        var exercise = await client.GetFromJsonAsync<ExerciseDto>($"/api/exercises/{deadlift.Id}");
+
+        // Assert
+        Assert.NotNull(exercise);
+        Assert.Equal(expectedName, exercise.Name);
+        Assert.Equal(expectedDescription, exercise.Description);
+        Assert.Equal(expectedSetup, exercise.Setup);
+        Assert.Equal(expectedExecution, exercise.Execution);
+    }
+
+    [Theory]
+    [InlineData("?equipment=Barbell", new[] { "Bench Press", "Squat" })]
+    [InlineData("?equipment=cable", new[] { "Cable Fly" })]
+    [InlineData("?pattern=Isolation", new[] { "Cable Fly" })]
+    [InlineData("?pattern=push&equipment=barbell", new[] { "Bench Press" })]
+    [InlineData("?muscle=Triceps", new string[0])]
+    [InlineData("?muscle=NotAMuscle", new string[0])]
+    [InlineData("?search.term=front%20delt", new[] { "Bench Press" })]
+    [InlineData("?search.term=chest", new[] { "Bench Press", "Cable Fly" })]
+    public async Task GetExercises_FiltersByEquipmentPatternAndMuscleNames(string query, string[] expectedNames)
+    {
+        // Arrange
+        await _factory.SeedAsync(context => context.Exercises.AddRange(
+            new ExerciseCard
+            {
+                Name = "Bench Press",
+                MainMuscle = MuscleGroup.Chest,
+                Equipment = Equipment.Barbell,
+                MovementPattern = MovementPattern.Push,
+                SecondaryMuscles = [new ExerciseSecondaryMuscle { Muscle = Muscle.FrontDeltoids }],
+            },
+            new ExerciseCard { Name = "Squat", MainMuscle = MuscleGroup.Legs, Equipment = Equipment.Barbell, MovementPattern = MovementPattern.Squat },
+            new ExerciseCard { Name = "Cable Fly", MainMuscle = MuscleGroup.Chest, Equipment = Equipment.Cable, MovementPattern = MovementPattern.Isolation }));
+        var client = _factory.CreateAuthenticatedClient();
+
+        // Act
+        var page = await client.GetFromJsonAsync<PagedResult<ExerciseDto>>($"/api/exercises{query}");
+
+        // Assert
+        Assert.Equal(expectedNames, page!.Items.Select(exercise => exercise.Name));
+    }
+
+    [Fact]
+    public async Task GetExercises_ReturnsBadRequest_WhenTheEquipmentIsNotKnown()
+    {
+        // Arrange
+        await _factory.SeedAsync(_ => { });
+        var client = _factory.CreateAuthenticatedClient();
+
+        // Act
+        var response = await client.GetAsync("/api/exercises?equipment=Spaceship");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Theory]

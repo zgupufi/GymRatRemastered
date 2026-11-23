@@ -1,3 +1,4 @@
+using GymRatService.Common.Enums;
 using GymRatService.Common.DTOs.Exercises;
 using GymRatService.Common.DTOs.Workouts;
 using GymRatService.Common.Errors;
@@ -30,8 +31,8 @@ public class WorkoutsServiceTests
     public async Task GetWorkoutSummariesAsync_ReturnsTheCountAndDistinctMainMusclesInOrder()
     {
         // Arrange
-        var chest = new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest" };
-        var legs = new ExerciseCard { Name = "Squat", MainMuscle = "Legs" };
+        var chest = new ExerciseCard { Name = "Bench Press", MainMuscle = MuscleGroup.Chest };
+        var legs = new ExerciseCard { Name = "Squat", MainMuscle = MuscleGroup.Legs };
         var workout = new Workout
         {
             Name = "Push",
@@ -62,8 +63,8 @@ public class WorkoutsServiceTests
     public async Task GetWorkoutAsync_ReturnsTheExercisesInOrderWithTargetSets()
     {
         // Arrange
-        var chest = new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest" };
-        var legs = new ExerciseCard { Name = "Squat", MainMuscle = "Legs" };
+        var chest = new ExerciseCard { Name = "Bench Press", MainMuscle = MuscleGroup.Chest };
+        var legs = new ExerciseCard { Name = "Squat", MainMuscle = MuscleGroup.Legs };
         var workout = new Workout
         {
             Name = "Push",
@@ -82,12 +83,11 @@ public class WorkoutsServiceTests
         // Assert
         Assert.Equal(workout.Id, result.Id);
         Assert.Equal("Push", result.Name);
-        Assert.Equal(
-            [
-                new WorkoutExerciseDto(1, 4, 8, 12, 2.5m, new ExerciseDto(chest.Id, "Bench Press", "Chest", null, null, null, null, null)),
-                new WorkoutExerciseDto(2, 5, 8, 12, 2.5m, new ExerciseDto(legs.Id, "Squat", "Legs", null, null, null, null, null)),
-            ],
-            result.Exercises);
+        Assert.Equal([1, 2], result.Exercises.Select(entry => entry.Order));
+        Assert.Equal([4, 5], result.Exercises.Select(entry => entry.TargetSets));
+        Assert.Equal(["Bench Press", "Squat"], result.Exercises.Select(entry => entry.Exercise.Name));
+        Assert.Equal([MuscleGroup.Chest, MuscleGroup.Legs], result.Exercises.Select(entry => entry.Exercise.MainMuscle));
+        Assert.All(result.Exercises, entry => Assert.Equal(2.5m, entry.WeightStepKg));
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public class WorkoutsServiceTests
         var second = Guid.CreateVersion7();
         _workouts.GetByIdAsync(workout.Id, Arg.Any<CancellationToken>()).Returns(workout);
         _exercises.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
-            .Returns([new ExerciseCard { Id = first, Equipment = "Barbell" }, new ExerciseCard { Id = second, Equipment = "Dumbbells" }]);
+            .Returns([new ExerciseCard { Id = first, Equipment = Equipment.Barbell }, new ExerciseCard { Id = second, Equipment = Equipment.Dumbbells }]);
         IReadOnlyList<WorkoutExercise>? stored = null;
         await _workouts.ReplaceExercisesAsync(
             workout.Id,

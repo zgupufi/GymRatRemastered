@@ -264,7 +264,7 @@ public class CoachServiceTests
         RepsMin = repsMin,
         RepsMax = repsMax,
         WeightStepKg = step,
-        Exercise = new ExerciseCard { Id = _exerciseId, Name = "Bench Press", MainMuscle = "Chest" },
+        Exercise = new ExerciseCard { Id = _exerciseId, Name = "Bench Press", MainMuscle = MuscleGroup.Chest },
     };
 
     private Workout CreateWorkout(params WorkoutExercise[] entries)

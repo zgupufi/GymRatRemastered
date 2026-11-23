@@ -211,8 +211,8 @@ public sealed class SplitEndpointsTests : IDisposable
 
     private async Task<(ExerciseCard Bench, ExerciseCard Squat)> SeedExercisesAsync()
     {
-        var bench = new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest", Difficulty = "Intermediate" };
-        var squat = new ExerciseCard { Name = "Squat", MainMuscle = "Legs", SubMuscles = "Glutes", Equipment = "Barbell" };
+        var bench = new ExerciseCard { Name = "Bench Press", MainMuscle = MuscleGroup.Chest, Difficulty = Difficulty.Intermediate };
+        var squat = new ExerciseCard { Name = "Squat", MainMuscle = MuscleGroup.Legs, SecondaryMuscles = [new ExerciseSecondaryMuscle { Muscle = Muscle.Glutes }], Equipment = Equipment.Barbell };
         await _factory.SeedAsync(context => context.Exercises.AddRange(bench, squat));
 
         return (bench, squat);

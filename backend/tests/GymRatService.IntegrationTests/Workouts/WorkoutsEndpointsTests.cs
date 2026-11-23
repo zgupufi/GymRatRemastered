@@ -192,11 +192,12 @@ public sealed class WorkoutsEndpointsTests : IDisposable
         Assert.Equal([5, 1, 4], workout.Exercises.Select(entry => entry.TargetSets));
         Assert.Equal(
             [
-                new ExerciseDto(squat.Id, "Squat", "Legs", "Glutes", "Barbell", null, null, null),
-                new ExerciseDto(deadlift.Id, "Deadlift", "Back", null, null, null, null, null),
-                new ExerciseDto(bench.Id, "Bench Press", "Chest", null, null, "Intermediate", null, null),
+                "Squat|Legs|Glutes|Barbell|Beginner|Squat",
+                "Deadlift|Back||Barbell|Beginner|Hinge",
+                "Bench Press|Chest||Barbell|Intermediate|Push",
             ],
-            workout.Exercises.Select(entry => entry.Exercise));
+            workout.Exercises.Select(entry => entry.Exercise).Select(exercise =>
+                $"{exercise.Name}|{exercise.MainMuscle}|{string.Join(',', exercise.SecondaryMuscles)}|{exercise.Equipment}|{exercise.Difficulty}|{exercise.MovementPattern}"));
     }
 
     [Theory]
@@ -473,9 +474,9 @@ public sealed class WorkoutsEndpointsTests : IDisposable
 
     private async Task<(ExerciseCard Bench, ExerciseCard Squat, ExerciseCard Deadlift)> SeedExercisesAsync()
     {
-        var bench = new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest", Difficulty = "Intermediate" };
-        var squat = new ExerciseCard { Name = "Squat", MainMuscle = "Legs", SubMuscles = "Glutes", Equipment = "Barbell" };
-        var deadlift = new ExerciseCard { Name = "Deadlift", MainMuscle = "Back" };
+        var bench = new ExerciseCard { Name = "Bench Press", MainMuscle = MuscleGroup.Chest, Difficulty = Difficulty.Intermediate };
+        var squat = new ExerciseCard { Name = "Squat", MainMuscle = MuscleGroup.Legs, SecondaryMuscles = [new ExerciseSecondaryMuscle { Muscle = Muscle.Glutes }], Equipment = Equipment.Barbell, MovementPattern = MovementPattern.Squat };
+        var deadlift = new ExerciseCard { Name = "Deadlift", MainMuscle = MuscleGroup.Back, MovementPattern = MovementPattern.Hinge };
         await _factory.SeedAsync(context => context.Exercises.AddRange(bench, squat, deadlift));
 
         return (bench, squat, deadlift);

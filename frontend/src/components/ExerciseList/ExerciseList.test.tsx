@@ -13,7 +13,7 @@ vi.mock('../../api/exercises', async (importOriginal) => ({
 }))
 
 function exercise(id: string, name: string, mainMuscle: string): Exercise {
-  return { id, name, mainMuscle, subMuscles: 'Triceps', equipment: 'Barbell', difficulty: 'Intermediate', description: null, youtubeLink: null }
+  return { id, name, mainMuscle, secondaryMuscles: ['Triceps'], equipment: 'Barbell', difficulty: 'Intermediate', movementPattern: 'Push', description: null, setup: 'Set up.', execution: 'Do it.', youtubeLink: null }
 }
 
 function page(items: Exercise[], totalCount = items.length, pageNumber = 1): PagedResult<Exercise> {

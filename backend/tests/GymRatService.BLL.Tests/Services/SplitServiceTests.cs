@@ -1,3 +1,4 @@
+using GymRatService.Common.Enums;
 using GymRatService.Common.DTOs.Split;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Entities;
@@ -24,8 +25,8 @@ public class SplitServiceTests
     public async Task GetSplitAsync_ReturnsSevenDaysWithRestDaysForUnassignedOnes()
     {
         // Arrange
-        var chest = new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest" };
-        var legs = new ExerciseCard { Name = "Squat", MainMuscle = "Legs" };
+        var chest = new ExerciseCard { Name = "Bench Press", MainMuscle = MuscleGroup.Chest };
+        var legs = new ExerciseCard { Name = "Squat", MainMuscle = MuscleGroup.Legs };
         var push = new Workout
         {
             Id = Guid.CreateVersion7(),

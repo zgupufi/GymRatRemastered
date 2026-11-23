@@ -43,6 +43,11 @@ public class WorkoutsRepository(GymRatDbContext context) : IWorkoutsRepository
             .AsNoTracking()
             .Include(workout => workout.Exercises.OrderBy(entry => entry.Position))
             .ThenInclude(entry => entry.Exercise)
+            .ThenInclude(exercise => exercise!.SecondaryMuscles)
+            .Include(workout => workout.Exercises)
+            .ThenInclude(entry => entry.Exercise)
+            .ThenInclude(exercise => exercise!.Translations)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(workout => workout.Id == id, cancellationToken);
     }
 

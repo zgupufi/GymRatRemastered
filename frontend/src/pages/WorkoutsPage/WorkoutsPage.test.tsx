@@ -25,14 +25,17 @@ const bench: Exercise = {
   id: 'e1',
   name: 'Bench Press',
   mainMuscle: 'Chest',
-  subMuscles: 'Triceps',
+  secondaryMuscles: ['Triceps'],
   equipment: 'Barbell',
-  difficulty: null,
+  difficulty: 'Beginner',
+  movementPattern: 'Push',
+  setup: 'Set up.',
+  execution: 'Do it.',
   description: null,
   youtubeLink: null,
 }
-const row: Exercise = { ...bench, id: 'e2', name: 'Barbell Row', mainMuscle: 'Back', subMuscles: 'Lats' }
-const squat: Exercise = { ...bench, id: 'e3', name: 'Squat', mainMuscle: 'Quads', subMuscles: null, equipment: null }
+const row: Exercise = { ...bench, id: 'e2', name: 'Barbell Row', mainMuscle: 'Back', secondaryMuscles: ['Lats'] }
+const squat: Exercise = { ...bench, id: 'e3', name: 'Squat', mainMuscle: 'Quads', secondaryMuscles: [], equipment: 'Machine' }
 
 const push: WorkoutSummary = { id: 'w1', name: 'Push day', exerciseCount: 2, mainMuscles: ['Chest', 'Shoulders'] }
 const pull: WorkoutSummary = { id: 'w2', name: 'Pull day', exerciseCount: 1, mainMuscles: ['Back'] }

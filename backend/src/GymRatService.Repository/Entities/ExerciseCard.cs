@@ -1,3 +1,5 @@
+using GymRatService.Common.Enums;
+
 namespace GymRatService.Repository.Entities;
 
 public class ExerciseCard
@@ -6,15 +8,17 @@ public class ExerciseCard
 
     public string Name { get; set; } = string.Empty;
 
-    public string MainMuscle { get; set; } = string.Empty;
+    public MuscleGroup MainMuscle { get; set; }
 
-    public string? SubMuscles { get; set; }
+    public Equipment Equipment { get; set; }
 
-    public string? Equipment { get; set; }
+    public Difficulty Difficulty { get; set; }
 
-    public string? Difficulty { get; set; }
-
-    public string? Description { get; set; }
+    public MovementPattern MovementPattern { get; set; }
 
     public string? YoutubeLink { get; set; }
+
+    public List<ExerciseSecondaryMuscle> SecondaryMuscles { get; set; } = [];
+
+    public List<ExerciseTranslation> Translations { get; set; } = [];
 }

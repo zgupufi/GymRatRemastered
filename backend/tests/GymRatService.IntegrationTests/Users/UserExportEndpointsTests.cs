@@ -167,7 +167,7 @@ public sealed class UserExportEndpointsTests : IDisposable
         Assert.DoesNotContain(export.Sessions, session => session.Id == otherSession);
         var suggestion = Assert.Single(export.CoachSuggestions);
         Assert.Equal(
-            (card.Id, pushId, "Push", bench.Id, "Bench Press", (int?)2, (decimal?)5m, 3, 8, 12, 1.25m, "Stalled.", SuggestionStatus.Pending),
+            (card.Id, pushId, "Push", bench.Id, "Bench Press", (int?)2, (decimal?)5m, 3, 8, 12, 2.5m, "Stalled.", SuggestionStatus.Pending),
             (suggestion.Id, suggestion.WorkoutId, suggestion.WorkoutName, suggestion.ExerciseId, suggestion.ExerciseName, suggestion.TargetSets, suggestion.WeightStepKg, suggestion.BeforeTargetSets, suggestion.BeforeRepsMin, suggestion.BeforeRepsMax, suggestion.BeforeWeightStepKg, suggestion.Rationale, suggestion.Status));
         Assert.Null(suggestion.ResolvedAt);
     }
@@ -228,7 +228,7 @@ public sealed class UserExportEndpointsTests : IDisposable
     public async Task GetSetsCsv_NeutralizesFormulasInWorkoutAndExerciseNames(string prefix)
     {
         // Arrange
-        var exercise = new ExerciseCard { Name = prefix + "Bench", MainMuscle = "Chest" };
+        var exercise = new ExerciseCard { Name = prefix + "Bench", MainMuscle = MuscleGroup.Chest };
         await _factory.SeedAsync(context => context.Exercises.Add(exercise));
         var client = await CreateClientAsync("ana@example.com");
         var workoutId = await CreateWorkoutAsync(client, prefix + "Push", exercise.Id);
@@ -247,7 +247,7 @@ public sealed class UserExportEndpointsTests : IDisposable
     public async Task GetSetsCsv_QuotesCommasAndDoubleQuotes_AndLeavesLeadingSpacesAlone()
     {
         // Arrange
-        var exercise = new ExerciseCard { Name = " =Bench, \"Flat\"", MainMuscle = "Chest" };
+        var exercise = new ExerciseCard { Name = " =Bench, \"Flat\"", MainMuscle = MuscleGroup.Chest };
         await _factory.SeedAsync(context => context.Exercises.Add(exercise));
         var client = await CreateClientAsync("ana@example.com");
         var workoutId = await CreateWorkoutAsync(client, "Push, Heavy", exercise.Id);
@@ -290,8 +290,8 @@ public sealed class UserExportEndpointsTests : IDisposable
 
     private async Task<(ExerciseCard Bench, ExerciseCard Squat)> SeedExercisesAsync()
     {
-        var bench = new ExerciseCard { Name = "Bench Press", MainMuscle = "Chest" };
-        var squat = new ExerciseCard { Name = "Squat", MainMuscle = "Legs" };
+        var bench = new ExerciseCard { Name = "Bench Press", MainMuscle = MuscleGroup.Chest };
+        var squat = new ExerciseCard { Name = "Squat", MainMuscle = MuscleGroup.Legs };
         await _factory.SeedAsync(context => context.Exercises.AddRange(bench, squat));
 
         return (bench, squat);

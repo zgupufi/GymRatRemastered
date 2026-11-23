@@ -8,7 +8,7 @@ import { BackButton } from '../../components/ui/BackButton'
 import { Button } from '../../components/ui/Button'
 import { DifficultyChip } from '../../components/ui/DifficultyChip'
 import { Spinner } from '../../components/ui/Spinner'
-import { howToPerform } from '../../lib/howToPerform'
+import { musclesLabel } from '../../lib/exerciseLabels'
 import { youtubeEmbedUrl } from '../../lib/youtube'
 import './ExerciseDetailsPage.css'
 
@@ -67,7 +67,8 @@ function ExerciseDetails({ id }: { id: string }) {
 
   const { exercise } = state
   const embedUrl = youtubeEmbedUrl(exercise.youtubeLink)
-  const steps = howToPerform(exercise.equipment, exercise.mainMuscle, exercise.description)
+  const secondary = musclesLabel(exercise.secondaryMuscles)
+  const description = exercise.description?.trim()
 
   return (
     <main className="page exercise-details">
@@ -106,11 +107,11 @@ function ExerciseDetails({ id }: { id: string }) {
             </div>
             <div className="exercise-details__fact">
               <span className="eyebrow">Secondary</span>
-              <strong>{exercise.subMuscles ?? '—'}</strong>
+              <strong>{secondary || '—'}</strong>
             </div>
             <div className="exercise-details__fact exercise-details__fact--wide">
               <span className="eyebrow">Equipment</span>
-              <strong>{exercise.equipment ?? 'Bodyweight'}</strong>
+              <strong>{exercise.equipment}</strong>
             </div>
           </div>
 
@@ -121,11 +122,11 @@ function ExerciseDetails({ id }: { id: string }) {
             <ol className="exercise-details__steps">
               <li>
                 <h3>Setup</h3>
-                <p>{steps.setup}</p>
+                <p>{exercise.setup}</p>
               </li>
               <li>
                 <h3>Execution</h3>
-                <p>{steps.execution}</p>
+                <p>{[exercise.execution, description].filter(Boolean).join(' ')}</p>
               </li>
             </ol>
           </section>

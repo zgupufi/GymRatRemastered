@@ -5,10 +5,13 @@ export interface Exercise {
   id: string
   name: string
   mainMuscle: string
-  subMuscles: string | null
-  equipment: string | null
-  difficulty: string | null
+  secondaryMuscles: string[]
+  equipment: string
+  difficulty: string
+  movementPattern: string
   description: string | null
+  setup: string | null
+  execution: string | null
   youtubeLink: string | null
 }
 

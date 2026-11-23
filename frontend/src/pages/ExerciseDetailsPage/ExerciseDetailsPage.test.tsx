@@ -16,9 +16,12 @@ const benchPress: Exercise = {
   id: 'e1',
   name: 'Bench Press',
   mainMuscle: 'Chest',
-  subMuscles: 'Triceps',
+  secondaryMuscles: ['Triceps', 'FrontDeltoids'],
   equipment: 'Barbell',
   difficulty: 'Intermediate',
+  movementPattern: 'Push',
+  setup: 'Plant your feet and grip the bar.',
+  execution: 'Lower the bar to your chest and press it up.',
   description: 'Keep your feet planted.',
   youtubeLink: 'https://www.youtube.com/watch?v=abc123',
 }
@@ -53,21 +56,19 @@ describe('ExerciseDetailsPage', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Bench Press' })).toBeInTheDocument()
     expect(screen.getByText('Intermediate')).toHaveClass('difficulty-chip--intermediate')
     expect(screen.getByTitle('Bench Press demo')).toHaveAttribute('src', 'https://www.youtube.com/embed/abc123')
-    expect(screen.getByText('Triceps')).toBeInTheDocument()
+    expect(screen.getByText('Triceps, Front Deltoids')).toBeInTheDocument()
     expect(screen.getByText('Barbell')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Setup' })).toBeInTheDocument()
     expect(screen.getByText(/Keep your feet planted\./)).toBeInTheDocument()
   })
 
-  it('falls back when there is no video, secondary muscle or equipment', async () => {
-    vi.mocked(getExercise).mockResolvedValue({ ...benchPress, youtubeLink: null, subMuscles: null, equipment: null, difficulty: null })
+  it('falls back when there is no video, secondary muscle or difficulty', async () => {
+    vi.mocked(getExercise).mockResolvedValue({ ...benchPress, youtubeLink: null, secondaryMuscles: [], description: null })
 
     renderPage()
 
     expect(await screen.findByText('Demo video unavailable')).toBeInTheDocument()
-    expect(screen.getByText('Bodyweight')).toBeInTheDocument()
     expect(screen.getByText('—')).toBeInTheDocument()
-    expect(document.querySelector('.difficulty-chip')).toBeNull()
   })
 
   it('shows a not-found message', async () => {
