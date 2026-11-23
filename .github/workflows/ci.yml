@@ -107,3 +107,66 @@ jobs:
       - name: Build backend image
         if: steps.changes.outputs.backend == 'true'
         run: docker build --tag gymrat-backend:ci backend
+
+  postgres:
+    name: postgres
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: gymrat
+          POSTGRES_USER: gymrat
+          POSTGRES_PASSWORD: gymrat-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gymrat -d gymrat"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      GYMRAT_TEST_POSTGRES: Host=localhost;Port=5432;Database=gymrat;Username=gymrat;Password=gymrat-ci
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Detect database and backend changes
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          files=$(git diff --name-only "$BASE_SHA...HEAD")
+          echo "$files"
+          if echo "$files" | grep -Eq '^(backend/|database/|\.github/workflows/ci\.yml$)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Apply Liquibase changelog to an empty database
+        if: steps.changes.outputs.run == 'true'
+        run: |
+          docker run --rm --network host \
+            --volume "$GITHUB_WORKSPACE/database/changelog:/liquibase/changelog:ro" \
+            liquibase/liquibase:4.32 \
+            --changelog-file=changelog/db.changelog-master.xml \
+            --url=jdbc:postgresql://localhost:5432/gymrat \
+            --username=gymrat \
+            --password=gymrat-ci \
+            update
+
+      - uses: actions/setup-dotnet@v5
+        if: steps.changes.outputs.run == 'true'
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run Postgres smoke and schema parity tests
+        if: steps.changes.outputs.run == 'true'
+        working-directory: backend
+        run: dotnet test tests/GymRatService.IntegrationTests --filter "Category=Postgres" --logger "console;verbosity=normal"
