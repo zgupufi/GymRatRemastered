@@ -1,0 +1,23 @@
+name: Uptime check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/10 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uptime-check
+  cancel-in-progress: true
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    if: ${{ vars.API_HEALTH_URL != '' }}
+    steps:
+      - name: Check API health
+        env:
+          HEALTH_URL: ${{ vars.API_HEALTH_URL }}
+        run: curl --fail --silent --show-error --max-time 90 --retry 2 --retry-delay 15 --retry-all-errors "$HEALTH_URL"
