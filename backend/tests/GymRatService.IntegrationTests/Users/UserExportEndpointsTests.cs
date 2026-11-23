@@ -2,7 +2,9 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using GymRatService.Common.DTOs.Auth;
+using GymRatService.Common.DTOs.Chat;
 using GymRatService.Common.DTOs.Export;
 using GymRatService.Common.DTOs.Sessions;
 using GymRatService.Common.DTOs.Split;
@@ -10,7 +12,9 @@ using GymRatService.Common.DTOs.Users;
 using GymRatService.Common.DTOs.Workouts;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Errors;
+using GymRatService.IntegrationTests.Chat;
 using GymRatService.Repository.Entities;
+using Microsoft.Extensions.AI;
 using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace GymRatService.IntegrationTests.Users;
@@ -20,6 +24,14 @@ public sealed class UserExportEndpointsTests : IDisposable
     private const string CsvHeader = "Date,Workout,Exercise,Set,Reps,Weight (kg),Reps in reserve,Target weight (kg),Target reps,Target reason,Session id";
 
     private readonly GymRatApiFactory _factory = new();
+    private readonly ScriptedChatClient _chat = new();
+
+    public UserExportEndpointsTests()
+    {
+        _factory.ChatClient = _chat;
+        _factory.Settings["AiCoach:MaximumToolIterations"] = "8";
+        _factory.Settings["AiCoach:RateLimitRequests"] = "20";
+    }
 
     public void Dispose() => _factory.Dispose();
 
@@ -54,8 +66,26 @@ public sealed class UserExportEndpointsTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.False(response.Content.Headers.ContentDisposition is not null);
         var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
         Assert.Equal(ErrorCodes.UserNotFound, error?.Code);
+    }
+
+    [Theory]
+    [InlineData("/api/users/me/export")]
+    [InlineData("/api/users/me/export/sets")]
+    public async Task Export_IsNotCacheable(string url)
+    {
+        // Arrange
+        await _factory.SeedAsync(_ => { });
+        var client = await CreateClientAsync("ana@example.com");
+
+        // Act
+        var response = await client.GetAsync(url);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(response.Headers.CacheControl?.NoStore);
     }
 
     [Fact]
@@ -64,20 +94,23 @@ public sealed class UserExportEndpointsTests : IDisposable
         // Arrange
         await _factory.SeedAsync(_ => { });
         var client = await CreateClientAsync("ana@example.com");
+        var before = DateTimeOffset.UtcNow;
 
         // Act
         var export = await client.GetFromJsonAsync<UserExportDto>("/api/users/me/export");
 
         // Assert
         Assert.NotNull(export);
+        Assert.InRange(export.ExportedAt, before, DateTimeOffset.UtcNow);
         Assert.Equal(new UserProfileDto("Ana", null, "ana@example.com", WeightUnit.Kilograms, 90), export.Profile);
         Assert.Empty(export.Workouts);
         Assert.Empty(export.Split);
         Assert.Empty(export.Sessions);
+        Assert.Empty(export.CoachSuggestions);
     }
 
     [Fact]
-    public async Task GetUserExport_ReturnsEveryWorkoutSplitDayAndSetOfTheCaller_AndNothingOfOthers()
+    public async Task GetUserExport_ReturnsEveryWorkoutSplitDaySetAndSuggestionOfTheCaller_AndNothingOfOthers()
     {
         // Arrange
         var (bench, squat) = await SeedExercisesAsync();
@@ -85,17 +118,27 @@ public sealed class UserExportEndpointsTests : IDisposable
         var otherWorkout = await CreateWorkoutAsync(other, "Other Day", bench.Id);
         var otherSession = await StartSessionAsync(other, otherWorkout);
         await SaveSetsAsync(other, otherSession, bench.Id, new SessionSetRequest(5, 100));
+        _chat.Script = Proposal(otherWorkout, bench.Id, new { targetSets = 5 });
+        await SendChatAsync(other);
         var client = await CreateClientAsync("ana@example.com");
         var pushId = await CreateWorkoutAsync(client, "Push", bench.Id, squat.Id);
         var pullId = await CreateWorkoutAsync(client, "Pull", squat.Id);
         (await client.PutAsJsonAsync("/api/split/1", new AssignSplitDayRequest(pushId))).EnsureSuccessStatusCode();
         var pushSession = await StartSessionAsync(client, pushId);
-        await SaveSetsAsync(client, pushSession, bench.Id, new SessionSetRequest(8, 60, 2), new SessionSetRequest(6, 62.5m));
+        await SaveSetsAsync(
+            client,
+            pushSession,
+            bench.Id,
+            new ServedTargetRequest(60, 8, ProgressionReason.AddRep),
+            new SessionSetRequest(8, 60, 2),
+            new SessionSetRequest(6, 62.5m));
         await SaveSetsAsync(client, pushSession, squat.Id, new SessionSetRequest(5, 100));
         (await client.PostAsync($"/api/sessions/{pushSession}/finish", null)).EnsureSuccessStatusCode();
         var pullSession = await StartSessionAsync(client, pullId);
         await SaveSetsAsync(client, pullSession, squat.Id, new SessionSetRequest(10, 80));
         (await client.DeleteAsync($"/api/workouts/{pullId}")).EnsureSuccessStatusCode();
+        _chat.Script = Proposal(pushId, bench.Id, new { targetSets = 2, weightStepKg = 5 });
+        var card = Assert.Single((await SendChatAsync(client)).Suggestions);
 
         // Act
         var export = await client.GetFromJsonAsync<UserExportDto>("/api/users/me/export");
@@ -115,13 +158,18 @@ public sealed class UserExportEndpointsTests : IDisposable
         Assert.Equal("Push", finished.WorkoutName);
         Assert.NotNull(finished.FinishedAt);
         Assert.Equal(
-            [("Bench Press", 1, 8, 60m, 2), ("Bench Press", 2, 6, 62.5m, null), ("Squat", 1, 5, 100m, null)],
-            finished.Sets.Select(set => (set.ExerciseName, set.SetNumber, set.Reps, set.WeightKg, set.RepsInReserve)));
+            [("Bench Press", 1, 8, 60m, 2, 60m, 8, ProgressionReason.AddRep), ("Bench Press", 2, 6, 62.5m, null, 60m, 8, ProgressionReason.AddRep), ("Squat", 1, 5, 100m, null, null, null, null)],
+            finished.Sets.Select(set => (set.ExerciseName, set.SetNumber, set.Reps, set.WeightKg, set.RepsInReserve, set.TargetWeightKg, set.TargetReps, set.TargetReason)));
         var orphaned = export.Sessions.Single(session => session.Id == pullSession);
         Assert.Null(orphaned.WorkoutId);
         Assert.Null(orphaned.WorkoutName);
         Assert.Equal(10, Assert.Single(orphaned.Sets).Reps);
         Assert.DoesNotContain(export.Sessions, session => session.Id == otherSession);
+        var suggestion = Assert.Single(export.CoachSuggestions);
+        Assert.Equal(
+            (card.Id, pushId, "Push", bench.Id, "Bench Press", (int?)2, (decimal?)5m, 3, 8, 12, 1.25m, "Stalled.", SuggestionStatus.Pending),
+            (suggestion.Id, suggestion.WorkoutId, suggestion.WorkoutName, suggestion.ExerciseId, suggestion.ExerciseName, suggestion.TargetSets, suggestion.WeightStepKg, suggestion.BeforeTargetSets, suggestion.BeforeRepsMin, suggestion.BeforeRepsMax, suggestion.BeforeWeightStepKg, suggestion.Rationale, suggestion.Status));
+        Assert.Null(suggestion.ResolvedAt);
     }
 
     [Fact]
@@ -136,7 +184,13 @@ public sealed class UserExportEndpointsTests : IDisposable
         var client = await CreateClientAsync("ana@example.com");
         var pushId = await CreateWorkoutAsync(client, "Push", bench.Id, squat.Id);
         var session = await StartSessionAsync(client, pushId);
-        await SaveSetsAsync(client, session, bench.Id, new SessionSetRequest(8, 60, 2), new SessionSetRequest(6, 62.5m));
+        await SaveSetsAsync(
+            client,
+            session,
+            bench.Id,
+            new ServedTargetRequest(60, 8, ProgressionReason.AddRep),
+            new SessionSetRequest(8, 60, 2),
+            new SessionSetRequest(6, 62.5m));
         await SaveSetsAsync(client, session, squat.Id, new SessionSetRequest(5, 100));
 
         // Act
@@ -158,25 +212,53 @@ public sealed class UserExportEndpointsTests : IDisposable
         Assert.Equal(["8", "6", "5"], rows.Select(row => row[4]));
         Assert.Equal(["60", "62.5", "100"], rows.Select(row => row[5]));
         Assert.Equal(["2", "", ""], rows.Select(row => row[6]));
+        Assert.Equal(["60", "60", ""], rows.Select(row => row[7]));
+        Assert.Equal(["8", "8", ""], rows.Select(row => row[8]));
+        Assert.Equal(["AddRep", "AddRep", ""], rows.Select(row => row[9]));
         Assert.All(rows, row => Assert.Equal(session.ToString(), row[10]));
     }
 
-    [Fact]
-    public async Task GetSetsCsv_QuotesSpecialCharactersAndNeutralizesFormulas()
+    [Theory]
+    [InlineData("=")]
+    [InlineData("+")]
+    [InlineData("-")]
+    [InlineData("@")]
+    [InlineData("\t")]
+    [InlineData("\r")]
+    public async Task GetSetsCsv_NeutralizesFormulasInWorkoutAndExerciseNames(string prefix)
     {
         // Arrange
-        var (bench, _) = await SeedExercisesAsync();
+        var exercise = new ExerciseCard { Name = prefix + "Bench", MainMuscle = "Chest" };
+        await _factory.SeedAsync(context => context.Exercises.Add(exercise));
         var client = await CreateClientAsync("ana@example.com");
-        var workoutId = await CreateWorkoutAsync(client, "=Push, \"Heavy\"", bench.Id);
+        var workoutId = await CreateWorkoutAsync(client, prefix + "Push", exercise.Id);
         var session = await StartSessionAsync(client, workoutId);
-        await SaveSetsAsync(client, session, bench.Id, new SessionSetRequest(8, 60));
+        await SaveSetsAsync(client, session, exercise.Id, new SessionSetRequest(8, 60));
 
         // Act
         var csv = await client.GetStringAsync("/api/users/me/export/sets");
 
         // Assert
-        var row = csv.Split("\r\n", StringSplitOptions.RemoveEmptyEntries)[1];
-        Assert.Contains(",\"'=Push, \"\"Heavy\"\"\",Bench Press,1,8,60,", row);
+        var row = csv.TrimStart('﻿')[(CsvHeader.Length + 2)..];
+        Assert.Contains(Quote(Neutralized((prefix + "Push").Trim())) + "," + Quote(Neutralized(prefix + "Bench")) + ",1,8,60,", row);
+    }
+
+    [Fact]
+    public async Task GetSetsCsv_QuotesCommasAndDoubleQuotes_AndLeavesLeadingSpacesAlone()
+    {
+        // Arrange
+        var exercise = new ExerciseCard { Name = " =Bench, \"Flat\"", MainMuscle = "Chest" };
+        await _factory.SeedAsync(context => context.Exercises.Add(exercise));
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push, Heavy", exercise.Id);
+        var session = await StartSessionAsync(client, workoutId);
+        await SaveSetsAsync(client, session, exercise.Id, new SessionSetRequest(8, 60));
+
+        // Act
+        var csv = await client.GetStringAsync("/api/users/me/export/sets");
+
+        // Assert
+        Assert.Contains("\"Push, Heavy\",\" =Bench, \"\"Flat\"\"\",1,8,60,", csv);
     }
 
     [Fact]
@@ -192,6 +274,12 @@ public sealed class UserExportEndpointsTests : IDisposable
         // Assert
         Assert.Equal(CsvHeader + "\r\n", csv.TrimStart('﻿'));
     }
+
+    private static string Neutralized(string value) => "=+-@\t\r".Contains(value[0]) ? "'" + value : value;
+
+    private static string Quote(string value) => value.Contains(',') || value.Contains('"') || value.Contains('\r') || value.Contains('\n')
+        ? "\"" + value.Replace("\"", "\"\"") + "\""
+        : value;
 
     private async Task<HttpClient> CreateClientAsync(string email)
     {
@@ -229,12 +317,37 @@ public sealed class UserExportEndpointsTests : IDisposable
         return created?.Id ?? throw new InvalidOperationException("Start session did not return an id.");
     }
 
-    private static async Task SaveSetsAsync(HttpClient client, Guid sessionId, Guid exerciseId, params SessionSetRequest[] sets)
+    private static Task SaveSetsAsync(HttpClient client, Guid sessionId, Guid exerciseId, params SessionSetRequest[] sets) =>
+        SaveSetsAsync(client, sessionId, exerciseId, null, sets);
+
+    private static async Task SaveSetsAsync(HttpClient client, Guid sessionId, Guid exerciseId, ServedTargetRequest? target, params SessionSetRequest[] sets)
     {
         var response = await client.PutAsJsonAsync(
             $"/api/sessions/{sessionId}/exercises/{exerciseId}/sets",
-            new SaveExerciseSetsRequest(sets));
+            new SaveExerciseSetsRequest(sets, target));
 
         response.EnsureSuccessStatusCode();
+    }
+
+    private static Func<IReadOnlyList<ChatMessage>, ChatOptions?, ChatResponse> Proposal(Guid workoutId, Guid exerciseId, object change)
+    {
+        var arguments = JsonSerializer.SerializeToElement(change)
+            .EnumerateObject()
+            .ToDictionary(property => property.Name, property => (object?)property.Value.Clone());
+        arguments["workoutId"] = workoutId;
+        arguments["exerciseId"] = exerciseId;
+        arguments["rationale"] = "Stalled.";
+
+        return (messages, _) => ScriptedChatClient.ToolResults(messages).Any()
+            ? ScriptedChatClient.Reply("Proposed. Tap Apply to confirm.")
+            : ScriptedChatClient.CallTool("propose_exercise_change", arguments);
+    }
+
+    private static async Task<ChatMessageResponse> SendChatAsync(HttpClient client)
+    {
+        var response = await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("My bench is stuck", null));
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<ChatMessageResponse>() ?? throw new InvalidOperationException("Empty reply.");
     }
 }

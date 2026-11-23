@@ -1,4 +1,5 @@
 using GymRatService.API.Extensions;
+using GymRatService.API.Results;
 using GymRatService.Common.DTOs.Users;
 using GymRatService.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -32,6 +33,7 @@ public class UsersController(IUsersService usersService, IExportService exportSe
     }
 
     [HttpGet("me/export")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> GetUserExportAsync(CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
@@ -42,12 +44,13 @@ public class UsersController(IUsersService usersService, IExportService exportSe
     }
 
     [HttpGet("me/export/sets")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> GetSetsCsvAsync(CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 
-        var response = await exportService.GetSetsCsvAsync(userId, cancellationToken);
+        var response = await exportService.GetSetsCsvLinesAsync(userId, cancellationToken);
 
-        return File(response, "text/csv; charset=utf-8", "gymrat-sets.csv");
+        return new CsvStreamResult(response, "gymrat-sets.csv");
     }
 }

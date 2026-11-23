@@ -7,4 +7,5 @@ public sealed record UserExportDto(
     UserProfileDto Profile,
     IReadOnlyList<ExportWorkoutDto> Workouts,
     IReadOnlyList<ExportSplitDayDto> Split,
-    IReadOnlyList<ExportSessionDto> Sessions);
+    IReadOnlyList<ExportSessionDto> Sessions,
+    IReadOnlyList<ExportCoachSuggestionDto> CoachSuggestions);

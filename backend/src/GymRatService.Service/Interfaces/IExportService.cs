@@ -6,5 +6,5 @@ public interface IExportService
 {
     Task<UserExportDto> GetExportAsync(Guid userId, CancellationToken cancellationToken);
 
-    Task<byte[]> GetSetsCsvAsync(Guid userId, CancellationToken cancellationToken);
+    Task<IAsyncEnumerable<string>> GetSetsCsvLinesAsync(Guid userId, CancellationToken cancellationToken);
 }

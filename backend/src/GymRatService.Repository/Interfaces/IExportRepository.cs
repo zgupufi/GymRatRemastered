@@ -1,3 +1,4 @@
+using GymRatService.Common.DTOs.Export;
 using GymRatService.Repository.Entities;
 
 namespace GymRatService.Repository.Interfaces;
@@ -8,5 +9,9 @@ public interface IExportRepository
 
     Task<IReadOnlyList<WorkoutSession>> GetSessionsAsync(Guid userId, CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<CoachSuggestion>> GetCoachSuggestionsAsync(Guid userId, CancellationToken cancellationToken);
+
     Task<IReadOnlyDictionary<Guid, string>> GetExerciseNamesAsync(IReadOnlyCollection<Guid> exerciseIds, CancellationToken cancellationToken);
+
+    IAsyncEnumerable<ExportSetRowDto> StreamSetRows(Guid userId);
 }

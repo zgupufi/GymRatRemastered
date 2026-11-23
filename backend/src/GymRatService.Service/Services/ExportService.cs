@@ -1,5 +1,5 @@
 using System.Globalization;
-using System.Text;
+using System.Runtime.CompilerServices;
 using GymRatService.Common.DTOs.Export;
 using GymRatService.Common.Errors;
 using GymRatService.Repository.Interfaces;
@@ -12,8 +12,7 @@ namespace GymRatService.Service.Services;
 public class ExportService(
     IUsersRepository usersRepository,
     ISplitRepository splitRepository,
-    IExportRepository exportRepository,
-    TimeProvider timeProvider) : IExportService
+    IExportRepository exportRepository) : IExportService
 {
     private const string CsvHeader = "Date,Workout,Exercise,Set,Reps,Weight (kg),Reps in reserve,Target weight (kg),Target reps,Target reason,Session id";
 
@@ -24,12 +23,14 @@ public class ExportService(
 
         var workouts = await exportRepository.GetWorkoutsAsync(userId, cancellationToken);
         var sessions = await exportRepository.GetSessionsAsync(userId, cancellationToken);
+        var coachSuggestions = await exportRepository.GetCoachSuggestionsAsync(userId, cancellationToken);
         var splitDays = await splitRepository.GetByUserAsync(userId, cancellationToken);
 
         var exerciseIds = workouts
             .SelectMany(workout => workout.Exercises)
             .Select(entry => entry.ExerciseId)
             .Concat(sessions.SelectMany(session => session.Sets).Select(set => set.ExerciseId))
+            .Concat(coachSuggestions.Select(suggestion => suggestion.ExerciseId))
             .ToHashSet();
         var exerciseNames = await exportRepository.GetExerciseNamesAsync(exerciseIds, cancellationToken);
         var workoutNames = workouts.ToDictionary(workout => workout.Id, workout => workout.Name);
@@ -37,7 +38,7 @@ public class ExportService(
         string NameOf(Guid exerciseId) => exerciseNames.GetValueOrDefault(exerciseId, string.Empty);
 
         return new UserExportDto(
-            timeProvider.GetUtcNow(),
+            TimeProvider.System.GetUtcNow(),
             user.ToProfileDto(),
             [.. workouts.Select(workout => new ExportWorkoutDto(
                 workout.Id,
@@ -77,38 +78,58 @@ public class ExportService(
                         set.RepsInReserve,
                         set.TargetWeightKg,
                         set.TargetReps,
-                        set.TargetReason))]))]);
+                        set.TargetReason))]))],
+            [.. coachSuggestions.Select(suggestion => new ExportCoachSuggestionDto(
+                suggestion.Id,
+                suggestion.WorkoutId,
+                workoutNames.GetValueOrDefault(suggestion.WorkoutId, string.Empty),
+                suggestion.ExerciseId,
+                NameOf(suggestion.ExerciseId),
+                suggestion.TargetSets,
+                suggestion.RepsMin,
+                suggestion.RepsMax,
+                suggestion.WeightStepKg,
+                suggestion.BeforeTargetSets,
+                suggestion.BeforeRepsMin,
+                suggestion.BeforeRepsMax,
+                suggestion.BeforeWeightStepKg,
+                suggestion.Rationale,
+                suggestion.Status,
+                suggestion.CreatedAt,
+                suggestion.ResolvedAt))]);
     }
 
-    public async Task<byte[]> GetSetsCsvAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<IAsyncEnumerable<string>> GetSetsCsvLinesAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var export = await GetExportAsync(userId, cancellationToken);
-        var builder = new StringBuilder(CsvHeader).Append("\r\n");
+        _ = await usersRepository.GetByIdAsync(userId, cancellationToken)
+            ?? throw new BusinessLogicException(ErrorCodes.UserNotFound);
 
-        foreach (var session in export.Sessions)
+        return EnumerateSetsCsvLinesAsync(userId, cancellationToken);
+    }
+
+    private async IAsyncEnumerable<string> EnumerateSetsCsvLinesAsync(Guid userId, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        yield return CsvHeader;
+
+        await foreach (var row in exportRepository.StreamSetRows(userId).WithCancellation(cancellationToken))
         {
-            foreach (var set in session.Sets)
-            {
-                var fields = new[]
-                {
-                    session.StartedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-                    session.WorkoutName ?? string.Empty,
-                    set.ExerciseName,
-                    set.SetNumber.ToString(CultureInfo.InvariantCulture),
-                    set.Reps.ToString(CultureInfo.InvariantCulture),
-                    FormatDecimal(set.WeightKg),
-                    set.RepsInReserve?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
-                    set.TargetWeightKg is { } targetWeight ? FormatDecimal(targetWeight) : string.Empty,
-                    set.TargetReps?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
-                    set.TargetReason?.ToString() ?? string.Empty,
-                    session.Id.ToString(),
-                };
+            string[] fields =
+            [
+                row.StartedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                row.WorkoutName ?? string.Empty,
+                row.ExerciseName,
+                row.SetNumber.ToString(CultureInfo.InvariantCulture),
+                row.Reps.ToString(CultureInfo.InvariantCulture),
+                FormatDecimal(row.WeightKg),
+                row.RepsInReserve?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
+                row.TargetWeightKg is { } targetWeight ? FormatDecimal(targetWeight) : string.Empty,
+                row.TargetReps?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
+                row.TargetReason?.ToString() ?? string.Empty,
+                row.SessionId.ToString(),
+            ];
 
-                builder.AppendJoin(',', fields.Select(EscapeCsv)).Append("\r\n");
-            }
+            yield return string.Join(',', fields.Select(EscapeCsv));
         }
-
-        return [.. Encoding.UTF8.GetPreamble(), .. Encoding.UTF8.GetBytes(builder.ToString())];
     }
 
     private static string FormatDecimal(decimal value) => value.ToString("0.####", CultureInfo.InvariantCulture);
