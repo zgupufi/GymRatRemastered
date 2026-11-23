@@ -36,6 +36,11 @@ function NumberHarness() {
   return <NumberInput aria-label="Weight" value={value} onValueChange={setValue} />
 }
 
+function DecimalHarness() {
+  const [value, setValue] = useState('')
+  return <NumberInput decimal aria-label="Weight" value={value} onValueChange={setValue} />
+}
+
 describe('ui components', () => {
   beforeAll(() => {
     MotionGlobalConfig.skipAnimations = true
@@ -74,6 +79,40 @@ describe('ui components', () => {
     await userEvent.type(input, '1e+-.,2')
 
     expect(input).toHaveValue(12)
+  })
+
+  it('accepts one separator and two decimals in decimal mode', async () => {
+    const user = userEvent.setup()
+    render(<DecimalHarness />)
+    const input = screen.getByRole('textbox', { name: 'Weight' })
+
+    await user.type(input, '62.55')
+    expect(input).toHaveValue('62.55')
+    await user.type(input, '7')
+    expect(input).toHaveValue('62.55')
+
+    await user.clear(input)
+    await user.type(input, '62,5')
+    expect(input).toHaveValue('62.5')
+    expect(input).toHaveAttribute('inputmode', 'decimal')
+
+    await user.type(input, '.-e')
+    expect(input).toHaveValue('62.5')
+  })
+
+  it('tidies a trailing or lone separator on blur', async () => {
+    const user = userEvent.setup()
+    render(<DecimalHarness />)
+    const input = screen.getByRole('textbox', { name: 'Weight' })
+
+    await user.type(input, '62.')
+    await user.tab()
+    expect(input).toHaveValue('62')
+
+    await user.clear(input)
+    await user.type(input, '.')
+    await user.tab()
+    expect(input).toHaveValue('')
   })
 
   it('switches the segmented control selection', async () => {

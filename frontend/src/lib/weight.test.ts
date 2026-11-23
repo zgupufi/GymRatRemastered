@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { WeightUnit } from '../api/auth'
 import { formatClock } from './clock'
-import { displayWeight, fromKilograms, toKilograms, unitLabel } from './weight'
+import { displayWeight, fromKilograms, restoredWeight, toKilograms, unitLabel } from './weight'
 
 describe('weight', () => {
   it('labels units', () => {
@@ -37,5 +37,12 @@ describe('formatClock', () => {
 
   it('never goes negative', () => {
     expect(formatClock(-4)).toBe('00:00')
+  })
+
+  it('restores a weight exactly when the display step would change it', () => {
+    expect(restoredWeight(62.55, WeightUnit.Kilograms)).toBe(62.55)
+    expect(restoredWeight(62.5, WeightUnit.Kilograms)).toBe(62.5)
+    expect(restoredWeight(toKilograms(137.5, WeightUnit.Pounds), WeightUnit.Pounds)).toBe(137.5)
+    expect(restoredWeight(toKilograms(100.5, WeightUnit.Pounds), WeightUnit.Pounds)).toBe(100.5)
   })
 })

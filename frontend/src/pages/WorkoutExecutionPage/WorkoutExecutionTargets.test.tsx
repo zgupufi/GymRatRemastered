@@ -109,13 +109,13 @@ describe('WorkoutExecutionPage targets and effort', () => {
     expect(screen.getByLabelText('Set 1 weight')).toHaveAttribute('placeholder', '62.5')
 
     await user.click(within(banner).getByRole('button', { name: 'Use target' }))
-    expect(screen.getByLabelText('Set 2 weight')).toHaveValue(62.5)
+    expect(screen.getByLabelText('Set 2 weight')).toHaveValue('62.5')
     expect(screen.getByLabelText('Set 2 reps')).toHaveValue(8)
 
     await user.click(screen.getByRole('button', { name: 'Complete set 1' }))
     await user.click(within(screen.getByRole('group', { name: 'Effort for set 1' })).getByRole('button', { name: 'Hard' }))
     await user.click(screen.getByRole('button', { name: 'Add set' }))
-    expect(screen.getByLabelText('Set 3 weight')).toHaveValue(62.5)
+    expect(screen.getByLabelText('Set 3 weight')).toHaveValue('62.5')
     await user.click(screen.getByRole('button', { name: 'Remove last' }))
     expect(screen.queryByLabelText('Set 3 weight')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Add set' }))
