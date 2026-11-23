@@ -26,7 +26,7 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
     private const string JwtKey = "integration-test-signing-key-that-is-long-enough";
 
-    private readonly SqliteConnection _connection = new("DataSource=:memory:");
+    private readonly string _databasePath = Path.Combine(Path.GetTempPath(), $"gymrat-tests-{Guid.NewGuid():N}.db");
 
     public IChatClient? ChatClient { get; set; }
 
@@ -56,9 +56,9 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
             services.AddSingleton<IStartupFilter, ClientIpStartupFilter>();
 
-            _connection.Open();
-            _connection.CreateFunction("uuid_generate_v7", () => Guid.CreateVersion7().ToString().ToUpperInvariant());
-            services.AddDbContext<GymRatDbContext>(options => options.UseSqlite(_connection));
+            services.AddDbContext<GymRatDbContext>(options => options
+                .UseSqlite($"Data Source={_databasePath};Pooling=False")
+                .AddInterceptors(new UuidFunctionInterceptor()));
 
             services
                 .AddAuthentication(SchemeSelector)
@@ -142,7 +142,28 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
         if (disposing)
         {
-            _connection.Dispose();
+            SqliteConnection.ClearAllPools();
+            File.Delete(_databasePath);
         }
+    }
+}
+
+internal sealed class UuidFunctionInterceptor : Microsoft.EntityFrameworkCore.Diagnostics.DbConnectionInterceptor
+{
+    public override void ConnectionOpened(System.Data.Common.DbConnection connection, Microsoft.EntityFrameworkCore.Diagnostics.ConnectionEndEventData eventData)
+    {
+        Register(connection);
+    }
+
+    public override Task ConnectionOpenedAsync(System.Data.Common.DbConnection connection, Microsoft.EntityFrameworkCore.Diagnostics.ConnectionEndEventData eventData, CancellationToken cancellationToken = default)
+    {
+        Register(connection);
+
+        return Task.CompletedTask;
+    }
+
+    private static void Register(System.Data.Common.DbConnection connection)
+    {
+        ((SqliteConnection)connection).CreateFunction("uuid_generate_v7", () => Guid.CreateVersion7().ToString().ToUpperInvariant());
     }
 }
