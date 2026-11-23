@@ -181,4 +181,23 @@ public sealed class AuthEndpointsTests : IDisposable
         var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
         Assert.Equal(new ErrorResponse(ErrorCodes.InvalidCredentials, expectedMessage), error);
     }
+
+    [Theory]
+    [InlineData("", "password123", "Email")]
+    [InlineData("ana@example.com", "", "Password")]
+    [InlineData("ana@example.com", "pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp", "Password")]
+    public async Task Login_ReturnsInvalidRequest_WhenAFieldIsEmptyOrTooLong(string email, string password, string expectedProperty)
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        // Act
+        var response = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest(email, password));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.Equal(ErrorCodes.InvalidRequest, error?.Code);
+        Assert.Equal(expectedProperty, Assert.Single(error!.Errors!).Property);
+    }
 }
