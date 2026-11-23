@@ -9,7 +9,7 @@ namespace GymRatService.API.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class UsersController(IUsersService usersService) : ControllerBase
+public class UsersController(IUsersService usersService, IExportService exportService) : ControllerBase
 {
     [HttpGet("me")]
     public async Task<IActionResult> GetUserProfileAsync(CancellationToken cancellationToken)
@@ -29,5 +29,25 @@ public class UsersController(IUsersService usersService) : ControllerBase
         await usersService.UpdateSettingsAsync(userId, request, cancellationToken);
 
         return NoContent();
+    }
+
+    [HttpGet("me/export")]
+    public async Task<IActionResult> GetUserExportAsync(CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+
+        var response = await exportService.GetExportAsync(userId, cancellationToken);
+
+        return Ok(response);
+    }
+
+    [HttpGet("me/export/sets")]
+    public async Task<IActionResult> GetSetsCsvAsync(CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+
+        var response = await exportService.GetSetsCsvAsync(userId, cancellationToken);
+
+        return File(response, "text/csv; charset=utf-8", "gymrat-sets.csv");
     }
 }

@@ -24,6 +24,7 @@ public static class ServiceLayerExtensions
         services.AddScoped<IExercisesService, ExercisesService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUsersService, UsersService>();
+        services.AddScoped<IExportService, ExportService>();
         services.AddScoped<IWorkoutsService, WorkoutsService>();
         services.AddScoped<ISplitService, SplitService>();
         services.AddScoped<ISessionsService, SessionsService>();
