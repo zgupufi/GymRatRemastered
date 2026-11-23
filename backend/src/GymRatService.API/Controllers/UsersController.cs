@@ -32,6 +32,26 @@ public class UsersController(IUsersService usersService, IExportService exportSe
         return NoContent();
     }
 
+    [HttpPost("me/password")]
+    public async Task<IActionResult> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+
+        await usersService.ChangePasswordAsync(userId, request, cancellationToken);
+
+        return NoContent();
+    }
+
+    [HttpDelete("me")]
+    public async Task<IActionResult> DeleteAccountAsync(DeleteAccountRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+
+        await usersService.DeleteAccountAsync(userId, request, cancellationToken);
+
+        return NoContent();
+    }
+
     [HttpGet("me/export")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<IActionResult> GetUserExportAsync(CancellationToken cancellationToken)

@@ -72,4 +72,22 @@ public class UsersRepository(GymRatDbContext context) : IUsersRepository
                     .SetProperty(user => user.DefaultRestTimeSeconds, defaultRestTimeSeconds),
                 cancellationToken);
     }
+
+    public async Task UpdatePasswordAsync(Guid id, string passwordHash, string passwordSalt, CancellationToken cancellationToken)
+    {
+        await context.Users
+            .Where(user => user.Id == id)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(user => user.PasswordHash, passwordHash)
+                    .SetProperty(user => user.PasswordSalt, passwordSalt),
+                cancellationToken);
+    }
+
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        await context.Users
+            .Where(user => user.Id == id)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
 }

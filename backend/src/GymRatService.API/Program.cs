@@ -46,6 +46,7 @@ builder.Services.AddAiCoach(builder.Configuration);
 
 builder.Services.AddTrustedForwardedHeaders(builder.Configuration);
 builder.Services.AddAuthRateLimiting(builder.Configuration);
+builder.Services.AddTransportSecurity();
 
 builder.Services.AddRequestValidation();
 builder.Services.AddControllers(options => options.Filters.AddService<ValidationActionFilter>());
@@ -61,6 +62,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseTrustedForwardedHeaders();
+app.UseTransportSecurity();
 
 app.UseRequestLocalization(new RequestLocalizationOptions()
     .SetDefaultCulture(supportedCultures[0])
