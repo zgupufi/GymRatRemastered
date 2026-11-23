@@ -17,7 +17,7 @@ public interface IUsersRepository
 
     Task UpdateSettingsAsync(Guid id, WeightUnit weightUnit, int defaultRestTimeSeconds, CancellationToken cancellationToken);
 
-    Task UpdatePasswordAsync(Guid id, string passwordHash, string passwordSalt, CancellationToken cancellationToken);
+    Task UpdatePasswordAndRevokeSessionsAsync(Guid id, string passwordHash, string passwordSalt, DateTimeOffset revokedAt, CancellationToken cancellationToken);
 
     Task DeleteAsync(Guid id, CancellationToken cancellationToken);
 }

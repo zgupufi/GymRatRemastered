@@ -132,6 +132,14 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
         return new JsonWebTokenHandler().CreateToken(descriptor);
     }
 
+    public async Task EnsureDatabaseAsync()
+    {
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<GymRatDbContext>();
+
+        await context.Database.EnsureCreatedAsync();
+    }
+
     public async Task SeedAsync(Action<GymRatDbContext> seed)
     {
         using var scope = Services.CreateScope();

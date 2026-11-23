@@ -16,11 +16,14 @@ public class UsersServiceTests
     private readonly IUsersRepository _repository = Substitute.For<IUsersRepository>();
     private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
     private readonly ILoginAttemptLimiter _loginAttemptLimiter = Substitute.For<ILoginAttemptLimiter>();
+    private readonly DateTimeOffset _now = new(2026, 5, 1, 12, 0, 0, TimeSpan.Zero);
+    private readonly AdjustableTimeProvider _time;
     private readonly UsersService _service;
 
     public UsersServiceTests()
     {
-        _service = new UsersService(_repository, _passwordHasher, _loginAttemptLimiter);
+        _time = new AdjustableTimeProvider(_now);
+        _service = new UsersService(_repository, _passwordHasher, _loginAttemptLimiter, _time);
     }
 
     [Fact]
@@ -135,7 +138,7 @@ public class UsersServiceTests
         await _service.ChangePasswordAsync(user.Id, new ChangePasswordRequest("current-password", "new-password"), CancellationToken.None);
 
         // Assert
-        await _repository.Received(1).UpdatePasswordAsync(user.Id, "new-hash", "new-salt", Arg.Any<CancellationToken>());
+        await _repository.Received(1).UpdatePasswordAndRevokeSessionsAsync(user.Id, "new-hash", "new-salt", _now, Arg.Any<CancellationToken>());
         _loginAttemptLimiter.Received(1).RegisterAttempt("ana@example.com");
         _loginAttemptLimiter.Received(1).Reset("ana@example.com");
     }
@@ -154,7 +157,7 @@ public class UsersServiceTests
 
         // Assert
         Assert.Equal(ErrorCodes.InvalidPassword, exception.Code);
-        await _repository.DidNotReceive().UpdatePasswordAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _repository.DidNotReceive().UpdatePasswordAndRevokeSessionsAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
         _loginAttemptLimiter.DidNotReceive().Reset(Arg.Any<string>());
     }
 
