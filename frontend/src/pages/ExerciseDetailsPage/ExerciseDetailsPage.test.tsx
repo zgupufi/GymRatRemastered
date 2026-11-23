@@ -71,6 +71,16 @@ describe('ExerciseDetailsPage', () => {
     expect(screen.getByText('—')).toBeInTheDocument()
   })
 
+  it('hides the steps that have no text', async () => {
+    vi.mocked(getExercise).mockResolvedValue({ ...benchPress, setup: null, execution: null, description: null })
+
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: 'Bench Press' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Setup' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Execution' })).toBeNull()
+  })
+
   it('shows a not-found message', async () => {
     vi.mocked(getExercise).mockRejectedValue(new ApiError(404, 'missing'))
 

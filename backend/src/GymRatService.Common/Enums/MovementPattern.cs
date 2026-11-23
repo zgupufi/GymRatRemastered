@@ -9,7 +9,6 @@ public enum MovementPattern
     Pull,
     Squat,
     Hinge,
-    Carry,
     Core,
     Isolation,
 }

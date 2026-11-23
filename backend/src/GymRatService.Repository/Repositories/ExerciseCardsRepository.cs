@@ -1,3 +1,4 @@
+using System.Globalization;
 using GymRatService.Common.Enums;
 using GymRatService.Common.Filtering;
 using GymRatService.Repository.Entities;
@@ -11,6 +12,7 @@ public class ExerciseCardsRepository(GymRatDbContext context) : IExerciseCardsRe
 {
     public async Task<PagedResult<ExerciseCard>> GetAllAsync(ExerciseFilter filter, CancellationToken cancellationToken)
     {
+        var culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
         var query = context.Exercises
             .AsNoTracking()
             .Include(exercise => exercise.SecondaryMuscles)
@@ -32,14 +34,22 @@ public class ExerciseCardsRepository(GymRatDbContext context) : IExerciseCardsRe
 
             query = query.Where(exercise =>
                 exercise.Name.ToLower().Contains(term)
+                || exercise.Translations.Any(translation => translation.Culture == culture && translation.Name.ToLower().Contains(term))
                 || matchingGroups.Contains(exercise.MainMuscle)
                 || exercise.SecondaryMuscles.Any(secondary => matchingMuscles.Contains(secondary.Muscle)));
         }
 
         if (!string.IsNullOrWhiteSpace(filter.Muscle))
         {
-            query = Enum.TryParse<MuscleGroup>(filter.Muscle.Trim(), true, out var mainMuscle)
-                ? query.Where(exercise => exercise.MainMuscle == mainMuscle)
+            var muscleName = filter.Muscle.Trim();
+
+            MuscleGroup? mainMuscle = Enum.GetValues<MuscleGroup>()
+                .Where(group => string.Equals(group.ToString(), muscleName, StringComparison.OrdinalIgnoreCase))
+                .Select(group => (MuscleGroup?)group)
+                .FirstOrDefault();
+
+            query = mainMuscle is { } selected
+                ? query.Where(exercise => exercise.MainMuscle == selected)
                 : query.Where(_ => false);
         }
 
@@ -59,7 +69,11 @@ public class ExerciseCardsRepository(GymRatDbContext context) : IExerciseCardsRe
         {
             ExerciseSortField.MainMuscle => query.OrderByDirection(exercise => exercise.MainMuscle, direction),
             ExerciseSortField.Difficulty => query.OrderByDirection(exercise => exercise.Difficulty, direction),
-            _ => query.OrderByDirection(exercise => exercise.Name, direction),
+            _ => query.OrderByDirection(
+                exercise => exercise.Translations.Where(translation => translation.Culture == culture).Select(translation => translation.Name).FirstOrDefault()
+                    ?? exercise.Translations.Where(translation => translation.Culture == "en").Select(translation => translation.Name).FirstOrDefault()
+                    ?? exercise.Name,
+                direction),
         };
 
         return await sorted

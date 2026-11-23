@@ -159,7 +159,7 @@
             ALTER TABLE "Exercises" ADD CONSTRAINT "CK_Exercises_Difficulty"
                 CHECK ("Difficulty" IN ('Beginner', 'Intermediate', 'Advanced'));
             ALTER TABLE "Exercises" ADD CONSTRAINT "CK_Exercises_MovementPattern"
-                CHECK ("MovementPattern" IN ('Push', 'Pull', 'Squat', 'Hinge', 'Carry', 'Core', 'Isolation'));
+                CHECK ("MovementPattern" IN ('Push', 'Pull', 'Squat', 'Hinge', 'Core', 'Isolation'));
             ALTER TABLE "ExerciseSecondaryMuscles" ADD CONSTRAINT "CK_ExerciseSecondaryMuscles_Muscle"
                 CHECK ("Muscle" IN ('Back', 'Biceps', 'Brachialis', 'Calves', 'Chest', 'Core', 'Forearms', 'FrontDeltoids', 'Glutes', 'Hamstrings', 'HipAbductors', 'HipFlexors', 'InnerThighs', 'Lats', 'LongHeadOfBiceps', 'LongHeadOfTriceps', 'LowerAbs', 'LowerBack', 'LowerChest', 'LowerLats', 'MedialDeltoids', 'MiddleTrapezius', 'Obliques', 'Quadriceps', 'RearDeltoids', 'RectusAbdominis', 'Rhomboids', 'RotatorCuff', 'Shoulders', 'TeresMajor', 'Traps', 'Triceps', 'UpperChest', 'UpperTrapezius'));
         </sql>
@@ -190,7 +190,7 @@
             <sql>
                 UPDATE "Exercises" AS exercise
                 SET "SubMuscles" = (
-                        SELECT string_agg("Muscle", ', ' ORDER BY "Muscle")
+                        SELECT string_agg(regexp_replace("Muscle", '([a-z])([A-Z])', '\1 \2', 'g'), ', ' ORDER BY "Muscle")
                         FROM "ExerciseSecondaryMuscles" AS secondary
                         WHERE secondary."ExerciseId" = exercise."Id"),
                     "Description" = (

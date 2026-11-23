@@ -12,20 +12,20 @@ internal static class ExerciseMappings
     {
         var culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
 
-        var translation = exercise.Translations.FirstOrDefault(entry => entry.Culture == culture)
-            ?? exercise.Translations.FirstOrDefault(entry => entry.Culture == FallbackCulture);
+        var preferred = exercise.Translations.FirstOrDefault(entry => entry.Culture == culture);
+        var fallback = exercise.Translations.FirstOrDefault(entry => entry.Culture == FallbackCulture);
 
         return new ExerciseDto(
             exercise.Id,
-            translation?.Name ?? exercise.Name,
+            preferred?.Name ?? fallback?.Name ?? exercise.Name,
             exercise.MainMuscle,
             exercise.SecondaryMuscles.Select(secondary => secondary.Muscle).Order().ToList(),
             exercise.Equipment,
             exercise.Difficulty,
             exercise.MovementPattern,
-            translation?.Description,
-            translation?.Setup,
-            translation?.Execution,
+            preferred?.Description ?? fallback?.Description,
+            preferred?.Setup ?? fallback?.Setup,
+            preferred?.Execution ?? fallback?.Execution,
             exercise.YoutubeLink);
     }
 }

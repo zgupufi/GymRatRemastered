@@ -203,6 +203,8 @@ public sealed class ExercisesEndpointsTests : IDisposable
     [InlineData("?pattern=push&equipment=barbell", new[] { "Bench Press" })]
     [InlineData("?muscle=Triceps", new string[0])]
     [InlineData("?muscle=NotAMuscle", new string[0])]
+    [InlineData("?muscle=1", new string[0])]
+    [InlineData("?muscle=Chest,Legs", new string[0])]
     [InlineData("?search.term=front%20delt", new[] { "Bench Press" })]
     [InlineData("?search.term=chest", new[] { "Bench Press", "Cable Fly" })]
     public async Task GetExercises_FiltersByEquipmentPatternAndMuscleNames(string query, string[] expectedNames)
@@ -228,18 +230,87 @@ public sealed class ExercisesEndpointsTests : IDisposable
         Assert.Equal(expectedNames, page!.Items.Select(exercise => exercise.Name));
     }
 
-    [Fact]
-    public async Task GetExercises_ReturnsBadRequest_WhenTheEquipmentIsNotKnown()
+    [Theory]
+    [InlineData("?equipment=Spaceship")]
+    [InlineData("?pattern=Teleport")]
+    [InlineData("?equipment=99")]
+    public async Task GetExercises_ReturnsBadRequestWithTheFilterNamed_WhenTheEquipmentOrPatternIsNotKnown(string query)
     {
         // Arrange
         await _factory.SeedAsync(_ => { });
         var client = _factory.CreateAuthenticatedClient();
 
         // Act
-        var response = await client.GetAsync("/api/exercises?equipment=Spaceship");
+        var response = await client.GetAsync($"/api/exercises{query}");
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains(query.Split('=')[0].TrimStart('?'), body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task GetExercises_SearchesAndSortsByTheTranslatedNameOfTheRequestedCulture()
+    {
+        // Arrange
+        await _factory.SeedAsync(context => context.Exercises.AddRange(
+            new ExerciseCard
+            {
+                Name = "Squat",
+                MainMuscle = MuscleGroup.Legs,
+                Translations =
+                [
+                    new ExerciseTranslation { Culture = "en", Name = "Squat", Setup = "s", Execution = "e" },
+                    new ExerciseTranslation { Culture = "ro", Name = "Genuflexiuni", Setup = "s", Execution = "e" },
+                ],
+            },
+            new ExerciseCard
+            {
+                Name = "Bench Press",
+                MainMuscle = MuscleGroup.Chest,
+                Translations =
+                [
+                    new ExerciseTranslation { Culture = "en", Name = "Bench Press", Setup = "s", Execution = "e" },
+                    new ExerciseTranslation { Culture = "ro", Name = "Impins la piept", Setup = "s", Execution = "e" },
+                ],
+            }));
+        var client = _factory.CreateAuthenticatedClient();
+        client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("ro");
+
+        // Act
+        var sorted = await client.GetFromJsonAsync<PagedResult<ExerciseDto>>("/api/exercises");
+        var found = await client.GetFromJsonAsync<PagedResult<ExerciseDto>>("/api/exercises?search.term=genuflex");
+
+        // Assert
+        Assert.Equal(["Genuflexiuni", "Impins la piept"], sorted!.Items.Select(exercise => exercise.Name));
+        Assert.Equal(["Genuflexiuni"], found!.Items.Select(exercise => exercise.Name));
+    }
+
+    [Fact]
+    public async Task GetExercise_FallsBackToEnglishForTheFieldsMissingFromTheTranslation()
+    {
+        // Arrange
+        var squat = new ExerciseCard
+        {
+            Name = "Squat",
+            MainMuscle = MuscleGroup.Legs,
+            Translations =
+            [
+                new ExerciseTranslation { Culture = "en", Name = "Squat", Description = "Sit down and stand up.", Setup = "s", Execution = "e" },
+                new ExerciseTranslation { Culture = "ro", Name = "Genuflexiuni", Setup = "s-ro", Execution = "e-ro" },
+            ],
+        };
+        await _factory.SeedAsync(context => context.Exercises.Add(squat));
+        var client = _factory.CreateAuthenticatedClient();
+        client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("ro");
+
+        // Act
+        var exercise = await client.GetFromJsonAsync<ExerciseDto>($"/api/exercises/{squat.Id}");
+
+        // Assert
+        Assert.Equal("Genuflexiuni", exercise!.Name);
+        Assert.Equal("Sit down and stand up.", exercise.Description);
+        Assert.Equal("s-ro", exercise.Setup);
     }
 
     [Theory]

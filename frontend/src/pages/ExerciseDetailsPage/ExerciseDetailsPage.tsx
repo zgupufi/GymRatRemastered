@@ -69,6 +69,7 @@ function ExerciseDetails({ id }: { id: string }) {
   const embedUrl = youtubeEmbedUrl(exercise.youtubeLink)
   const secondary = musclesLabel(exercise.secondaryMuscles)
   const description = exercise.description?.trim()
+  const execution = [exercise.execution, description].filter(Boolean).join(' ')
 
   return (
     <main className="page exercise-details">
@@ -120,14 +121,18 @@ function ExerciseDetails({ id }: { id: string }) {
               How to perform
             </h2>
             <ol className="exercise-details__steps">
-              <li>
-                <h3>Setup</h3>
-                <p>{exercise.setup}</p>
-              </li>
-              <li>
-                <h3>Execution</h3>
-                <p>{[exercise.execution, description].filter(Boolean).join(' ')}</p>
-              </li>
+              {exercise.setup ? (
+                <li>
+                  <h3>Setup</h3>
+                  <p>{exercise.setup}</p>
+                </li>
+              ) : null}
+              {execution ? (
+                <li>
+                  <h3>Execution</h3>
+                  <p>{execution}</p>
+                </li>
+              ) : null}
             </ol>
           </section>
         </div>
