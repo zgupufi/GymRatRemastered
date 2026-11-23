@@ -32,6 +32,8 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
 
     public IChatClient? ChatClient { get; set; }
 
+    public OffsetTimeProvider Time { get; } = new();
+
     public Dictionary<string, string> Settings { get; } = [];
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -57,6 +59,8 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
             }
 
             services.AddSingleton<IStartupFilter, ClientIpStartupFilter>();
+            services.RemoveAll<TimeProvider>();
+            services.AddSingleton<TimeProvider>(Time);
 
             services.AddDbContext<GymRatDbContext>(options => options
                 .UseSqlite($"Data Source={_databasePath};Pooling=False")

@@ -7,6 +7,7 @@ import { login, register, WeightUnit } from '../../api/auth'
 import { ApiError, setAccessToken } from '../../api/client'
 import { getUserProfile } from '../../api/users'
 import { AuthProvider } from '../../auth/AuthProvider'
+import { givenRestorableSession } from '../../test/sessionFixture'
 import { LoginPage } from '../LoginPage/LoginPage'
 import { RegisterPage } from './RegisterPage'
 
@@ -201,7 +202,7 @@ describe('RegisterPage', () => {
   })
 
   it('redirects an already logged-in user to the home page', async () => {
-    localStorage.setItem('gymrat.session', JSON.stringify({ accessToken: 'stored', expiresAt: '2999-01-01T00:00:00Z' }))
+    givenRestorableSession()
 
     renderRegister()
 

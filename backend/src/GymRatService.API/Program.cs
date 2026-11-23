@@ -1,4 +1,5 @@
 using System.Text;
+using GymRatService.API.Cookies;
 using GymRatService.API.Extensions;
 using GymRatService.API.Filters;
 using GymRatService.API.Middleware;
@@ -17,7 +18,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy(FrontendCorsPolicy, policy => policy
         .WithOrigins(builder.Configuration.GetSection(CorsSettings.SectionName).Get<CorsSettings>()?.AllowedOrigins ?? [])
         .AllowAnyHeader()
-        .AllowAnyMethod());
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
 
 builder.Services.AddStartupSettings(builder.Configuration);
@@ -41,6 +43,9 @@ builder.Services
         };
     });
 builder.Services.AddAuthorization();
+
+builder.Services.AddSingleton<RefreshTokenCookie>();
+builder.Services.AddSingleton<AllowedOriginFilter>();
 
 builder.Services.AddAiCoach(builder.Configuration);
 

@@ -21,6 +21,12 @@
   <data name="BLException_AuthService_InvalidCredentials" xml:space="preserve">
     <value>The email or password is incorrect.</value>
   </data>
+  <data name="BLException_AuthService_InvalidRefreshToken" xml:space="preserve">
+    <value>The session has expired. Please log in again.</value>
+  </data>
+  <data name="BLException_AuthService_OriginNotAllowed" xml:space="preserve">
+    <value>This request did not come from an allowed origin.</value>
+  </data>
   <data name="BLException_AuthService_TooManyAttempts" xml:space="preserve">
     <value>Too many attempts. Please wait a little and try again.</value>
   </data>

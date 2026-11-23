@@ -8,6 +8,10 @@ public static class ErrorCodes
 
     public const string InvalidCredentials = "BLException_AuthService_InvalidCredentials";
 
+    public const string InvalidRefreshToken = "BLException_AuthService_InvalidRefreshToken";
+
+    public const string OriginNotAllowed = "BLException_AuthService_OriginNotAllowed";
+
     public const string TooManyAttempts = "BLException_AuthService_TooManyAttempts";
 
     public const string UnauthorizedAccess = "BLException_AuthService_UnauthorizedAccess";

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MotionGlobalConfig } from 'motion/react'
 import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom'
@@ -10,7 +10,7 @@ import { getSplit } from '../../api/split'
 import { getUserProfile, updateUserSettings, type UserProfile } from '../../api/users'
 import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } from '../../api/workouts'
 import { AuthProvider } from '../../auth/AuthProvider'
-import { saveSession } from '../../auth/sessionStorage'
+import { givenRestorableSession } from '../../test/sessionFixture'
 import { AppNav } from '../../components/layout/AppNav'
 import { ToastProvider } from '../../components/ui/Toast'
 import { HomePage } from '../HomePage'
@@ -67,7 +67,7 @@ const PROFILE: UserProfile = {
 }
 
 function renderHome() {
-  saveSession({ accessToken: 'token', expiresAt: '2999-01-01T00:00:00Z' })
+  givenRestorableSession()
   return render(
     <MemoryRouter initialEntries={['/']}>
       <AuthProvider>
@@ -116,6 +116,7 @@ describe('DashboardPage', () => {
   })
 
   afterEach(() => {
+    cleanup()
     localStorage.clear()
     setAccessToken(null)
     vi.resetAllMocks()
@@ -337,6 +338,7 @@ describe('HomePage', () => {
   })
 
   afterEach(() => {
+    cleanup()
     localStorage.clear()
     setAccessToken(null)
     vi.resetAllMocks()
@@ -356,7 +358,7 @@ describe('HomePage', () => {
 
   it('shows a spinner while the session is being restored', () => {
     vi.mocked(getUserProfile).mockReturnValue(new Promise(() => undefined))
-    saveSession({ accessToken: 'token', expiresAt: '2999-01-01T00:00:00Z' })
+    givenRestorableSession()
     render(
       <MemoryRouter>
         <AuthProvider>

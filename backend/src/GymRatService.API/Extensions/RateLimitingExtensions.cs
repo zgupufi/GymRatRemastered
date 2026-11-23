@@ -14,6 +14,8 @@ public static class RateLimitingExtensions
 
     public const string RegisterPolicy = "AuthRegister";
 
+    public const string RefreshPolicy = "AuthRefresh";
+
     private const string UnknownClient = "unknown";
 
     private const string InvalidSettingsMessage = "Every AuthRateLimit value must be greater than zero.";
@@ -46,6 +48,11 @@ public static class RateLimitingExtensions
                 context,
                 settings => settings.RegisterPermitLimit,
                 settings => settings.RegisterWindowSeconds));
+
+            options.AddPolicy(RefreshPolicy, context => CreateClientPartition(
+                context,
+                settings => settings.RefreshPermitLimit,
+                settings => settings.RefreshWindowSeconds));
         });
 
         return services;
@@ -75,6 +82,8 @@ public static class RateLimitingExtensions
             settings.LoginWindowSeconds,
             settings.RegisterPermitLimit,
             settings.RegisterWindowSeconds,
+            settings.RefreshPermitLimit,
+            settings.RefreshWindowSeconds,
             settings.FailedLoginLimit,
             settings.FailedLoginWindowSeconds,
         ];

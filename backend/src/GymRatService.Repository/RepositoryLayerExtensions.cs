@@ -14,6 +14,7 @@ public static class RepositoryLayerExtensions
         services.AddScoped<IExerciseCardsRepository, ExerciseCardsRepository>();
         services.AddScoped<ISessionsRepository, SessionsRepository>();
         services.AddScoped<IUsersRepository, UsersRepository>();
+        services.AddScoped<IRefreshTokensRepository, RefreshTokensRepository>();
         services.AddScoped<IWorkoutsRepository, WorkoutsRepository>();
         services.AddScoped<ISplitRepository, SplitRepository>();
         services.AddScoped<ICoachSuggestionsRepository, CoachSuggestionsRepository>();

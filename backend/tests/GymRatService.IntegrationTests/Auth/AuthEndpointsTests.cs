@@ -149,7 +149,7 @@ public sealed class AuthEndpointsTests : IDisposable
         var login = await response.Content.ReadFromJsonAsync<LoginResponse>();
         Assert.NotNull(login);
         Assert.False(string.IsNullOrEmpty(login.AccessToken));
-        Assert.InRange(login.ExpiresAt, DateTimeOffset.UtcNow.AddMinutes(355), DateTimeOffset.UtcNow.AddMinutes(361));
+        Assert.InRange(login.ExpiresAt, DateTimeOffset.UtcNow.AddMinutes(14), DateTimeOffset.UtcNow.AddMinutes(16));
 
         var profile = await _factory.CreateBearerClient(login.AccessToken).GetFromJsonAsync<UserProfileDto>("/api/users/me");
         Assert.Equal(new UserProfileDto("Ana", "Pop", "ana@example.com", WeightUnit.Pounds, 90), profile);
