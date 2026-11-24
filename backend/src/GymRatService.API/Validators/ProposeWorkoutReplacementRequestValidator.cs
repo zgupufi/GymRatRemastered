@@ -18,8 +18,9 @@ public class ProposeWorkoutReplacementRequestValidator : AbstractValidator<Propo
         RuleFor(request => request.Exercises)
             .NotNull();
 
-        RuleFor(request => request.Exercises)
-            .Must(exercises => exercises is not { Count: > MaximumExercises });
+        RuleFor(request => request.Exercises.Count)
+            .LessThanOrEqualTo(MaximumExercises)
+            .When(request => request.Exercises is not null);
 
         RuleFor(request => request.Exercises)
             .Must(exercises => exercises.Select(exercise => exercise.ExerciseId).Distinct().Count() == exercises.Count)

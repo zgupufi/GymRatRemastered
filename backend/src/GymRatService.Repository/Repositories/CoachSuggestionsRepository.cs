@@ -111,6 +111,30 @@ public class CoachSuggestionsRepository(GymRatDbContext context) : ICoachSuggest
         return SuggestionApplyOutcome.Applied;
     }
 
+    public async Task<SuggestionApplyOutcome> ClaimAndRunAsync(CoachSuggestion suggestion, Func<Task> action, DateTimeOffset resolvedAt, CancellationToken cancellationToken)
+    {
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+        var claimed = await context.CoachSuggestions
+            .Where(entry => entry.Id == suggestion.Id && entry.Status == SuggestionStatus.Pending)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(entry => entry.Status, SuggestionStatus.Applied)
+                    .SetProperty(entry => entry.ResolvedAt, resolvedAt),
+                cancellationToken);
+
+        if (claimed == 0)
+        {
+            return SuggestionApplyOutcome.NotPending;
+        }
+
+        await action();
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return SuggestionApplyOutcome.Applied;
+    }
+
     private static IQueryable<CoachSuggestion> WithDetails(IQueryable<CoachSuggestion> query) =>
         query
             .Include(suggestion => suggestion.Workout)

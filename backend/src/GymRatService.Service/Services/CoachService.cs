@@ -237,16 +237,30 @@ public class CoachService(
             .Select(entry => new WorkoutExerciseRequest(entry.ExerciseId, entry.TargetSets, entry.RepsMin, entry.RepsMax, entry.WeightStepKg))
             .ToList();
 
-        await workoutsService.ReplaceWorkoutExercisesAsync(userId, suggestion.WorkoutId, new ReplaceWorkoutExercisesRequest(exercises), cancellationToken);
-
-        await suggestionsRepository.SetStatusAsync([suggestion.Id], SuggestionStatus.Applied, TimeProvider.System.GetUtcNow(), cancellationToken);
+        await ClaimAndRunAsync(
+            suggestion,
+            () => workoutsService.ReplaceWorkoutExercisesAsync(userId, suggestion.WorkoutId, new ReplaceWorkoutExercisesRequest(exercises), cancellationToken),
+            cancellationToken);
     }
 
     private async Task ApplyDeletionAsync(Guid userId, CoachSuggestion suggestion, CancellationToken cancellationToken)
     {
         await EnsureWorkoutUnchangedAsync(suggestion, cancellationToken);
 
-        await workoutsService.DeleteWorkoutAsync(userId, suggestion.WorkoutId, cancellationToken);
+        await ClaimAndRunAsync(
+            suggestion,
+            () => workoutsService.DeleteWorkoutAsync(userId, suggestion.WorkoutId, cancellationToken),
+            cancellationToken);
+    }
+
+    private async Task ClaimAndRunAsync(CoachSuggestion suggestion, Func<Task> action, CancellationToken cancellationToken)
+    {
+        var outcome = await suggestionsRepository.ClaimAndRunAsync(suggestion, action, TimeProvider.System.GetUtcNow(), cancellationToken);
+
+        if (outcome == SuggestionApplyOutcome.NotPending)
+        {
+            throw new BusinessLogicException(ErrorCodes.CoachSuggestionNotPending, suggestion.Id);
+        }
     }
 
     private async Task EnsureWorkoutUnchangedAsync(CoachSuggestion suggestion, CancellationToken cancellationToken)

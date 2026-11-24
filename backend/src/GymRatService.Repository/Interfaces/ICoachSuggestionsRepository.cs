@@ -19,4 +19,6 @@ public interface ICoachSuggestionsRepository
     Task DismissPendingAsync(Guid userId, Guid workoutId, SuggestionKind kind, Guid? exerciseId, DateTimeOffset resolvedAt, CancellationToken cancellationToken);
 
     Task<SuggestionApplyOutcome> ApplyAsync(CoachSuggestion suggestion, WorkoutExercise settings, DateTimeOffset resolvedAt, CancellationToken cancellationToken);
+
+    Task<SuggestionApplyOutcome> ClaimAndRunAsync(CoachSuggestion suggestion, Func<Task> action, DateTimeOffset resolvedAt, CancellationToken cancellationToken);
 }

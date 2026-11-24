@@ -46,7 +46,7 @@ public sealed class ChatOpenRouterEndpointsTests : IDisposable
         Assert.Equal("How do I get stronger?", messages[^1].GetProperty("content").GetString());
         var tools = request.Body.GetProperty("tools").EnumerateArray().Select(tool => tool.GetProperty("function").GetProperty("name").GetString());
         Assert.Equal(
-            ["create_workout", "delete_workout", "get_exercise_history", "get_targets", "get_workout", "list_workouts", "propose_exercise_change", "read_split", "search_exercises", "update_workout"],
+            ["create_workout", "get_exercise_history", "get_targets", "get_workout", "list_workouts", "propose_exercise_change", "propose_workout_deletion", "propose_workout_replacement", "read_split", "rename_workout", "search_exercises"],
             tools.Order());
     }
 

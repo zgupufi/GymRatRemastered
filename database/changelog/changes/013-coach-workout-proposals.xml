@@ -18,6 +18,20 @@
         <dropNotNullConstraint tableName="CoachSuggestions" columnName="BeforeRepsMin" columnDataType="integer" />
         <dropNotNullConstraint tableName="CoachSuggestions" columnName="BeforeRepsMax" columnDataType="integer" />
         <dropNotNullConstraint tableName="CoachSuggestions" columnName="BeforeWeightStepKg" columnDataType="numeric(5,2)" />
+
+        <rollback>
+            <delete tableName="CoachSuggestions">
+                <where>"Kind" &lt;&gt; 0</where>
+            </delete>
+            <addNotNullConstraint tableName="CoachSuggestions" columnName="ExerciseId" columnDataType="uuid" />
+            <addNotNullConstraint tableName="CoachSuggestions" columnName="BeforeTargetSets" columnDataType="integer" />
+            <addNotNullConstraint tableName="CoachSuggestions" columnName="BeforeRepsMin" columnDataType="integer" />
+            <addNotNullConstraint tableName="CoachSuggestions" columnName="BeforeRepsMax" columnDataType="integer" />
+            <addNotNullConstraint tableName="CoachSuggestions" columnName="BeforeWeightStepKg" columnDataType="numeric(5,2)" />
+            <dropColumn tableName="CoachSuggestions" columnName="AfterExercises" />
+            <dropColumn tableName="CoachSuggestions" columnName="BeforeExercises" />
+            <dropColumn tableName="CoachSuggestions" columnName="Kind" />
+        </rollback>
     </changeSet>
 
 </databaseChangeLog>

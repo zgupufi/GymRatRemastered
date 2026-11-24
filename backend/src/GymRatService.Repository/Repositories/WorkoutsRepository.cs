@@ -67,7 +67,7 @@ public class WorkoutsRepository(GymRatDbContext context) : IWorkoutsRepository
 
     public async Task ReplaceExercisesAsync(Guid id, IReadOnlyList<WorkoutExercise> exercises, CancellationToken cancellationToken)
     {
-        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = context.Database.CurrentTransaction is null ? await context.Database.BeginTransactionAsync(cancellationToken) : null;
 
         await context.WorkoutExercises
             .Where(entry => entry.WorkoutId == id)
@@ -77,7 +77,10 @@ public class WorkoutsRepository(GymRatDbContext context) : IWorkoutsRepository
 
         await context.SaveChangesAsync(cancellationToken);
 
-        await transaction.CommitAsync(cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)

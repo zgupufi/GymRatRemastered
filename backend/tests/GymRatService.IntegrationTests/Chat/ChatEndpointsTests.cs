@@ -372,68 +372,65 @@ public sealed class ChatEndpointsTests : IDisposable
     }
 
     [Fact]
-    public async Task SendMessage_GetsUpdatesAndDeletesWorkoutsThroughTools()
+    public async Task SendMessage_RenamesAWorkoutAndOnlyProposesDeletionThroughTools()
     {
         // Arrange
-        var (bench, squat) = await SeedExercisesAsync();
+        var (bench, _) = await SeedExercisesAsync();
         var client = await CreateClientAsync("ana@example.com");
         var workoutId = await CreateWorkoutAsync(client, "Push", (bench.Id, 3));
         var chat = UseChatClient((messages, _) => ToolCount(messages) switch
         {
             0 => ScriptedChatClient.CallTool("get_workout", new { workoutId }),
-            1 => ScriptedChatClient.CallTool("update_workout", new { workoutId, name = "Legs", exercises = new[] { new { exerciseId = squat.Id, targetSets = 5 } } }),
+            1 => ScriptedChatClient.CallTool("rename_workout", new { workoutId, name = "Legs" }),
             2 => ScriptedChatClient.CallTool("get_workout", new { workoutId }),
-            3 => ScriptedChatClient.CallTool("delete_workout", new { workoutId }),
+            3 => ScriptedChatClient.CallTool("propose_workout_deletion", new { workoutId, rationale = "Never used." }),
             _ => ScriptedChatClient.Reply("Done."),
         });
 
         // Act
-        var response = await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("Rework my workout then delete it", null));
+        var response = await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("Rename my workout then drop it", null));
 
         // Assert
         var body = await response.Content.ReadFromJsonAsync<ChatMessageResponse>();
         Assert.True(body?.WorkoutsChanged);
         var results = ScriptedChatClient.ToolResultElements(chat.Calls[^1]);
         Assert.Equal("Push", results[0].GetProperty("name").GetString());
-        Assert.True(results[1].GetProperty("updated").GetBoolean());
+        Assert.True(results[1].GetProperty("renamed").GetBoolean());
         Assert.Equal("Legs", results[2].GetProperty("name").GetString());
-        Assert.Equal(5, results[2].GetProperty("exercises")[0].GetProperty("targetSets").GetInt32());
-        Assert.True(results[3].GetProperty("deleted").GetBoolean());
-        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync($"/api/workouts/{workoutId}")).StatusCode);
+        Assert.True(results[3].GetProperty("proposed").GetBoolean());
+        Assert.Equal(SuggestionKind.DeleteWorkout, Assert.Single(body!.Suggestions).Kind);
+        Assert.Equal("Legs", (await client.GetFromJsonAsync<WorkoutDto>($"/api/workouts/{workoutId}"))!.Name);
     }
 
     [Fact]
-    public async Task SendMessage_UpdatesOnlyTheNameOrOnlyTheExercisesWhenOnlyOneIsGiven()
-    {
-        // Arrange
-        var (bench, squat) = await SeedExercisesAsync();
-        var client = await CreateClientAsync("ana@example.com");
-        var workoutId = await CreateWorkoutAsync(client, "Push", (bench.Id, 3));
-        UseChatClient((messages, _) => ToolCount(messages) switch
-        {
-            0 => ScriptedChatClient.CallTool("update_workout", new { workoutId, exercises = new[] { new { exerciseId = squat.Id, targetSets = 2 } } }),
-            1 => ScriptedChatClient.CallTool("update_workout", new { workoutId, name = "Renamed" }),
-            _ => ScriptedChatClient.Reply("Done."),
-        });
-
-        // Act
-        await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("Tweak it", null));
-
-        // Assert
-        var workout = await client.GetFromJsonAsync<WorkoutDto>($"/api/workouts/{workoutId}");
-        Assert.Equal("Renamed", workout!.Name);
-        Assert.Equal([squat.Id], workout.Exercises.Select(entry => entry.Exercise.Id));
-    }
-
-    [Fact]
-    public async Task SendMessage_ReportsNoChange_WhenTheUpdateToolHasNothingToChange()
+    public async Task SendMessage_RenameLeavesTheExercisesUntouched()
     {
         // Arrange
         var (bench, _) = await SeedExercisesAsync();
         var client = await CreateClientAsync("ana@example.com");
         var workoutId = await CreateWorkoutAsync(client, "Push", (bench.Id, 3));
         UseChatClient((messages, _) => ToolCount(messages) == 0
-            ? ScriptedChatClient.CallTool("update_workout", new { workoutId })
+            ? ScriptedChatClient.CallTool("rename_workout", new { workoutId, name = "Renamed" })
+            : ScriptedChatClient.Reply("Done."));
+
+        // Act
+        await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("Rename it", null));
+
+        // Assert
+        var workout = await client.GetFromJsonAsync<WorkoutDto>($"/api/workouts/{workoutId}");
+        Assert.Equal("Renamed", workout!.Name);
+        Assert.Equal([bench.Id], workout.Exercises.Select(entry => entry.Exercise.Id));
+    }
+
+    [Fact]
+    public async Task SendMessage_ReportsNoChange_WhenTheRenameIsRejected()
+    {
+        // Arrange
+        var (bench, _) = await SeedExercisesAsync();
+        var client = await CreateClientAsync("ana@example.com");
+        var workoutId = await CreateWorkoutAsync(client, "Push", (bench.Id, 3));
+        UseChatClient((messages, _) => ToolCount(messages) == 0
+            ? ScriptedChatClient.CallTool("rename_workout", new { workoutId, name = "" })
             : ScriptedChatClient.Reply("Nothing to do."));
 
         // Act
@@ -510,7 +507,7 @@ public sealed class ChatEndpointsTests : IDisposable
         var workoutId = await CreateWorkoutAsync(ana, "Push");
         var chat = UseChatClient((messages, _) => ToolCount(messages) switch
         {
-            0 => ScriptedChatClient.CallTool("delete_workout", new { workoutId }),
+            0 => ScriptedChatClient.CallTool("propose_workout_deletion", new { workoutId, rationale = "Unused." }),
             1 => ScriptedChatClient.CallTool("list_workouts"),
             _ => ScriptedChatClient.Reply("Done."),
         });
