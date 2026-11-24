@@ -14,6 +14,7 @@ export default defineConfig({
   use: {
     baseURL,
     trace: 'off',
+    timezoneId: 'UTC',
     screenshot: 'only-on-failure',
   },
   projects: [

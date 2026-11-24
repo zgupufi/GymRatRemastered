@@ -103,3 +103,5 @@ E2E_BASE_URL=http://localhost:3000 npm test
 ```
 
 CI runs it in the `e2e` job. The test does not leave the workout screen through an exercise link, because that still ends the session (BUG-02).
+
+CI sets `ASPNETCORE_ENVIRONMENT=Development` for the `e2e` job on purpose. The refresh cookie is `Secure` outside Development and the job serves the stack over plain `http://localhost:3000`, so with `Production` the session would not survive the reload the test performs.

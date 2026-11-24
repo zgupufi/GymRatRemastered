@@ -32,7 +32,16 @@ async function logSet(page: Page, weight: string, reps: string) {
 }
 
 test('register, plan, train, resume and review progress', async ({ page }, testInfo) => {
-  page.on('dialog', (dialog) => void dialog.accept())
+  const unexpectedDialogs: string[] = []
+  page.on('dialog', (dialog) => {
+    if (dialog.type() === 'beforeunload') {
+      void dialog.accept()
+      return
+    }
+    unexpectedDialogs.push(`${dialog.type()}: ${dialog.message()}`)
+    void dialog.dismiss()
+  })
+  const dayName = new Date().toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })
 
   await page.goto('/register')
   await page.getByLabel('First name').fill('Smoke')
@@ -52,7 +61,6 @@ test('register, plan, train, resume and review progress', async ({ page }, testI
   await expect(page.getByRole('status').filter({ hasText: 'Saved' })).toBeVisible()
 
   await goTo(page, 'Split')
-  const dayName = await page.evaluate(() => new Date().toLocaleDateString('en-US', { weekday: 'long' }))
   await page.getByRole('button', { name: `${dayName} workout` }).click()
   await page.getByRole('option').filter({ hasText: 'New workout' }).click()
   await page.getByRole('button', { name: 'Save split' }).click()
@@ -85,4 +93,6 @@ test('register, plan, train, resume and review progress', async ({ page }, testI
   await page.getByRole('link', { name: 'View progression' }).click()
   await page.getByRole('button', { name: FIRST_EXERCISE, exact: true }).click()
   await expect(page.getByText(`${DECIMAL_WEIGHT} kg × 10`)).toBeVisible()
+
+  expect(unexpectedDialogs).toEqual([])
 })
