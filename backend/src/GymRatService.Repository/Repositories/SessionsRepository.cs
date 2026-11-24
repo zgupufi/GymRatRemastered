@@ -100,6 +100,12 @@ public class SessionsRepository(GymRatDbContext context) : ISessionsRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<int> CountFinishedByWorkoutAsync(Guid userId, Guid workoutId, CancellationToken cancellationToken)
+    {
+        return await context.WorkoutSessions
+            .CountAsync(session => session.UserId == userId && session.WorkoutId == workoutId && session.DurationSeconds != null, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<SessionSet>> GetBestSetPerSessionAsync(Guid userId, Guid exerciseId, DateTimeOffset? since, CancellationToken cancellationToken)
     {
         var sets = context.SessionSets

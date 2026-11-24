@@ -51,11 +51,12 @@ public class CoachSuggestionsRepository(GymRatDbContext context) : ICoachSuggest
                 cancellationToken);
     }
 
-    public async Task DismissPendingAsync(Guid userId, Guid workoutId, Guid exerciseId, DateTimeOffset resolvedAt, CancellationToken cancellationToken)
+    public async Task DismissPendingAsync(Guid userId, Guid workoutId, SuggestionKind kind, Guid? exerciseId, DateTimeOffset resolvedAt, CancellationToken cancellationToken)
     {
         await context.CoachSuggestions
             .Where(suggestion => suggestion.UserId == userId
                 && suggestion.WorkoutId == workoutId
+                && suggestion.Kind == kind
                 && suggestion.ExerciseId == exerciseId
                 && suggestion.Status == SuggestionStatus.Pending)
             .ExecuteUpdateAsync(
@@ -104,6 +105,30 @@ public class CoachSuggestionsRepository(GymRatDbContext context) : ICoachSuggest
         {
             return SuggestionApplyOutcome.Stale;
         }
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return SuggestionApplyOutcome.Applied;
+    }
+
+    public async Task<SuggestionApplyOutcome> ClaimAndRunAsync(CoachSuggestion suggestion, Func<Task> action, DateTimeOffset resolvedAt, CancellationToken cancellationToken)
+    {
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+        var claimed = await context.CoachSuggestions
+            .Where(entry => entry.Id == suggestion.Id && entry.Status == SuggestionStatus.Pending)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(entry => entry.Status, SuggestionStatus.Applied)
+                    .SetProperty(entry => entry.ResolvedAt, resolvedAt),
+                cancellationToken);
+
+        if (claimed == 0)
+        {
+            return SuggestionApplyOutcome.NotPending;
+        }
+
+        await action();
 
         await transaction.CommitAsync(cancellationToken);
 

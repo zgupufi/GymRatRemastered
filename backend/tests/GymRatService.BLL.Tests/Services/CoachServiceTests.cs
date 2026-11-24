@@ -5,6 +5,7 @@ using GymRatService.Common.Filtering;
 using GymRatService.Repository.Entities;
 using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
+using GymRatService.Service.Interfaces;
 using GymRatService.Service.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
@@ -21,7 +22,18 @@ public class CoachServiceTests
 
     public CoachServiceTests()
     {
-        _service = new CoachService(_suggestions, _workouts, NullLogger<CoachService>.Instance);
+        var exerciseCards = Substitute.For<IExerciseCardsRepository>();
+        exerciseCards.GetByIdsAsync(Arg.Any<IReadOnlyCollection<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns([new ExerciseCard { Id = _exerciseId, Name = "Bench Press", MainMuscle = MuscleGroup.Chest }]);
+
+        _service = new CoachService(
+            _suggestions,
+            _workouts,
+            Substitute.For<IWorkoutsService>(),
+            exerciseCards,
+            Substitute.For<ISplitRepository>(),
+            Substitute.For<ISessionsRepository>(),
+            NullLogger<CoachService>.Instance);
     }
 
     [Fact]
@@ -43,7 +55,7 @@ public class CoachServiceTests
         Assert.Equal(SuggestionStatus.Pending, stored.Status);
         Assert.Equal("Stalled three times.", result.Rationale);
         Assert.Equal(("Push", "Bench Press"), (result.WorkoutName, result.ExerciseName));
-        await _suggestions.Received(1).DismissPendingAsync(_userId, workout.Id, _exerciseId, Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
+        await _suggestions.Received(1).DismissPendingAsync(_userId, workout.Id, SuggestionKind.ExerciseChange, _exerciseId, Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

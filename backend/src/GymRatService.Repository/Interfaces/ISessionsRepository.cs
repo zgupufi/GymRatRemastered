@@ -20,6 +20,8 @@ public interface ISessionsRepository
 
     Task<WorkoutSession?> GetLastFinishedAsync(Guid userId, Guid workoutId, CancellationToken cancellationToken);
 
+    Task<int> CountFinishedByWorkoutAsync(Guid userId, Guid workoutId, CancellationToken cancellationToken);
+
     Task<IReadOnlyList<SessionSet>> GetBestSetPerSessionAsync(Guid userId, Guid exerciseId, DateTimeOffset? since, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<SessionSet>> GetRecentExerciseSetsAsync(Guid userId, Guid exerciseId, int sessionCount, CancellationToken cancellationToken);

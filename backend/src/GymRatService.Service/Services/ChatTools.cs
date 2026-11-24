@@ -36,8 +36,7 @@ public sealed class ChatTools(
         AIFunctionFactory.Create(ListWorkoutsAsync, "list_workouts", "Lists the workouts of the user with their main muscles."),
         AIFunctionFactory.Create(GetWorkoutAsync, "get_workout", "Gets one workout of the user with its exercises."),
         AIFunctionFactory.Create(CreateWorkoutAsync, "create_workout", "Creates a workout for the user, optionally with exercises."),
-        AIFunctionFactory.Create(UpdateWorkoutAsync, "update_workout", "Renames a workout and/or replaces all of its exercises."),
-        AIFunctionFactory.Create(DeleteWorkoutAsync, "delete_workout", "Deletes a workout of the user."),
+        AIFunctionFactory.Create(RenameWorkoutAsync, "rename_workout", "Renames a workout of the user."),
         AIFunctionFactory.Create(ReadSplitAsync, "read_split", "Reads the weekly training split of the user, days 1 to 7."),
         AIFunctionFactory.Create(SearchExercisesAsync, "search_exercises", "Searches the exercise catalog by name and/or muscle."),
         AIFunctionFactory.Create(GetExerciseHistoryAsync, "get_exercise_history", "Gets the last sessions of one exercise with reps, weight in kg and reps in reserve (0 = max effort)."),
@@ -46,6 +45,14 @@ public sealed class ChatTools(
             ProposeExerciseChangeAsync,
             "propose_exercise_change",
             "Proposes new target sets (at most 1 more or fewer), rep range (1 to 30) and/or weight step in kg (1, 1.25, 2, 2.5 or 5) for one exercise in a workout of the user, with a short rationale. The user confirms it before anything changes."),
+        AIFunctionFactory.Create(
+            ProposeWorkoutReplacementAsync,
+            "propose_workout_replacement",
+            "Proposes replacing the whole exercise list of an existing workout of the user with the given exercises, in order, each with target sets, and a short rationale. The workout keeps its name and nothing changes until the user confirms it."),
+        AIFunctionFactory.Create(
+            ProposeWorkoutDeletionAsync,
+            "propose_workout_deletion",
+            "Proposes deleting a workout of the user with a short rationale. The workout is only deleted when the user confirms it."),
     ];
 
     private Task<object> GetExerciseHistoryAsync(Guid exerciseId) => RunAsync(async () =>
@@ -63,22 +70,58 @@ public sealed class ChatTools(
         int? repsMax = null,
         decimal? weightStepKg = null) => RunAsync(async () =>
     {
+        ReserveProposal();
+
+        var request = new ProposeExerciseChangeRequest(workoutId, exerciseId, targetSets, repsMin, repsMax, weightStepKg, rationale);
+        await inputValidator.ValidateAsync(request, cancellationToken);
+
+        var suggestion = await coachService.ProposeExerciseChangeAsync(userId, request, cancellationToken);
+        AddSuggestion(suggestion, existing => existing.Kind == suggestion.Kind && existing.WorkoutId == suggestion.WorkoutId && existing.ExerciseId == suggestion.ExerciseId);
+
+        return new { proposed = true, suggestion.Id };
+    });
+
+    private Task<object> ProposeWorkoutReplacementAsync(Guid workoutId, IReadOnlyList<WorkoutExerciseRequest> exercises, string rationale) => RunAsync(async () =>
+    {
+        ReserveProposal();
+
+        var request = new ProposeWorkoutReplacementRequest(workoutId, exercises, rationale);
+        await inputValidator.ValidateAsync(request, cancellationToken);
+
+        var suggestion = await coachService.ProposeWorkoutReplacementAsync(userId, request, cancellationToken);
+        AddSuggestion(suggestion, existing => existing.Kind == suggestion.Kind && existing.WorkoutId == suggestion.WorkoutId);
+
+        return new { proposed = true, suggestion.Id };
+    });
+
+    private Task<object> ProposeWorkoutDeletionAsync(Guid workoutId, string rationale) => RunAsync(async () =>
+    {
+        ReserveProposal();
+
+        var request = new ProposeWorkoutDeletionRequest(workoutId, rationale);
+        await inputValidator.ValidateAsync(request, cancellationToken);
+
+        var suggestion = await coachService.ProposeWorkoutDeletionAsync(userId, request, cancellationToken);
+        AddSuggestion(suggestion, existing => existing.Kind == suggestion.Kind && existing.WorkoutId == suggestion.WorkoutId);
+
+        return new { proposed = true, suggestion.Id };
+    });
+
+    private void ReserveProposal()
+    {
         if (_proposalCount >= MaximumProposalsPerTurn)
         {
             throw new BusinessLogicException(ErrorCodes.CoachTooManyProposals);
         }
 
         _proposalCount++;
+    }
 
-        var request = new ProposeExerciseChangeRequest(workoutId, exerciseId, targetSets, repsMin, repsMax, weightStepKg, rationale);
-        await inputValidator.ValidateAsync(request, cancellationToken);
-
-        var suggestion = await coachService.ProposeExerciseChangeAsync(userId, request, cancellationToken);
-        _suggestions.RemoveAll(existing => existing.WorkoutId == suggestion.WorkoutId && existing.ExerciseId == suggestion.ExerciseId);
+    private void AddSuggestion(CoachSuggestionDto suggestion, Predicate<CoachSuggestionDto> replaces)
+    {
+        _suggestions.RemoveAll(replaces);
         _suggestions.Add(suggestion);
-
-        return new { proposed = true, suggestion.Id };
-    });
+    }
 
     private Task<object> ListWorkoutsAsync() => RunAsync(async () =>
     {
@@ -110,33 +153,14 @@ public sealed class ChatTools(
         return created;
     });
 
-    private Task<object> UpdateWorkoutAsync(Guid workoutId, string? name = null, IReadOnlyList<WorkoutExerciseRequest>? exercises = null) => RunAsync(async () =>
+    private Task<object> RenameWorkoutAsync(Guid workoutId, string name) => RunAsync(async () =>
     {
-        if (name is not null)
-        {
-            var renameRequest = new RenameWorkoutRequest(name);
-            await inputValidator.ValidateAsync(renameRequest, cancellationToken);
-            await workoutsService.RenameWorkoutAsync(userId, workoutId, renameRequest, cancellationToken);
-            WorkoutsChanged = true;
-        }
-
-        if (exercises is not null)
-        {
-            var replaceRequest = new ReplaceWorkoutExercisesRequest(exercises);
-            await inputValidator.ValidateAsync(replaceRequest, cancellationToken);
-            await workoutsService.ReplaceWorkoutExercisesAsync(userId, workoutId, replaceRequest, cancellationToken);
-            WorkoutsChanged = true;
-        }
-
-        return new { updated = true };
-    });
-
-    private Task<object> DeleteWorkoutAsync(Guid workoutId) => RunAsync(async () =>
-    {
-        await workoutsService.DeleteWorkoutAsync(userId, workoutId, cancellationToken);
+        var renameRequest = new RenameWorkoutRequest(name);
+        await inputValidator.ValidateAsync(renameRequest, cancellationToken);
+        await workoutsService.RenameWorkoutAsync(userId, workoutId, renameRequest, cancellationToken);
         WorkoutsChanged = true;
 
-        return new { deleted = true };
+        return new { renamed = true };
     });
 
     private Task<object> ReadSplitAsync() => RunAsync(async () =>

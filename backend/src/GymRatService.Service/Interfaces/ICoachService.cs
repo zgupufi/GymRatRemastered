@@ -9,6 +9,10 @@ public interface ICoachService
 
     Task<CoachSuggestionDto> ProposeExerciseChangeAsync(Guid userId, ProposeExerciseChangeRequest request, CancellationToken cancellationToken);
 
+    Task<CoachSuggestionDto> ProposeWorkoutReplacementAsync(Guid userId, ProposeWorkoutReplacementRequest request, CancellationToken cancellationToken);
+
+    Task<CoachSuggestionDto> ProposeWorkoutDeletionAsync(Guid userId, ProposeWorkoutDeletionRequest request, CancellationToken cancellationToken);
+
     Task ApplySuggestionAsync(Guid userId, Guid id, CancellationToken cancellationToken);
 
     Task DismissSuggestionAsync(Guid userId, Guid id, CancellationToken cancellationToken);
