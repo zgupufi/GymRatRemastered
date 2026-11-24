@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Check, ChevronLeft } from 'lucide-react'
+import { ArrowRight, Check, ChevronLeft, Volume2, VolumeX } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { WeightUnit } from '../../api/auth'
 import { finishSession, saveExerciseSets, type ActiveSession, type ExerciseTarget, type LastSession } from '../../api/sessions'
@@ -216,9 +216,20 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
         <button type="button" className="execution__back" aria-label="Leave workout" onClick={() => setConfirmingEnd(true)}>
           <ChevronLeft size={20} aria-hidden="true" />
         </button>
-        <span className="execution__clock" aria-label="Elapsed time">
-          {formatClock(elapsed)}
-        </span>
+        <div className="execution__top-actions">
+          <button
+            type="button"
+            className="execution__sound"
+            aria-label="Rest sound"
+            aria-pressed={rest.soundEnabled}
+            onClick={rest.toggleSound}
+          >
+            {rest.soundEnabled ? <Volume2 size={18} aria-hidden="true" /> : <VolumeX size={18} aria-hidden="true" />}
+          </button>
+          <span className="execution__clock" aria-label="Elapsed time">
+            {formatClock(elapsed)}
+          </span>
+        </div>
       </header>
       <p className="execution__eyebrow">
         Exercise {index + 1} of {total}
@@ -243,7 +254,13 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
         onAdd={() => updateDrafts(addDraft)}
         onRemove={() => updateDrafts(removeLastDraft)}
       />
-      <RestTimerPill remaining={rest.remaining} onExtend={rest.extend} onReduce={rest.reduce} onSkip={rest.skip} />
+      <RestTimerPill
+        remaining={rest.remaining}
+        finished={rest.finished}
+        onExtend={rest.extend}
+        onReduce={rest.reduce}
+        onSkip={rest.skip}
+      />
       <div className="execution__controls">
         <Button variant="danger" disabled={busy} onClick={() => setConfirmingEnd(true)}>
           End

@@ -1,0 +1,64 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+:root{--bg:#05070d;--surface:#111725;--text:#f5f7fb;--text-2:#b4bccc;--text-3:#7d879b;--text-4:#535c70;--blue:#3d8bff;--emerald:#22c58b;--red:#ff6b6d;--hair:rgba(255,255,255,.08)}
+*{box-sizing:border-box;margin:0}
+body{background:#000;color:var(--text);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;padding:28px;width:1260px}
+.title{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.phone{background:var(--bg);border:1px solid var(--hair);border-radius:28px;height:760px;position:relative;overflow:hidden;padding:20px 20px 0;background-image:radial-gradient(500px 280px at 70% -5%,rgba(61,139,255,.16),transparent)}
+.top{display:flex;justify-content:space-between;align-items:center;height:40px}
+.acts{display:flex;gap:8px;align-items:center}
+.round{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);display:grid;place-items:center;font-size:17px;color:var(--text-2)}
+.round.muted{color:var(--text-4)}
+.pill{padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--hair);font:600 14px ui-monospace,Consolas,monospace}
+.bar{position:absolute;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.06)}
+.bar i{display:block;height:100%;width:50%;background:linear-gradient(90deg,var(--blue),var(--emerald));border-radius:0 4px 4px 0}
+.card{background:rgba(17,23,37,.72);border:1px solid var(--hair);border-radius:28px;padding:16px}
+.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--emerald);font-weight:600;text-transform:uppercase;margin-top:26px}
+h2{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:6px 0 16px}
+.row{display:grid;grid-template-columns:44px 1fr 1fr 44px;gap:10px;align-items:center;padding:8px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid var(--hair);margin-bottom:8px}
+.row.done{background:rgba(34,197,139,.1);border-color:rgba(34,197,139,.3)}
+.n{font-size:20px;font-weight:600;text-align:center;color:var(--text-2)}
+.in{height:44px;border-radius:12px;background:rgba(0,0,0,.25);display:grid;place-items:center;font-size:18px;font-weight:600}
+.chk{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.06);display:grid;place-items:center;color:var(--text-4)}
+.done .chk{background:var(--emerald);color:#03140d}
+.rest{position:absolute;left:50%;transform:translateX(-50%);bottom:96px;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 18px;border-radius:999px;background:rgba(24,32,51,.92);border:1px solid var(--hair);white-space:nowrap}
+.rest.over{border-color:var(--emerald)}
+.rest b{font:600 20px ui-monospace,Consolas,monospace;color:var(--emerald)}
+.rest .b{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.07);font-size:13px;font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--emerald)}
+.note{margin-top:12px;color:var(--text-3);font-size:13px;line-height:1.4}
+</style></head><body>
+<div class="grid">
+<div><div class="title">Sound toggle in header, before any rest</div><div class="phone">
+<div class="bar"><i></i></div>
+<div class="top"><div class="round">‹</div><div class="acts"><div class="round">🔊</div><div class="pill">12:48</div></div></div>
+<div class="eyebrow">Exercise 3 of 6</div><h2>Incline Dumbbell Press</h2>
+<div class="card">
+<div class="row"><div class="n">1</div><div class="in">32</div><div class="in">10</div><div class="chk">✓</div></div>
+<div class="row"><div class="n">2</div><div class="in">32</div><div class="in">9</div><div class="chk">✓</div></div>
+</div></div><div class="note">Speaker button sits left of the elapsed clock. Always available, so the sound can be muted before the first rest.</div></div>
+
+<div><div class="title">Muted, rest running</div><div class="phone">
+<div class="bar"><i></i></div>
+<div class="top"><div class="round">‹</div><div class="acts"><div class="round muted">🔇</div><div class="pill">13:02</div></div></div>
+<div class="eyebrow">Exercise 3 of 6</div><h2>Incline Dumbbell Press</h2>
+<div class="card">
+<div class="row done"><div class="n">1</div><div class="in">32</div><div class="in">10</div><div class="chk">✓</div></div>
+<div class="row"><div class="n">2</div><div class="in">32</div><div class="in">9</div><div class="chk">✓</div></div>
+</div>
+<div class="rest"><span class="dot"></span><b>01:12</b><span class="b">+30s</span><span class="b">−10s</span><span class="b" style="color:var(--text-2)">Skip</span></div>
+</div><div class="note">Muted icon is dimmed with a slash. The rest pill itself is unchanged.</div></div>
+
+<div><div class="title">Rest over (4 s, or until dismissed)</div><div class="phone">
+<div class="bar"><i></i></div>
+<div class="top"><div class="round">‹</div><div class="acts"><div class="round">🔊</div><div class="pill">14:14</div></div></div>
+<div class="eyebrow">Exercise 3 of 6</div><h2>Incline Dumbbell Press</h2>
+<div class="card">
+<div class="row done"><div class="n">1</div><div class="in">32</div><div class="in">10</div><div class="chk">✓</div></div>
+<div class="row"><div class="n">2</div><div class="in">32</div><div class="in">9</div><div class="chk">✓</div></div>
+</div>
+<div class="rest over"><span class="dot"></span><b>Rest over</b><span class="b" style="color:var(--text-2)">Dismiss</span></div>
+</div><div class="note">Shown when the countdown reaches zero, including −10s down to zero. Vibration and a short two-tone beep fire once.</div></div>
+</div></body></html>
