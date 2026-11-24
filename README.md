@@ -91,3 +91,17 @@ The static site sends a content security policy (scripts, styles and fonts from 
 - Docker: set `AI_COACH_API_KEY` in `infra/.env`
 
 Without a key the endpoint answers 400 `BLException_ChatService_ProviderUnavailable`. `AiCoach:Model` and `AiCoach:Endpoint` switch to any other OpenAI-compatible provider through configuration. Per-user limits: `AiCoach:RateLimitRequests` (5) per `RateLimitWindowSeconds` (60), `DailyRequestLimit` (100), `DailyTokenBudget` (30000); replies are capped at `MaximumOutputTokens` (600) and the tool loop at `MaximumToolIterations` (3).
+
+## End-to-end smoke test
+
+`e2e/` holds a Playwright test that registers a user, builds a workout and split, runs the workout, resumes it after a reload and checks progression, on a desktop and a phone viewport. Start the stack from `infra`, then run it from `e2e`:
+
+```
+npm ci
+npx playwright install chromium
+E2E_BASE_URL=http://localhost:3000 npm test
+```
+
+CI runs it in the `e2e` job. The test does not leave the workout screen through an exercise link, because that still ends the session (BUG-02).
+
+CI sets `ASPNETCORE_ENVIRONMENT=Development` for the `e2e` job on purpose. The refresh cookie is `Secure` outside Development and the job serves the stack over plain `http://localhost:3000`, so with `Production` the session would not survive the reload the test performs.

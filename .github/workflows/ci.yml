@@ -170,3 +170,95 @@ jobs:
         if: steps.changes.outputs.run == 'true'
         working-directory: backend
         run: dotnet test tests/GymRatService.IntegrationTests --filter "Category=Postgres" --logger "console;verbosity=normal"
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Detect application changes
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          files=$(git diff --name-only "$BASE_SHA...HEAD")
+          echo "$files"
+          if echo "$files" | grep -Eq '^(frontend/|backend/|database/|infra/|e2e/|\.github/workflows/ci\.yml$)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v5
+        if: steps.changes.outputs.run == 'true'
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Start the stack
+        if: steps.changes.outputs.run == 'true'
+        working-directory: infra
+        run: |
+          {
+            echo "ASPNETCORE_ENVIRONMENT=Development"
+            echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)"
+            echo "JWT_KEY=$(openssl rand -hex 32)"
+            echo "PASSWORD_PEPPER=$(openssl rand -hex 32)"
+          } > .env
+          docker compose up --build --detach
+
+      - name: Wait for the app
+        if: steps.changes.outputs.run == 'true'
+        run: |
+          for attempt in $(seq 1 60); do
+            status=$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:3000/api/sessions/active || true)
+            if [ "$status" = "401" ]; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose --file infra/docker-compose.yml logs
+          exit 1
+
+      - name: Install
+        if: steps.changes.outputs.run == 'true'
+        working-directory: e2e
+        run: npm ci
+
+      - name: Install browser
+        if: steps.changes.outputs.run == 'true'
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Type-check
+        if: steps.changes.outputs.run == 'true'
+        working-directory: e2e
+        run: npm run typecheck
+
+      - name: Core flow smoke test
+        if: steps.changes.outputs.run == 'true'
+        working-directory: e2e
+        run: npm test
+
+      - name: Upload failure screenshots
+        if: failure() && steps.changes.outputs.run == 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: e2e-test-results
+          path: e2e/test-results
+
+      - name: Show stack logs on failure
+        if: failure() && steps.changes.outputs.run == 'true'
+        run: docker compose --file infra/docker-compose.yml logs
+
+      - name: Stop the stack
+        if: always() && steps.changes.outputs.run == 'true'
+        run: docker compose --file infra/docker-compose.yml down --volumes
