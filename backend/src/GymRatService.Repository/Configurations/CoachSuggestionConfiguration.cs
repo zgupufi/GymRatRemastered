@@ -18,7 +18,9 @@ public class CoachSuggestionConfiguration : IEntityTypeConfiguration<CoachSugges
 
         builder.Property(suggestion => suggestion.WeightStepKg).HasPrecision(5, 2);
 
-        builder.Property(suggestion => suggestion.BeforeWeightStepKg).HasPrecision(5, 2).IsRequired();
+        builder.Property(suggestion => suggestion.BeforeWeightStepKg).HasPrecision(5, 2);
+
+        builder.Property(suggestion => suggestion.Kind).IsRequired();
 
         builder.Property(suggestion => suggestion.Rationale).HasMaxLength(RationaleMaximumLength).IsRequired();
 

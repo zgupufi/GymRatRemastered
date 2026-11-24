@@ -16,7 +16,7 @@ public interface ICoachSuggestionsRepository
 
     Task SetStatusAsync(IReadOnlyCollection<Guid> ids, SuggestionStatus status, DateTimeOffset resolvedAt, CancellationToken cancellationToken);
 
-    Task DismissPendingAsync(Guid userId, Guid workoutId, Guid exerciseId, DateTimeOffset resolvedAt, CancellationToken cancellationToken);
+    Task DismissPendingAsync(Guid userId, Guid workoutId, SuggestionKind kind, Guid? exerciseId, DateTimeOffset resolvedAt, CancellationToken cancellationToken);
 
     Task<SuggestionApplyOutcome> ApplyAsync(CoachSuggestion suggestion, WorkoutExercise settings, DateTimeOffset resolvedAt, CancellationToken cancellationToken);
 }

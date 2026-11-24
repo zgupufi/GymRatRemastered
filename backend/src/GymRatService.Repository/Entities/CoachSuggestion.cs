@@ -10,7 +10,9 @@ public class CoachSuggestion
 
     public Guid WorkoutId { get; set; }
 
-    public Guid ExerciseId { get; set; }
+    public SuggestionKind Kind { get; set; }
+
+    public Guid? ExerciseId { get; set; }
 
     public int? TargetSets { get; set; }
 
@@ -20,13 +22,17 @@ public class CoachSuggestion
 
     public decimal? WeightStepKg { get; set; }
 
-    public int BeforeTargetSets { get; set; }
+    public int? BeforeTargetSets { get; set; }
 
-    public int BeforeRepsMin { get; set; }
+    public int? BeforeRepsMin { get; set; }
 
-    public int BeforeRepsMax { get; set; }
+    public int? BeforeRepsMax { get; set; }
 
-    public decimal BeforeWeightStepKg { get; set; }
+    public decimal? BeforeWeightStepKg { get; set; }
+
+    public string? BeforeExercises { get; set; }
+
+    public string? AfterExercises { get; set; }
 
     public string Rationale { get; set; } = string.Empty;
 

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="013-coach-workout-proposals" author="gymrat">
+        <addColumn tableName="CoachSuggestions">
+            <column name="Kind" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="BeforeExercises" type="text" />
+            <column name="AfterExercises" type="text" />
+        </addColumn>
+
+        <dropNotNullConstraint tableName="CoachSuggestions" columnName="ExerciseId" columnDataType="uuid" />
+        <dropNotNullConstraint tableName="CoachSuggestions" columnName="BeforeTargetSets" columnDataType="integer" />
+        <dropNotNullConstraint tableName="CoachSuggestions" columnName="BeforeRepsMin" columnDataType="integer" />
+        <dropNotNullConstraint tableName="CoachSuggestions" columnName="BeforeRepsMax" columnDataType="integer" />
+        <dropNotNullConstraint tableName="CoachSuggestions" columnName="BeforeWeightStepKg" columnDataType="numeric(5,2)" />
+    </changeSet>
+
+</databaseChangeLog>

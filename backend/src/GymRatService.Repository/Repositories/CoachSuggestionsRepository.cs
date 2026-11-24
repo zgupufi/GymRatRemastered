@@ -51,11 +51,12 @@ public class CoachSuggestionsRepository(GymRatDbContext context) : ICoachSuggest
                 cancellationToken);
     }
 
-    public async Task DismissPendingAsync(Guid userId, Guid workoutId, Guid exerciseId, DateTimeOffset resolvedAt, CancellationToken cancellationToken)
+    public async Task DismissPendingAsync(Guid userId, Guid workoutId, SuggestionKind kind, Guid? exerciseId, DateTimeOffset resolvedAt, CancellationToken cancellationToken)
     {
         await context.CoachSuggestions
             .Where(suggestion => suggestion.UserId == userId
                 && suggestion.WorkoutId == workoutId
+                && suggestion.Kind == kind
                 && suggestion.ExerciseId == exerciseId
                 && suggestion.Status == SuggestionStatus.Pending)
             .ExecuteUpdateAsync(

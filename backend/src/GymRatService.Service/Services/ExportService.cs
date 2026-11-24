@@ -30,7 +30,9 @@ public class ExportService(
             .SelectMany(workout => workout.Exercises)
             .Select(entry => entry.ExerciseId)
             .Concat(sessions.SelectMany(session => session.Sets).Select(set => set.ExerciseId))
-            .Concat(coachSuggestions.Select(suggestion => suggestion.ExerciseId))
+            .Concat(coachSuggestions
+                .Where(suggestion => suggestion.ExerciseId.HasValue)
+                .Select(suggestion => suggestion.ExerciseId!.Value))
             .ToHashSet();
         var exerciseNames = await exportRepository.GetExerciseNamesAsync(exerciseIds, cancellationToken);
         var workoutNames = workouts.ToDictionary(workout => workout.Id, workout => workout.Name);
@@ -81,10 +83,11 @@ public class ExportService(
                         set.TargetReason))]))],
             [.. coachSuggestions.Select(suggestion => new ExportCoachSuggestionDto(
                 suggestion.Id,
+                suggestion.Kind,
                 suggestion.WorkoutId,
                 workoutNames.GetValueOrDefault(suggestion.WorkoutId, string.Empty),
                 suggestion.ExerciseId,
-                NameOf(suggestion.ExerciseId),
+                suggestion.ExerciseId is { } suggestionExerciseId ? NameOf(suggestionExerciseId) : string.Empty,
                 suggestion.TargetSets,
                 suggestion.RepsMin,
                 suggestion.RepsMax,
