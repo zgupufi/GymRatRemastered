@@ -40,9 +40,7 @@ export function RestTimerPill({ remaining, finished, onExtend, onReduce, onSkip 
             </>
           ) : (
             <>
-              <strong className="rest-pill__time" role="status">
-                Rest over
-              </strong>
+              <strong className="rest-pill__time">Rest over</strong>
               <button type="button" className="rest-pill__skip" onClick={onSkip}>
                 Dismiss
               </button>

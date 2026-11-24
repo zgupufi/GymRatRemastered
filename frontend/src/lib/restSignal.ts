@@ -35,10 +35,16 @@ export function writeSoundEnabled(enabled: boolean): void {
   }
 }
 
+function resumeIfSuspended(context: AudioContext): void {
+  if (context.state === 'suspended') {
+    void context.resume().catch(() => undefined)
+  }
+}
+
 export function prepareRestSignal(): void {
   const context = getAudioContext()
-  if (context && context.state === 'suspended') {
-    void context.resume().catch(() => undefined)
+  if (context) {
+    resumeIfSuspended(context)
   }
 }
 
@@ -66,6 +72,7 @@ export function signalRestOver(soundEnabled: boolean): void {
   }
   const context = getAudioContext()
   if (context) {
+    resumeIfSuspended(context)
     playTone(context)
   }
 }

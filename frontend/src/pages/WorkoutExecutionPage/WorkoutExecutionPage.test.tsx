@@ -348,8 +348,10 @@ describe('WorkoutExecutionPage', () => {
     renderPage()
     await startToday(user)
 
-    await user.click(screen.getByRole('button', { name: 'Mute rest sound' }))
-    expect(screen.getByRole('button', { name: 'Unmute rest sound' })).toHaveAttribute('aria-pressed', 'true')
+    const sound = screen.getByRole('button', { name: 'Rest sound' })
+    expect(sound).toHaveAttribute('aria-pressed', 'true')
+    await user.click(sound)
+    expect(sound).toHaveAttribute('aria-pressed', 'false')
     expect(localStorage.getItem('gymrat.restSound')).toBe('off')
     await fillSet(user, 1, '60', '8')
     await screen.findByRole('timer', { name: 'Rest timer' })

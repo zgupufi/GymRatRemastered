@@ -220,8 +220,8 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
           <button
             type="button"
             className="execution__sound"
-            aria-label={rest.soundEnabled ? 'Mute rest sound' : 'Unmute rest sound'}
-            aria-pressed={!rest.soundEnabled}
+            aria-label="Rest sound"
+            aria-pressed={rest.soundEnabled}
             onClick={rest.toggleSound}
           >
             {rest.soundEnabled ? <Volume2 size={18} aria-hidden="true" /> : <VolumeX size={18} aria-hidden="true" />}

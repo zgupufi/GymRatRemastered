@@ -97,6 +97,20 @@ describe('restSignal', () => {
     expect(FakeAudioContext.instances[0].resume).toHaveBeenCalledTimes(1)
   })
 
+  it('resumes a suspended context before the tone and ignores a rejected resume', async () => {
+    const { signalRestOver } = await import('./restSignal')
+    signalRestOver(true)
+    const context = FakeAudioContext.instances[0]
+    context.state = 'suspended'
+    context.resume.mockImplementationOnce(() => Promise.reject(new Error('blocked')))
+
+    expect(() => signalRestOver(true)).not.toThrow()
+    await Promise.resolve()
+
+    expect(context.resume).toHaveBeenCalledTimes(2)
+    expect(context.oscillators).toHaveLength(4)
+  })
+
   it('does nothing when the browser has no vibration or audio support', async () => {
     Object.defineProperty(navigator, 'vibrate', { value: undefined, configurable: true })
     vi.stubGlobal('AudioContext', undefined)
