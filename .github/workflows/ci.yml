@@ -170,3 +170,69 @@ jobs:
         if: steps.changes.outputs.run == 'true'
         working-directory: backend
         run: dotnet test tests/GymRatService.IntegrationTests --filter "Category=Postgres" --logger "console;verbosity=normal"
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Start the stack
+        working-directory: infra
+        run: |
+          {
+            echo "ASPNETCORE_ENVIRONMENT=Development"
+            echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)"
+            echo "JWT_KEY=$(openssl rand -hex 32)"
+            echo "PASSWORD_PEPPER=$(openssl rand -hex 32)"
+          } > .env
+          docker compose up --build --detach
+
+      - name: Wait for the app
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --silent --fail --output /dev/null http://localhost:3000/login; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose --file infra/docker-compose.yml logs
+          exit 1
+
+      - name: Install
+        working-directory: e2e
+        run: npm ci
+
+      - name: Install browser
+        working-directory: e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Type-check
+        working-directory: e2e
+        run: npm run typecheck
+
+      - name: Core flow smoke test
+        working-directory: e2e
+        run: npm test
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: e2e-test-results
+          path: e2e/test-results
+
+      - name: Show stack logs on failure
+        if: failure()
+        run: docker compose --file infra/docker-compose.yml logs
+
+      - name: Stop the stack
+        if: always()
+        run: docker compose --file infra/docker-compose.yml down --volumes
