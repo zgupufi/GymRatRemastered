@@ -347,12 +347,12 @@ describe('WorkoutExecutionPage', () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     renderPage()
     await startToday(user)
-    await fillSet(user, 1, '60', '8')
 
-    const timer = await screen.findByRole('timer', { name: 'Rest timer' })
-    await user.click(within(timer).getByRole('button', { name: 'Mute rest sound' }))
-    expect(within(timer).getByRole('button', { name: 'Unmute rest sound' })).toHaveAttribute('aria-pressed', 'true')
+    await user.click(screen.getByRole('button', { name: 'Mute rest sound' }))
+    expect(screen.getByRole('button', { name: 'Unmute rest sound' })).toHaveAttribute('aria-pressed', 'true')
     expect(localStorage.getItem('gymrat.restSound')).toBe('off')
+    await fillSet(user, 1, '60', '8')
+    await screen.findByRole('timer', { name: 'Rest timer' })
 
     act(() => {
       vi.advanceTimersByTime(61_000)

@@ -1,19 +1,16 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { Volume2, VolumeX } from 'lucide-react'
 import { spring } from '../../lib/motion'
 import { formatClock } from '../../lib/clock'
 
 interface RestTimerPillProps {
   remaining: number | null
   finished: boolean
-  soundEnabled: boolean
   onExtend: () => void
   onReduce: () => void
   onSkip: () => void
-  onToggleSound: () => void
 }
 
-export function RestTimerPill({ remaining, finished, soundEnabled, onExtend, onReduce, onSkip, onToggleSound }: RestTimerPillProps) {
+export function RestTimerPill({ remaining, finished, onExtend, onReduce, onSkip }: RestTimerPillProps) {
   const visible = remaining !== null || finished
   return (
     <AnimatePresence>
@@ -51,15 +48,6 @@ export function RestTimerPill({ remaining, finished, soundEnabled, onExtend, onR
               </button>
             </>
           )}
-          <button
-            type="button"
-            className="rest-pill__sound"
-            aria-label={soundEnabled ? 'Mute rest sound' : 'Unmute rest sound'}
-            aria-pressed={!soundEnabled}
-            onClick={onToggleSound}
-          >
-            {soundEnabled ? <Volume2 size={16} aria-hidden="true" /> : <VolumeX size={16} aria-hidden="true" />}
-          </button>
         </motion.div>
       ) : null}
     </AnimatePresence>

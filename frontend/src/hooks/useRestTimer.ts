@@ -25,6 +25,12 @@ export function useRestTimer() {
     setNow(Date.now())
   }, [])
 
+  const finish = useCallback(() => {
+    setEnd(null)
+    setFinished(true)
+    signalRestOver(soundRef.current)
+  }, [setEnd])
+
   const check = useCallback(() => {
     const end = endAtRef.current
     if (end === null) {
@@ -32,13 +38,11 @@ export function useRestTimer() {
     }
     const current = Date.now()
     if (current >= end) {
-      setEnd(null)
-      setFinished(true)
-      signalRestOver(soundRef.current)
+      finish()
     } else {
       setNow(current)
     }
-  }, [setEnd])
+  }, [finish])
 
   useEffect(() => {
     if (!active) {
@@ -82,9 +86,13 @@ export function useRestTimer() {
   const reduce = useCallback(() => {
     if (endAtRef.current !== null) {
       const next = endAtRef.current - REDUCE_SECONDS * 1000
-      setEnd(next - Date.now() <= 0 ? null : next)
+      if (next - Date.now() <= 0) {
+        finish()
+      } else {
+        setEnd(next)
+      }
     }
-  }, [setEnd])
+  }, [finish, setEnd])
 
   const skip = useCallback(() => {
     setFinished(false)

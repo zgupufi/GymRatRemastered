@@ -98,13 +98,16 @@ describe('timers', () => {
     expect(result.current.remaining).toBeNull()
   })
 
-  it('stops the rest when reduced to zero', () => {
+  it('ends the rest with the signal when reduced to zero', () => {
+    const signal = vi.spyOn(restSignal, 'signalRestOver').mockImplementation(() => undefined)
     const { result } = renderHook(() => useRestTimer())
     act(() => result.current.start(8))
 
     act(() => result.current.reduce())
 
     expect(result.current.remaining).toBeNull()
+    expect(result.current.finished).toBe(true)
+    expect(signal).toHaveBeenCalledTimes(1)
   })
   it('catches up after the page was hidden and signals once', () => {
     const signal = vi.spyOn(restSignal, 'signalRestOver').mockImplementation(() => undefined)
@@ -147,13 +150,13 @@ describe('timers', () => {
     expect(result.current.finished).toBe(false)
   })
 
-  it('does not signal when rest is skipped or reduced to zero', () => {
+  it('does not signal when rest is skipped', () => {
     const signal = vi.spyOn(restSignal, 'signalRestOver').mockImplementation(() => undefined)
     const { result } = renderHook(() => useRestTimer())
     act(() => result.current.start(5))
     act(() => result.current.skip())
     act(() => result.current.start(5))
-    act(() => result.current.reduce())
+    act(() => result.current.skip())
     act(() => {
       vi.advanceTimersByTime(10_000)
     })
