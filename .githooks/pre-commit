@@ -2,12 +2,45 @@
 set -euo pipefail
 
 root="$(git rev-parse --show-toplevel)"
-staged="$(git diff --cached --name-only)"
+cd "$root"
 
-if grep -q '^backend/' <<<"$staged"; then
-  "$root/scripts/coverage/check.sh" backend
+staged() {
+  git diff --cached --name-only --no-renames --diff-filter=AM -z -- "$@"
+}
+
+mapfile -d '' -t backend < <(staged 'backend/*.cs')
+mapfile -d '' -t frontend < <(staged 'frontend/*.ts' 'frontend/*.tsx' 'frontend/*.js' 'frontend/*.jsx' 'frontend/*.mjs' 'frontend/*.cjs')
+
+if ! git diff --cached --check -- backend frontend; then
+  echo "Fix the whitespace errors above and stage the files again." >&2
+  exit 1
 fi
 
-if grep -q '^frontend/' <<<"$staged"; then
-  "$root/scripts/coverage/check.sh" frontend
+if (( ${#backend[@]} + ${#frontend[@]} == 0 )); then
+  exit 0
+fi
+
+snapshot="$(mktemp -d)"
+trap 'rm -rf "$snapshot"' EXIT
+
+git ls-files -z -- '.editorconfig' '*/.editorconfig' 'frontend/.oxlintrc.json' |
+  git checkout-index --prefix="$snapshot/" -z --stdin
+
+if (( ${#backend[@]} > 0 )); then
+  git checkout-index --prefix="$snapshot/" -- "${backend[@]}"
+  if ! (cd "$snapshot" && dotnet format whitespace backend --folder --verify-no-changes); then
+    echo "Format the files above with: dotnet format whitespace backend --folder --include <files>" >&2
+    echo "Paths after --include start with backend/. Then stage them again." >&2
+    exit 1
+  fi
+fi
+
+if (( ${#frontend[@]} > 0 )); then
+  oxlint="$root/frontend/node_modules/oxlint/bin/oxlint"
+  if [[ ! -f "$oxlint" ]]; then
+    echo "oxlint is not installed. Run npm install in frontend/." >&2
+    exit 1
+  fi
+  git checkout-index --prefix="$snapshot/" -- "${frontend[@]}"
+  (cd "$snapshot/frontend" && node "$oxlint" --config .oxlintrc.json "${frontend[@]#frontend/}")
 fi
