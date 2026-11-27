@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="014-coach-usage" author="gymrat">
+        <createTable tableName="CoachUsages">
+            <column name="Id" type="uuid" defaultValueComputed="uuid_generate_v7()">
+                <constraints primaryKey="true" primaryKeyName="PK_CoachUsages" nullable="false" />
+            </column>
+            <column name="UserId" type="uuid">
+                <constraints nullable="false" />
+            </column>
+            <column name="Day" type="date">
+                <constraints nullable="false" />
+            </column>
+            <column name="RequestCount" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="TokensUsed" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="RecentRequests" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="Version" type="integer">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="CoachUsages"
+            baseColumnNames="UserId"
+            constraintName="FK_CoachUsages_Users_UserId"
+            referencedTableName="Users"
+            referencedColumnNames="Id"
+            onDelete="CASCADE" />
+
+        <createIndex tableName="CoachUsages" indexName="IX_CoachUsages_UserId" unique="true">
+            <column name="UserId" />
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

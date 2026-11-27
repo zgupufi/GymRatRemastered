@@ -5,6 +5,7 @@ using GymRatService.Common.Errors;
 using GymRatService.Common.Settings;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Interfaces;
+using GymRatService.Service.Usage;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -38,14 +39,11 @@ public class ChatService(
 
     public async Task<ChatMessageResponse> SendMessageAsync(Guid userId, ChatMessageRequest request, CancellationToken cancellationToken)
     {
-        usageLimiter.EnsureAllowed(userId);
-
         var settings = options.Value;
         var tools = new ChatTools(userId, workoutsService, splitService, exercisesService, sessionsService, coachService, inputValidator, cancellationToken);
 
         var messages = new List<ChatMessage> { new(AiChatRole.System, SystemPrompt) };
-        messages.AddRange((request.History ?? [])
-            .TakeLast(settings.HistoryLimit)
+        messages.AddRange(RecentHistory(request.History ?? [], settings)
             .Select(item => new ChatMessage(item.Role == ChatRole.User ? AiChatRole.User : AiChatRole.Assistant, item.Content)));
         messages.Add(new ChatMessage(AiChatRole.User, request.Message));
 
@@ -55,9 +53,13 @@ public class ChatService(
             MaxOutputTokens = settings.MaximumOutputTokens,
         };
 
-        var client = new ChatClientBuilder(new FailoverChatClient(chatClient, options, logger))
+        using var tracker = new UsageTrackingChatClient(chatClient);
+        var client = new ChatClientBuilder(new FailoverChatClient(tracker, options, logger))
             .UseFunctionInvocation(configure: invocation => invocation.MaximumIterationsPerRequest = settings.MaximumToolIterations)
             .Build();
+
+        var estimatedTokens = ChatTokenEstimator.EstimateInput(messages, chatOptions) + settings.MaximumOutputTokens;
+        var reservation = await usageLimiter.ReserveAsync(userId, estimatedTokens, cancellationToken);
 
         ChatResponse response;
 
@@ -73,8 +75,10 @@ public class ChatService(
                 ? ErrorCodes.ChatProviderBusy
                 : ErrorCodes.ChatProviderUnavailable);
         }
-
-        usageLimiter.RecordTokens(userId, response.Usage?.TotalTokenCount ?? 0);
+        finally
+        {
+            await usageLimiter.SettleAsync(reservation, tracker.UsedTokens, CancellationToken.None);
+        }
 
         if (ToolCallMarkup.IsPresentIn(response.Text))
         {
@@ -84,5 +88,17 @@ public class ChatService(
         }
 
         return new ChatMessageResponse(response.Text, tools.WorkoutsChanged, tools.Suggestions);
+    }
+
+    private static List<ChatHistoryItem> RecentHistory(IReadOnlyList<ChatHistoryItem> history, AiCoachSettings settings)
+    {
+        var characters = 0;
+
+        return history
+            .TakeLast(settings.HistoryLimit)
+            .Reverse()
+            .TakeWhile(item => (characters += item.Content.Length) <= settings.MaximumHistoryCharacters)
+            .Reverse()
+            .ToList();
     }
 }

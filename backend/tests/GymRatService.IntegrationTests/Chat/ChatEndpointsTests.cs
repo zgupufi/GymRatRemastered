@@ -258,7 +258,7 @@ public sealed class ChatEndpointsTests : IDisposable
         // Arrange
         UseChatClient((_, _) => ScriptedChatClient.Reply("ok"));
         _factory.Settings["AiCoach:RateLimitRequests"] = "2";
-        _factory.Settings["AiCoach:RateLimitWindowSeconds"] = "1";
+        _factory.Settings["AiCoach:RateLimitWindowSeconds"] = "60";
         var ana = await CreateClientAsync("ana@example.com");
         var bob = await CreateClientAsync("bob@example.com");
         var message = new ChatMessageRequest("Hi", null);
@@ -268,7 +268,7 @@ public sealed class ChatEndpointsTests : IDisposable
         var second = await ana.PostAsJsonAsync("/api/chat/messages", message);
         var third = await ana.PostAsJsonAsync("/api/chat/messages", message);
         var otherUser = await bob.PostAsJsonAsync("/api/chat/messages", message);
-        await Task.Delay(TimeSpan.FromMilliseconds(1100));
+        _factory.Time.Advance(TimeSpan.FromSeconds(61));
         var afterWindow = await ana.PostAsJsonAsync("/api/chat/messages", message);
 
         // Assert
@@ -283,8 +283,7 @@ public sealed class ChatEndpointsTests : IDisposable
     public async Task SendMessage_ReturnsTokenBudgetExceeded_OnceTheBudgetIsSpent()
     {
         // Arrange
-        UseChatClient((_, _) => ScriptedChatClient.Reply("ok", totalTokens: 100));
-        _factory.Settings["AiCoach:DailyTokenBudget"] = "150";
+        UseChatClient((_, _) => ScriptedChatClient.Reply("ok", totalTokens: 20000));
         var client = await CreateClientAsync("ana@example.com");
         var message = new ChatMessageRequest("Hi", null);
 
@@ -297,24 +296,6 @@ public sealed class ChatEndpointsTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.OK, second.StatusCode);
         await AssertBadRequestAsync(third, ErrorCodes.ChatTokenBudgetExceeded);
-    }
-
-    [Fact]
-    public async Task SendMessage_CountsNothingTowardsTheBudget_WhenTheProviderReportsNoUsage()
-    {
-        // Arrange
-        UseChatClient((_, _) => new ChatResponse(new ChatMessage(AiChatRole.Assistant, "ok")));
-        _factory.Settings["AiCoach:DailyTokenBudget"] = "1";
-        var client = await CreateClientAsync("ana@example.com");
-        var message = new ChatMessageRequest("Hi", null);
-
-        // Act
-        var first = await client.PostAsJsonAsync("/api/chat/messages", message);
-        var second = await client.PostAsJsonAsync("/api/chat/messages", message);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, second.StatusCode);
     }
 
     [Fact]

@@ -1,8 +1,8 @@
 using GymRatService.Common.Enums;
 using GymRatService.Repository.Entities;
+using GymRatService.Repository.Extensions;
 using GymRatService.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace GymRatService.Repository.Repositories;
 
@@ -37,22 +37,12 @@ public class UsersRepository(GymRatDbContext context) : IUsersRepository
 
             return true;
         }
-        catch (DbUpdateException exception) when (IsUniqueViolation(exception))
+        catch (DbUpdateException exception) when (exception.IsUniqueViolation())
         {
             context.Entry(user).State = EntityState.Detached;
 
             return false;
         }
-    }
-
-    private static bool IsUniqueViolation(DbUpdateException exception)
-    {
-        return exception.InnerException switch
-        {
-            PostgresException postgresException => postgresException.SqlState == PostgresErrorCodes.UniqueViolation,
-            { } inner => inner.Message.Contains("UNIQUE constraint failed", StringComparison.Ordinal),
-            _ => false,
-        };
     }
 
     public async Task UpdateLastLoginAsync(Guid id, DateTimeOffset lastLoginAt, CancellationToken cancellationToken)

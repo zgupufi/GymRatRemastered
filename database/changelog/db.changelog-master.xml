@@ -17,5 +17,6 @@
     <include file="changes/011-refresh-tokens.xml" relativeToChangelogFile="true" />
     <include file="changes/012-structured-exercise-catalog.xml" relativeToChangelogFile="true" />
     <include file="changes/013-coach-workout-proposals.xml" relativeToChangelogFile="true" />
+    <include file="changes/014-coach-usage.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>

@@ -1,8 +1,10 @@
+using GymRatService.Service.Usage;
+
 namespace GymRatService.Service.Interfaces;
 
 public interface IChatUsageLimiter
 {
-    void EnsureAllowed(Guid userId);
+    Task<ChatUsageReservation> ReserveAsync(Guid userId, long estimatedTokens, CancellationToken cancellationToken);
 
-    void RecordTokens(Guid userId, long tokens);
+    Task SettleAsync(ChatUsageReservation reservation, long usedTokens, CancellationToken cancellationToken);
 }
