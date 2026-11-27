@@ -42,6 +42,35 @@ test('the app shell is always revalidated', async ({ request }) => {
   }
 })
 
+test('the favicon is cached for a day', async ({ request }) => {
+  const response = await request.get('/favicon.svg')
+
+  expect(response.status()).toBe(200)
+  expect(response.headers()['cache-control']).toBe('public, max-age=86400')
+  expect(response.headers()['content-security-policy']).toContain("default-src 'self'")
+})
+
+test('API responses are not compressed', async ({ request }) => {
+  const account = {
+    email: `caching-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`,
+    password: 'Smoke-Test-Passw0rd!',
+  }
+  const registration = await request.post('/api/auth/register', { data: { ...account, firstName: 'Smoke' } })
+  expect(registration.ok()).toBe(true)
+  const login = await request.post('/api/auth/login', { data: account })
+  expect(login.ok()).toBe(true)
+  const { accessToken } = await login.json()
+
+  const response = await request.get('/api/exercises', {
+    headers: { 'Accept-Encoding': 'gzip', Authorization: `Bearer ${accessToken}` },
+  })
+
+  expect(response.status()).toBe(200)
+  expect((await response.body()).byteLength).toBeGreaterThan(1024)
+  expect(response.headers()['content-type']).toContain('application/json')
+  expect(response.headers()['content-encoding']).toBeUndefined()
+})
+
 test('a missing asset is not answered with the app shell or cached', async ({ request }) => {
   const response = await request.get('/assets/missing-00000000.js')
 
@@ -55,13 +84,14 @@ test('a second visit downloads no assets again', async ({ page }) => {
 
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  const downloaded = await page.evaluate(() =>
+  const assets = await page.evaluate(() =>
     performance
       .getEntriesByType('resource')
       .map((entry) => entry as PerformanceResourceTiming)
-      .filter((entry) => new URL(entry.name).pathname.startsWith('/assets/') && entry.transferSize > 0)
-      .map((entry) => entry.name),
+      .filter((entry) => new URL(entry.name).pathname.startsWith('/assets/'))
+      .map((entry) => ({ name: entry.name, transferSize: entry.transferSize })),
   )
 
-  expect(downloaded).toEqual([])
+  expect(assets.length).toBeGreaterThan(0)
+  expect(assets.filter((asset) => asset.transferSize > 0)).toEqual([])
 })
