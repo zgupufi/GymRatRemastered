@@ -20,6 +20,8 @@ public sealed class AiCoachSettings
 
     public int HistoryLimit { get; set; } = 10;
 
+    public int MaximumHistoryCharacters { get; set; } = 12000;
+
     public int MaximumToolIterations { get; set; } = 3;
 
     public int RateLimitRequests { get; set; } = 5;
