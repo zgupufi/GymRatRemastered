@@ -83,6 +83,12 @@ The API sends `Strict-Transport-Security` (180 days, no subdomains, no preload) 
 
 The static site sends a content security policy (scripts, styles and fonts from the site itself, `https://www.youtube.com` for the exercise video frame, `https://i.ytimg.com` for images, no framing), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and `Cross-Origin-Opener-Policy`. `frontend/nginx.conf` covers Docker (its headers live in `frontend/security-headers.conf`, which every `location` must include: nginx drops server-level `add_header` lines from any `location` that sets its own `add_header`, so a location that adds cache headers must include that file too), where the API is proxied from the same origin, and `frontend/public/_headers` covers Cloudflare Pages, where `connect-src` also allows `https://*.onrender.com` for the API and HSTS is added. TODO once the API URL from PR #30 exists: replace the `*.onrender.com` wildcard in `_headers` with the exact API origin, because the wildcard lets a script reach any Render-hosted app. If the API lives on another host, add its origin to `connect-src` in `_headers`. Changing the policy: load every page with the browser console open and look for `Content Security Policy` errors.
 
+## Static caching and compression
+
+`frontend/nginx.conf` compresses text assets with gzip (the official nginx image has no brotli module) and leaves `/api/` uncompressed. Files under `/assets/` carry a content hash in their name, so they are cached for a year as `immutable`, and a missing one answers 404 instead of the app shell. `index.html` and every client route are sent with `no-cache`, so a deploy reaches users on their next load. The favicon is cached for a day.
+
+`frontend/public/_headers` sets the same cache headers on Cloudflare Pages, which compresses with gzip or brotli by itself. Client routes other than `/` keep the Pages default for HTML (`max-age=0, must-revalidate`), because a `Cache-Control` under `/*` would be merged into the `/assets/*` one. `e2e/tests/static-caching.spec.ts` checks the nginx behaviour.
+
 ## AI coach
 
 `POST /api/chat/messages` talks to an LLM through `Microsoft.Extensions.AI` (`IChatClient`). The default is `baidu/ernie-5.5-flash-preview:free` through OpenRouter's OpenAI-compatible endpoint, with `google/gemma-4-31b-it:free` as `AiCoach:FallbackModel` (used on 429, 5xx, timeout or an empty reply). The API key is never stored in the repo:
