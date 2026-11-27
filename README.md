@@ -83,6 +83,20 @@ The API sends `Strict-Transport-Security` (180 days, no subdomains, no preload) 
 
 The static site sends a content security policy (scripts, styles and fonts from the site itself, `https://www.youtube.com` for the exercise video frame, `https://i.ytimg.com` for images, no framing), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and `Cross-Origin-Opener-Policy`. `frontend/nginx.conf` covers Docker (its headers live in `frontend/security-headers.conf`, which every `location` must include: nginx drops server-level `add_header` lines from any `location` that sets its own `add_header`, so a location that adds cache headers must include that file too), where the API is proxied from the same origin, and `frontend/public/_headers` covers Cloudflare Pages, where `connect-src` also allows `https://*.onrender.com` for the API and HSTS is added. TODO once the API URL from PR #30 exists: replace the `*.onrender.com` wildcard in `_headers` with the exact API origin, because the wildcard lets a script reach any Render-hosted app. If the API lives on another host, add its origin to `connect-src` in `_headers`. Changing the policy: load every page with the browser console open and look for `Content Security Policy` errors.
 
+## Dependency and code scanning
+
+The `audit` job in CI fails when a NuGet or npm package, direct or transitive, has a known high or critical vulnerability. Run the same checks locally:
+
+```bash
+scripts/audit/nuget.sh
+(cd frontend && npm audit --audit-level=high)
+(cd e2e && npm audit --audit-level=high)
+```
+
+A new advisory can turn the job red on a branch that did not touch any package. Fix it by updating the package (`npm audit fix`, or the version in `backend/Directory.Packages.props`).
+
+`.github/dependabot.yml` opens weekly update pull requests for NuGet, npm, Docker, Docker Compose and GitHub Actions. `.github/workflows/codeql.yml` runs CodeQL on C# and TypeScript for every pull request, every push to `main` and once a week.
+
 ## AI coach
 
 `POST /api/chat/messages` talks to an LLM through `Microsoft.Extensions.AI` (`IChatClient`). The default is `baidu/ernie-5.5-flash-preview:free` through OpenRouter's OpenAI-compatible endpoint, with `google/gemma-4-31b-it:free` as `AiCoach:FallbackModel` (used on 429, 5xx, timeout or an empty reply). The API key is never stored in the repo:
