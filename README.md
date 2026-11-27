@@ -83,6 +83,12 @@ The API sends `Strict-Transport-Security` (180 days, no subdomains, no preload) 
 
 The static site sends a content security policy (scripts, styles and fonts from the site itself, `https://www.youtube.com` for the exercise video frame, `https://i.ytimg.com` for images, no framing), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and `Cross-Origin-Opener-Policy`. `frontend/nginx.conf` covers Docker (its headers live in `frontend/security-headers.conf`, which every `location` must include: nginx drops server-level `add_header` lines from any `location` that sets its own `add_header`, so a location that adds cache headers must include that file too), where the API is proxied from the same origin, and `frontend/public/_headers` covers Cloudflare Pages, where `connect-src` also allows `https://*.onrender.com` for the API and HSTS is added. TODO once the API URL from PR #30 exists: replace the `*.onrender.com` wildcard in `_headers` with the exact API origin, because the wildcard lets a script reach any Render-hosted app. If the API lives on another host, add its origin to `connect-src` in `_headers`. Changing the policy: load every page with the browser console open and look for `Content Security Policy` errors.
 
+## Static caching and compression
+
+`frontend/nginx.conf` compresses text assets with gzip (the official nginx image has no brotli module) and leaves `/api/` uncompressed. Files under `/assets/` carry a content hash in their name, so they are cached for a year as `immutable`, and a missing one answers 404 instead of the app shell. `index.html` and every client route are sent with `no-cache`, so a deploy reaches users on their next load. The favicon is cached for a day.
+
+`frontend/public/_headers` sets the same cache headers on Cloudflare Pages, which compresses with gzip or brotli by itself. Client routes other than `/` keep the Pages default for HTML (`max-age=0, must-revalidate`), because a `Cache-Control` under `/*` would be merged into the `/assets/*` one. `e2e/tests/static-caching.spec.ts` checks the nginx behaviour.
+
 ## Dependency and code scanning
 
 The `audit` job in CI fails when a NuGet or npm package, direct or transitive, has a known high or critical vulnerability. Run the same checks locally:
@@ -93,7 +99,7 @@ scripts/audit/nuget.sh
 (cd e2e && npm audit --audit-level=high)
 ```
 
-A new advisory can turn the job red on a branch that did not touch any package. Fix it by updating the package (`npm audit fix`, or the version in `backend/Directory.Packages.props`).
+A new advisory can turn the job red on a branch that did not touch any package. Fix it by updating the package. For npm, run `npm audit fix`. For a direct NuGet package, change its version in `backend/Directory.Packages.props`. For a transitive NuGet package, update the package that brings it in, or add a `<PackageVersion>` in `Directory.Packages.props` plus a `<PackageReference>` in the project that uses it. A `<PackageVersion>` alone does not change a transitive version, because transitive pinning is off.
 
 `.github/dependabot.yml` opens weekly update pull requests for NuGet, npm, Docker, Docker Compose and GitHub Actions. `.github/workflows/codeql.yml` runs CodeQL on C# and TypeScript for every pull request, every push to `main` and once a week.
 
@@ -104,7 +110,7 @@ A new advisory can turn the job red on a branch that did not touch any package. 
 - Locally, in `backend/src/GymRatService.API`: `dotnet user-secrets set "AiCoach:ApiKey" "<your OpenRouter API key>"`
 - Docker: set `AI_COACH_API_KEY` in `infra/.env`
 
-Without a key the endpoint answers 400 `BLException_ChatService_ProviderUnavailable`. `AiCoach:Model` and `AiCoach:Endpoint` switch to any other OpenAI-compatible provider through configuration. Per-user limits: `AiCoach:RateLimitRequests` (5) per `RateLimitWindowSeconds` (60), `DailyRequestLimit` (100), `DailyTokenBudget` (30000); replies are capped at `MaximumOutputTokens` (600) and the tool loop at `MaximumToolIterations` (3).
+Without a key the endpoint answers 400 `BLException_ChatService_ProviderUnavailable`. `AiCoach:Model` and `AiCoach:Endpoint` switch to any other OpenAI-compatible provider through configuration. Per-user limits: `AiCoach:RateLimitRequests` (5) per `RateLimitWindowSeconds` (60), `DailyRequestLimit` (100), `DailyTokenBudget` (30000); replies are capped at `MaximumOutputTokens` (600) and the tool loop at `MaximumToolIterations` (3). Usage is stored per user in the `CoachUsages` table, so the limits survive restarts and hold across instances; the daily counters reset at midnight UTC. Before the provider is called, the estimated input (prompt, history and tool definitions, about four characters per token) plus `MaximumOutputTokens` is reserved, and the request is refused with `BLException_ChatService_TokenBudgetExceeded` when that does not fit the daily budget. After the call the reservation is replaced by the tokens the provider reported for every model call, or by an estimate when it reports none; a call the caller cancels is charged its estimated input plus `MaximumOutputTokens`. Only the newest history messages that fit in `MaximumHistoryCharacters` (12000) are sent.
 
 ## End-to-end smoke test
 

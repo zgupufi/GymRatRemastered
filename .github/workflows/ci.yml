@@ -119,7 +119,7 @@ jobs:
           files=$(git diff --name-only "$BASE_SHA...HEAD")
           echo "$files"
           shared='^\.github/workflows/ci\.yml$'
-          frontend='^frontend/(Dockerfile|\.dockerignore|nginx\.conf|package\.json|package-lock\.json)$'
+          frontend='^frontend/(Dockerfile|\.dockerignore|nginx\.conf|security-headers\.conf|package\.json|package-lock\.json)$'
           backend='^backend/(Dockerfile|\.dockerignore|Directory\.Build\.props|Directory\.Packages\.props|GymRatService\.sln|.*\.csproj)$'
           if echo "$files" | grep -Eq "$shared|$frontend"; then
             echo "frontend=true" >> "$GITHUB_OUTPUT"

@@ -18,7 +18,7 @@ public static class ServiceLayerExtensions
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<ITokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IRefreshTokenGenerator, RefreshTokenGenerator>();
-        services.AddSingleton<IChatUsageLimiter, ChatUsageLimiter>();
+        services.AddScoped<IChatUsageLimiter, ChatUsageLimiter>();
         services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton<ILoginAttemptLimiter, LoginAttemptLimiter>();
 

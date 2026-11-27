@@ -220,9 +220,8 @@ public sealed class ChatOpenRouterEndpointsTests : IDisposable
     public async Task SendMessage_StopsCallingOpenRouter_OnceTheDailyTokenBudgetIsSpent()
     {
         // Arrange
-        var client = await StartAsync(_ => FakeOpenRouterReply.Text("ok", totalTokens: 100), settings =>
+        var client = await StartAsync(_ => FakeOpenRouterReply.Text("ok", totalTokens: 20000), settings =>
         {
-            settings["AiCoach:DailyTokenBudget"] = "150";
             settings["AiCoach:RateLimitRequests"] = "50";
         });
         var message = new ChatMessageRequest("Hi", null);

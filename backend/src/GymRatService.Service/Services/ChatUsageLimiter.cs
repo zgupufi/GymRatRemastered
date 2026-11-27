@@ -1,77 +1,87 @@
-using System.Collections.Concurrent;
+using System.Globalization;
 using GymRatService.Common.Errors;
 using GymRatService.Common.Settings;
+using GymRatService.Repository.Entities;
+using GymRatService.Repository.Interfaces;
 using GymRatService.Service.Exceptions;
 using GymRatService.Service.Interfaces;
+using GymRatService.Service.Usage;
 using Microsoft.Extensions.Options;
 
 namespace GymRatService.Service.Services;
 
-public class ChatUsageLimiter(IOptions<AiCoachSettings> options) : IChatUsageLimiter
+public class ChatUsageLimiter(ICoachUsageRepository usageRepository, IOptions<AiCoachSettings> options, TimeProvider timeProvider) : IChatUsageLimiter
 {
-    private readonly ConcurrentDictionary<Guid, UserUsage> _usage = new();
+    private const int MaximumAttempts = 10;
 
-    public void EnsureAllowed(Guid userId)
+    private const char Separator = ',';
+
+    public async Task<ChatUsageReservation> ReserveAsync(Guid userId, long estimatedTokens, CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; attempt < MaximumAttempts; attempt++)
+        {
+            var now = timeProvider.GetUtcNow();
+            var today = DateOnly.FromDateTime(now.UtcDateTime);
+            var stored = await usageRepository.GetByUserAsync(userId, cancellationToken);
+            var usage = Apply(stored, userId, today, now, estimatedTokens);
+
+            var saved = stored is null
+                ? await usageRepository.TryAddAsync(usage, cancellationToken)
+                : await usageRepository.TryUpdateAsync(usage, stored.Version, cancellationToken);
+
+            if (saved)
+            {
+                return new ChatUsageReservation(userId, today, estimatedTokens);
+            }
+        }
+
+        throw new BusinessLogicException(ErrorCodes.ChatRateLimited);
+    }
+
+    public async Task SettleAsync(ChatUsageReservation reservation, long usedTokens, CancellationToken cancellationToken)
+    {
+        var difference = usedTokens - reservation.Tokens;
+
+        if (difference != 0)
+        {
+            await usageRepository.AdjustTokensAsync(reservation.UserId, reservation.Day, difference, cancellationToken);
+        }
+    }
+
+    private CoachUsage Apply(CoachUsage? stored, Guid userId, DateOnly today, DateTimeOffset now, long estimatedTokens)
     {
         var settings = options.Value;
-        var now = TimeProvider.System.GetUtcNow();
-        var today = DateOnly.FromDateTime(now.UtcDateTime);
-        var usage = _usage.GetOrAdd(userId, _ => new UserUsage());
+        var current = stored?.Day == today ? stored : null;
+        var requestCount = current?.RequestCount ?? 0;
+        var tokensUsed = current?.TokensUsed ?? 0;
 
-        lock (usage)
+        if (tokensUsed + estimatedTokens > settings.DailyTokenBudget)
         {
-            if (usage.Day != today)
-            {
-                usage.Day = today;
-                usage.Tokens = 0;
-                usage.DayRequests = 0;
-            }
-
-            if (usage.Tokens >= settings.DailyTokenBudget)
-            {
-                throw new BusinessLogicException(ErrorCodes.ChatTokenBudgetExceeded);
-            }
-
-            var windowStart = now - TimeSpan.FromSeconds(settings.RateLimitWindowSeconds);
-
-            while (usage.Requests.Count > 0 && usage.Requests.Peek() <= windowStart)
-            {
-                usage.Requests.Dequeue();
-            }
-
-            if (usage.Requests.Count >= settings.RateLimitRequests)
-            {
-                throw new BusinessLogicException(ErrorCodes.ChatRateLimited);
-            }
-
-            if (usage.DayRequests >= settings.DailyRequestLimit)
-            {
-                throw new BusinessLogicException(ErrorCodes.ChatRateLimited);
-            }
-
-            usage.DayRequests++;
-            usage.Requests.Enqueue(now);
+            throw new BusinessLogicException(ErrorCodes.ChatTokenBudgetExceeded);
         }
-    }
 
-    public void RecordTokens(Guid userId, long tokens)
-    {
-        var usage = _usage.GetOrAdd(userId, _ => new UserUsage());
+        var windowStart = (now - TimeSpan.FromSeconds(settings.RateLimitWindowSeconds)).ToUnixTimeMilliseconds();
+        var recentRequests = (stored?.RecentRequests ?? string.Empty)
+            .Split(Separator, StringSplitOptions.RemoveEmptyEntries)
+            .Select(value => long.Parse(value, CultureInfo.InvariantCulture))
+            .Where(requestedAt => requestedAt > windowStart)
+            .ToList();
 
-        lock (usage)
+        if (recentRequests.Count >= settings.RateLimitRequests || requestCount >= settings.DailyRequestLimit)
         {
-            usage.Tokens += tokens;
+            throw new BusinessLogicException(ErrorCodes.ChatRateLimited);
         }
-    }
 
-    private sealed class UserUsage
-    {
-        public Queue<DateTimeOffset> Requests { get; } = new();
+        recentRequests.Add(now.ToUnixTimeMilliseconds());
 
-        public DateOnly Day { get; set; }
-
-        public int DayRequests { get; set; }
-
-        public long Tokens { get; set; }
+        return new CoachUsage
+        {
+            UserId = userId,
+            Day = today,
+            RequestCount = requestCount + 1,
+            TokensUsed = tokensUsed + estimatedTokens,
+            RecentRequests = string.Join(Separator, recentRequests.Select(requestedAt => requestedAt.ToString(CultureInfo.InvariantCulture))),
+            Version = stored?.Version ?? 0,
+        };
     }
 }

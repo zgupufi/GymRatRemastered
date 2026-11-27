@@ -23,6 +23,8 @@ public class GymRatDbContext(DbContextOptions<GymRatDbContext> options) : DbCont
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
+    public DbSet<CoachUsage> CoachUsages => Set<CoachUsage>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(GymRatDbContext).Assembly);
