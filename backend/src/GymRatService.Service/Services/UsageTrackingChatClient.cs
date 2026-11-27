@@ -23,7 +23,7 @@ public sealed class UsageTrackingChatClient(IChatClient inner) : DelegatingChatC
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            UsedTokens += ChatTokenEstimator.EstimateInput(sent, options);
+            UsedTokens += ChatTokenEstimator.EstimateInput(sent, options) + (options?.MaxOutputTokens ?? 0);
 
             throw;
         }

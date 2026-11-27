@@ -77,7 +77,7 @@ public class ChatService(
         }
         finally
         {
-            await usageLimiter.SettleAsync(reservation, tracker.UsedTokens, CancellationToken.None);
+            await TrySettleAsync(reservation, tracker.UsedTokens);
         }
 
         if (ToolCallMarkup.IsPresentIn(response.Text))
@@ -88,6 +88,18 @@ public class ChatService(
         }
 
         return new ChatMessageResponse(response.Text, tools.WorkoutsChanged, tools.Suggestions);
+    }
+
+    private async Task TrySettleAsync(ChatUsageReservation reservation, long usedTokens)
+    {
+        try
+        {
+            await usageLimiter.SettleAsync(reservation, usedTokens, CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "AI coach usage could not be settled, {ReservedTokens} tokens stay charged", reservation.Tokens);
+        }
     }
 
     private static List<ChatHistoryItem> RecentHistory(IReadOnlyList<ChatHistoryItem> history, AiCoachSettings settings)

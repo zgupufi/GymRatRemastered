@@ -45,7 +45,7 @@ public sealed class ChatUsageLimitsEndpointsTests : IDisposable
         var second = await CreateClient(restarted, token).PostAsJsonAsync("/api/chat/messages", Message);
 
         // Assert
-        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        await AssertReplyAsync(first, "ok");
         await AssertErrorAsync(second, ErrorCodes.ChatTokenBudgetExceeded);
         Assert.Single(_chat.Calls);
     }
@@ -65,7 +65,7 @@ public sealed class ChatUsageLimitsEndpointsTests : IDisposable
         var second = await CreateClient(restarted, token).PostAsJsonAsync("/api/chat/messages", Message);
 
         // Assert
-        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+        await AssertReplyAsync(first, "ok");
         await AssertErrorAsync(second, ErrorCodes.ChatRateLimited);
         Assert.Single(_chat.Calls);
     }
@@ -85,7 +85,7 @@ public sealed class ChatUsageLimitsEndpointsTests : IDisposable
 
         // Assert
         await AssertErrorAsync(sameDay, ErrorCodes.ChatTokenBudgetExceeded);
-        Assert.Equal("ok", (await nextDay.Content.ReadFromJsonAsync<ChatMessageResponse>())?.Reply);
+        await AssertReplyAsync(nextDay, "ok");
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public sealed class ChatUsageLimitsEndpointsTests : IDisposable
 
         // Assert
         await AssertErrorAsync(withHistory, ErrorCodes.ChatTokenBudgetExceeded);
-        Assert.Equal(HttpStatusCode.OK, withoutHistory.StatusCode);
+        await AssertReplyAsync(withoutHistory, "ok");
         Assert.Equal(2, _chat.Calls.Count);
     }
 
@@ -138,7 +138,14 @@ public sealed class ChatUsageLimitsEndpointsTests : IDisposable
         var second = await CreateClient(restarted, token).PostAsJsonAsync("/api/chat/messages", Message);
 
         // Assert
-        Assert.Equal(accepted ? HttpStatusCode.OK : HttpStatusCode.BadRequest, second.StatusCode);
+        if (accepted)
+        {
+            await AssertReplyAsync(second, "ok");
+        }
+        else
+        {
+            await AssertErrorAsync(second, ErrorCodes.ChatTokenBudgetExceeded);
+        }
     }
 
     [Fact]
@@ -157,7 +164,7 @@ public sealed class ChatUsageLimitsEndpointsTests : IDisposable
 
         // Assert
         await AssertErrorAsync(failed, ErrorCodes.ChatProviderUnavailable);
-        Assert.Equal("ok", (await second.Content.ReadFromJsonAsync<ChatMessageResponse>())?.Reply);
+        await AssertReplyAsync(second, "ok");
     }
 
     [Fact]
@@ -176,7 +183,7 @@ public sealed class ChatUsageLimitsEndpointsTests : IDisposable
         var second = await client.PostAsJsonAsync("/api/chat/messages", Message);
 
         // Assert
-        Assert.Equal("from fallback", (await first.Content.ReadFromJsonAsync<ChatMessageResponse>())?.Reply);
+        await AssertReplyAsync(first, "from fallback");
         await AssertErrorAsync(second, ErrorCodes.ChatTokenBudgetExceeded);
     }
 
@@ -194,7 +201,7 @@ public sealed class ChatUsageLimitsEndpointsTests : IDisposable
         var response = await client.PostAsJsonAsync("/api/chat/messages", new ChatMessageRequest("Hi", history));
 
         // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await AssertReplyAsync(response, "ok");
         Assert.Equal(["123456", "7890", "Hi"], _chat.Calls[0].Skip(1).Select(message => message.Text));
     }
 
@@ -240,6 +247,12 @@ public sealed class ChatUsageLimitsEndpointsTests : IDisposable
         await _factory.SeedAsync(_ => { });
 
         return await _factory.RegisterAndLoginAsync(new RegisterRequest("ana@example.com", "password123", "Ana", null, WeightUnit.Kilograms));
+    }
+
+    private static async Task AssertReplyAsync(HttpResponseMessage response, string reply)
+    {
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(reply, (await response.Content.ReadFromJsonAsync<ChatMessageResponse>())?.Reply);
     }
 
     private static async Task AssertErrorAsync(HttpResponseMessage response, string code)

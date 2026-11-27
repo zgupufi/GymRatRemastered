@@ -46,7 +46,7 @@ public class UsageTrackingChatClientTests
     }
 
     [Fact]
-    public async Task GetResponseAsync_CountsTheInput_WhenTheCallerCancelsDuringTheCall()
+    public async Task GetResponseAsync_CountsTheInputAndTheMaximumOutput_WhenTheCallerCancelsDuringTheCall()
     {
         // Arrange
         using var cancellation = new CancellationTokenSource();
@@ -56,10 +56,10 @@ public class UsageTrackingChatClientTests
         using var client = new UsageTrackingChatClient(_inner);
 
         // Act
-        await Assert.ThrowsAsync<OperationCanceledException>(() => client.GetResponseAsync(_messages, cancellationToken: cancellation.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => client.GetResponseAsync(_messages, new ChatOptions { MaxOutputTokens = 600 }, cancellation.Token));
 
         // Assert
-        Assert.Equal(100, client.UsedTokens);
+        Assert.Equal(700, client.UsedTokens);
     }
 
     [Fact]
