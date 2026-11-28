@@ -118,7 +118,7 @@ export function ProgressionPage() {
   return (
     <main className="page progression-page">
       <header className="page__header">
-        <h1>Progression</h1>
+        <h1>Progress</h1>
         <p>Track your evolution and break plateaus.</p>
       </header>
 
@@ -199,7 +199,7 @@ export function ProgressionPage() {
                 <Activity size={22} />
               </span>
               <strong>No data yet</strong>
-              <p>Complete this exercise in a workout and its progression will appear here.</p>
+              <p>Complete this exercise in a workout and its progress will appear here.</p>
             </div>
           ) : null}
           {progress.status === 'loaded' && progress.points.length === 1 ? (

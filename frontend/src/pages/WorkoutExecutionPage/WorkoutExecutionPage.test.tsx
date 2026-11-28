@@ -650,14 +650,14 @@ describe('WorkoutExecutionPage', () => {
     expect(screen.queryByRole('heading', { name: 'Home' })).not.toBeInTheDocument()
   })
 
-  it('links the finish summary to progression', async () => {
+  it('links the finish summary to progress', async () => {
     const user = userEvent.setup()
     renderPage()
     await startToday(user)
     await endWorkout(user)
     await screen.findByRole('heading', { level: 1, name: 'Workout finished' })
 
-    expect(screen.getByRole('link', { name: 'View progression' })).toHaveAttribute('href', '/progress')
+    expect(screen.getByRole('link', { name: 'View progress' })).toHaveAttribute('href', '/progress')
   })
 
   it('works without a previous session', async () => {

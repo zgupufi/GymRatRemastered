@@ -93,7 +93,7 @@ export function SplitPage() {
     <main className="page split-page">
       <header className="page__header split-page__header">
         <div>
-          <h1>My split</h1>
+          <h1>Split</h1>
           <p>Assign a workout to each day of the week, or leave it as a rest day.</p>
         </div>
         <Button onClick={save} loading={saving} disabled={state.status !== 'loaded' || changedDays.length === 0}>

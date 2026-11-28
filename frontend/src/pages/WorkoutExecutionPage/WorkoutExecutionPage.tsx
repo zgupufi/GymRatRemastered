@@ -177,7 +177,7 @@ export function WorkoutExecutionPage() {
             Done
           </ButtonLink>
           <ButtonLink to="/progress" variant="secondary" fullWidth>
-            View progression
+            View progress
           </ButtonLink>
         </div>
       </main>
@@ -207,7 +207,7 @@ export function WorkoutExecutionPage() {
               <Target size={32} />
             </span>
             <h1>Rest day</h1>
-            <p className="execution__muted">Nothing is scheduled for today in your training split.</p>
+            <p className="execution__muted">Nothing is scheduled for today in your split.</p>
             <Button size="lg" fullWidth onClick={() => setPickerOpen(true)}>
               Start a workout
             </Button>

@@ -102,7 +102,7 @@ export function WorkoutsPage() {
     <main className="page workouts-page">
       <header className="page__header workouts-page__header">
         <div>
-          <h1>My workouts</h1>
+          <h1>Workouts</h1>
           <p>Create, edit, and organize your routines.</p>
         </div>
         <Button onClick={create} loading={creating}>
