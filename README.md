@@ -1,6 +1,6 @@
 # GymRat
 
-.NET 10 Web API (`backend`), React + Vite frontend (`frontend`), PostgreSQL with Liquibase migrations (`database`).
+.NET 10 Web API (`backend`), React + Vite frontend (`frontend`), PostgreSQL with Liquibase migrations (`database`). How it fits together is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), with the reasons in [docs/decisions](docs/decisions/README.md).
 
 ## Run with Docker
 
