@@ -1,5 +1,6 @@
+import { restOverHaptic } from './haptics'
+
 const SOUND_KEY = 'gymrat.restSound'
-const VIBRATION_PATTERN = [200, 100, 200]
 const TONE_HZ = 880
 const TONE_SECONDS = 0.25
 const TONE_GAP_SECONDS = 0.1
@@ -64,9 +65,7 @@ function playTone(context: AudioContext): void {
 }
 
 export function signalRestOver(soundEnabled: boolean): void {
-  if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-    navigator.vibrate(VIBRATION_PATTERN)
-  }
+  restOverHaptic()
   if (!soundEnabled) {
     return
   }

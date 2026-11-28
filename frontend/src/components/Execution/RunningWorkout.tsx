@@ -7,6 +7,7 @@ import type { Workout } from '../../api/workouts'
 import { useRestTimer } from '../../hooks/useRestTimer'
 import { useStopwatch } from '../../hooks/useStopwatch'
 import { formatClock } from '../../lib/clock'
+import { setCompletedHaptic, workoutFinishedHaptic } from '../../lib/haptics'
 import { displayWeight, unitLabel } from '../../lib/weight'
 import { Button } from '../ui/Button'
 import { Modal } from '../ui/Modal'
@@ -128,6 +129,7 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
       await saveExercise(index, drafts)
       finished.current = true
       await finishSession(sessionId)
+      workoutFinishedHaptic()
       rest.skip()
       onFinished(
         elapsed,
@@ -184,6 +186,7 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
       )
       return
     }
+    setCompletedHaptic()
     rest.start(restSeconds)
     const updated = current.map((draft, position) => (position === row ? { ...draft, done: true } : draft))
     persistSets(index, { ...drafts, [exercise.id]: updated })
