@@ -119,7 +119,13 @@ export function WorkoutCard({ workout, startExpanded = false, onChanged, onDelet
               onChange={(event) => setName(event.target.value)}
               onKeyDown={handleNameKeyDown}
             />
-            <button type="button" className="icon-button icon-button--accent" aria-label="Save name" disabled={!canRename || busy} onClick={saveName}>
+            <button
+              type="button"
+              className="icon-button icon-button--accent"
+              aria-label="Save name"
+              disabled={!canRename || busy}
+              onClick={saveName}
+            >
               <Check size={18} aria-hidden="true" />
             </button>
           </div>
@@ -134,7 +140,11 @@ export function WorkoutCard({ workout, startExpanded = false, onChanged, onDelet
               <span className="workout-card__title">
                 <span className="workout-card__name">{workout.name}</span>
               </span>
-              <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={spring} className="workout-card__chevron">
+              <motion.span
+                animate={{ rotate: expanded ? 180 : 0 }}
+                transition={spring}
+                className="workout-card__chevron"
+              >
                 <ChevronDown size={18} aria-hidden="true" />
               </motion.span>
             </button>

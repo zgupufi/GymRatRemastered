@@ -29,7 +29,10 @@ export function AppRoutes() {
           <Route path="progress" element={<ProgressionPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
-        <Route path="*" element={<PlaceholderPage title="Page not found" description="That page does not exist." homeLink />} />
+        <Route
+          path="*"
+          element={<PlaceholderPage title="Page not found" description="That page does not exist." homeLink />}
+        />
       </Route>
     </Routes>
   )

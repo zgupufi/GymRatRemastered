@@ -3,13 +3,15 @@ import type { ReactNode } from 'react'
 const BULLET = /^\s*(?:[-*]|\d+\.)\s+(.*)$/
 
 function renderInline(text: string): ReactNode[] {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
-    part.startsWith('**') && part.endsWith('**') && part.length > 4 ? (
-      <strong key={index}>{part.slice(2, -2)}</strong>
-    ) : (
-      part
-    ),
-  )
+  return text
+    .split(/(\*\*[^*]+\*\*)/g)
+    .map((part, index) =>
+      part.startsWith('**') && part.endsWith('**') && part.length > 4 ? (
+        <strong key={index}>{part.slice(2, -2)}</strong>
+      ) : (
+        part
+      ),
+    )
 }
 
 export function formatReply(reply: string): ReactNode {

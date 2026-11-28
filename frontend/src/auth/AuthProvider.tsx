@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { login as loginRequest, logout as logoutRequest, register as registerRequest, type RegisterRequest } from '../api/auth'
+import {
+  login as loginRequest,
+  logout as logoutRequest,
+  register as registerRequest,
+  type RegisterRequest,
+} from '../api/auth'
 import { ApiError, refreshSession, setAccessToken, setUnauthorizedHandler } from '../api/client'
 import { getUserProfile, updateUserSettings, type UserProfile, type UserSettings } from '../api/users'
 import { AuthContext, LoginAfterRegisterError, type AuthApi, type AuthStatus } from './AuthContext'

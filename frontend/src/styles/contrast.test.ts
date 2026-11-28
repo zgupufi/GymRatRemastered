@@ -7,7 +7,9 @@ const textTokens = ['--text', '--text-2', '--text-3', '--text-4']
 const surfaceTokens = ['--bg', '--bg-elevated', '--surface', '--surface-2', '--surface-3']
 
 function declarations(block: string) {
-  return Object.fromEntries([...block.matchAll(/(--[\w-]+):\s*(#[0-9a-f]{6})\s*;/gi)].map((match) => [match[1], match[2]]))
+  return Object.fromEntries(
+    [...block.matchAll(/(--[\w-]+):\s*(#[0-9a-f]{6})\s*;/gi)].map((match) => [match[1], match[2]]),
+  )
 }
 
 function rootBlock(opening: RegExp) {
@@ -59,7 +61,9 @@ describe('text color usage', () => {
 
   it('keeps --text-4 for disabled controls only', () => {
     const rules = Object.values(stylesheets).flatMap((css) => [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)])
-    const selectors = rules.filter(([, , body]) => body.includes('var(--text-4)')).map(([, selector]) => selector.trim())
+    const selectors = rules
+      .filter(([, , body]) => body.includes('var(--text-4)'))
+      .map(([, selector]) => selector.trim())
 
     expect(selectors.length).toBeGreaterThan(0)
     expect(selectors.filter((selector) => !targetsOnlyDisabled(selector))).toEqual([])

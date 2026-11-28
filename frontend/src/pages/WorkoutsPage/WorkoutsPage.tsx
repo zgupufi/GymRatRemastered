@@ -22,10 +22,7 @@ const SORTS: Record<SortOption, { sortBy: WorkoutSortField; direction: SortDirec
   name: { sortBy: 'Name', direction: 'Ascending' },
 }
 
-type State =
-  | { status: 'loading' }
-  | { status: 'error' }
-  | { status: 'loaded'; result: PagedResult<WorkoutSummary> }
+type State = { status: 'loading' } | { status: 'error' } | { status: 'loaded'; result: PagedResult<WorkoutSummary> }
 
 function newWorkoutName(): string {
   const day = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -48,10 +45,7 @@ export function WorkoutsPage() {
 
   useEffect(() => {
     const controller = new AbortController()
-    getWorkoutSummaries(
-      { term: debouncedTerm, ...SORTS[sort], page, pageSize: PAGE_SIZE },
-      controller.signal,
-    )
+    getWorkoutSummaries({ term: debouncedTerm, ...SORTS[sort], page, pageSize: PAGE_SIZE }, controller.signal)
       .then((result) => {
         if (result.items.length === 0 && result.page > 1) {
           setPage(result.page - 1)
@@ -170,19 +164,25 @@ export function WorkoutsPage() {
             ))}
           </ul>
           {result.totalCount > result.pageSize ? (
-          <nav className="workouts-page__pager" aria-label="Workouts pages">
-            <span>
-              Showing {firstShown}–{lastShown} of {result.totalCount} {result.totalCount === 1 ? 'workout' : 'workouts'}
-            </span>
-            <div>
-              <Button size="sm" variant="secondary" disabled={result.page <= 1} onClick={() => setPage((value) => value - 1)}>
-                Previous
-              </Button>
-              <Button size="sm" variant="secondary" disabled={!hasNext} onClick={() => setPage((value) => value + 1)}>
-                Next
-              </Button>
-            </div>
-          </nav>
+            <nav className="workouts-page__pager" aria-label="Workouts pages">
+              <span>
+                Showing {firstShown}–{lastShown} of {result.totalCount}{' '}
+                {result.totalCount === 1 ? 'workout' : 'workouts'}
+              </span>
+              <div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={result.page <= 1}
+                  onClick={() => setPage((value) => value - 1)}
+                >
+                  Previous
+                </Button>
+                <Button size="sm" variant="secondary" disabled={!hasNext} onClick={() => setPage((value) => value + 1)}>
+                  Next
+                </Button>
+              </div>
+            </nav>
           ) : null}
         </>
       ) : null}

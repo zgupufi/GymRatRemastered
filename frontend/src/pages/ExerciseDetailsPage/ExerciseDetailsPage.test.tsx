@@ -63,7 +63,12 @@ describe('ExerciseDetailsPage', () => {
   })
 
   it('falls back when there is no video, secondary muscle or difficulty', async () => {
-    vi.mocked(getExercise).mockResolvedValue({ ...benchPress, youtubeLink: null, secondaryMuscles: [], description: null })
+    vi.mocked(getExercise).mockResolvedValue({
+      ...benchPress,
+      youtubeLink: null,
+      secondaryMuscles: [],
+      description: null,
+    })
 
     renderPage()
 

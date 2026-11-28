@@ -109,7 +109,6 @@
   font-weight: 700;
 }
 
-
 .settings-page__stepper {
   display: flex;
   align-items: center;
@@ -192,7 +191,6 @@
   .settings-page__row {
     padding: var(--space-3) var(--space-4);
   }
-
 
   .settings-page__save .button {
     width: 100%;

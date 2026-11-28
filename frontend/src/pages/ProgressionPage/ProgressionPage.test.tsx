@@ -74,7 +74,9 @@ function splitWithToday(workoutId: string | null, today = 3) {
   return Array.from({ length: 7 }, (_, index) => ({
     day: index + 1,
     workout:
-      workoutId && index + 1 === today ? { id: workoutId, name: 'Push day', exerciseCount: 2, mainMuscles: ['Chest'] } : null,
+      workoutId && index + 1 === today
+        ? { id: workoutId, name: 'Push day', exerciseCount: 2, mainMuscles: ['Chest'] }
+        : null,
   }))
 }
 
@@ -123,7 +125,7 @@ describe('ProgressionPage', () => {
     expect(getWorkout).not.toHaveBeenCalled()
   })
 
-  it("ignores a failing split lookup", async () => {
+  it('ignores a failing split lookup', async () => {
     vi.mocked(getSplit).mockRejectedValue(new Error('down'))
 
     renderPage()

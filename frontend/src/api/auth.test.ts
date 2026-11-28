@@ -8,7 +8,9 @@ describe('auth api', () => {
   })
 
   it('posts the credentials to the login endpoint and returns the token', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ accessToken: 'abc', expiresAt: '2999-01-01T00:00:00Z' }))
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(Response.json({ accessToken: 'abc', expiresAt: '2999-01-01T00:00:00Z' }))
     vi.stubGlobal('fetch', fetchMock)
 
     const response = await login({ email: 'rafael@example.com', password: 'secret123' })
@@ -25,7 +27,13 @@ describe('auth api', () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 201 }))
     vi.stubGlobal('fetch', fetchMock)
 
-    await register({ email: 'a@b.co', password: 'secret123', firstName: 'A', lastName: null, weightUnit: WeightUnit.Pounds })
+    await register({
+      email: 'a@b.co',
+      password: 'secret123',
+      firstName: 'A',
+      lastName: null,
+      weightUnit: WeightUnit.Pounds,
+    })
 
     expect(fetchMock.mock.calls[0][0]).toBe('/api/auth/register')
     expect(JSON.parse(fetchMock.mock.calls[0][1]?.body as string)).toMatchObject({ weightUnit: 1, lastName: null })

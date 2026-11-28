@@ -41,7 +41,11 @@ describe('TargetBanner', () => {
 
   it('asks for a weight the first time without a use button', () => {
     render(
-      <TargetBanner target={{ ...base, weightKg: null, reason: 'NoHistory', lastWeightKg: null, lastReps: [] }} unit={WeightUnit.Kilograms} onUse={vi.fn()} />,
+      <TargetBanner
+        target={{ ...base, weightKg: null, reason: 'NoHistory', lastWeightKg: null, lastReps: [] }}
+        unit={WeightUnit.Kilograms}
+        onUse={vi.fn()}
+      />,
     )
 
     expect(screen.getByText('First time')).toBeInTheDocument()
@@ -50,18 +54,30 @@ describe('TargetBanner', () => {
   })
 
   it('explains a hold, a stall and bodyweight targets in pounds', () => {
-    const { rerender } = render(<TargetBanner target={{ ...base, reason: 'Hold', weightKg: 100 }} unit={WeightUnit.Pounds} onUse={vi.fn()} />)
+    const { rerender } = render(
+      <TargetBanner target={{ ...base, reason: 'Hold', weightKg: 100 }} unit={WeightUnit.Pounds} onUse={vi.fn()} />,
+    )
 
     expect(screen.getByText('220.5 lbs × 8')).toBeInTheDocument()
     expect(screen.getByText('Same weight and reps until it feels easier.')).toBeInTheDocument()
 
-    rerender(<TargetBanner target={{ ...base, reason: 'Stalled', weightKg: 0, lastWeightKg: 0, reps: 10 }} unit={WeightUnit.Kilograms} onUse={vi.fn()} />)
+    rerender(
+      <TargetBanner
+        target={{ ...base, reason: 'Stalled', weightKg: 0, lastWeightKg: 0, reps: 10 }}
+        unit={WeightUnit.Kilograms}
+        onUse={vi.fn()}
+      />,
+    )
 
     expect(screen.getByText('Stalled')).toBeInTheDocument()
     expect(screen.getByText('Bodyweight × 10')).toBeInTheDocument()
-    expect(screen.getByText('Stalled two sessions in a row. Open the coach after your workout for a plan.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Stalled two sessions in a row. Open the coach after your workout for a plan.'),
+    ).toBeInTheDocument()
 
-    rerender(<TargetBanner target={{ ...base, reason: 'AddRep', reps: 9 }} unit={WeightUnit.Kilograms} onUse={vi.fn()} />)
+    rerender(
+      <TargetBanner target={{ ...base, reason: 'AddRep', reps: 9 }} unit={WeightUnit.Kilograms} onUse={vi.fn()} />,
+    )
     expect(screen.getByText('Add a rep')).toBeInTheDocument()
   })
 })

@@ -13,7 +13,9 @@ describe('ProgressChart', () => {
   it('describes the chart and shows the latest session in the tooltip', () => {
     render(<ProgressChart exerciseName="Bench Press" points={points} />)
 
-    expect(screen.getByRole('img', { name: 'Estimated one rep max of Bench Press over 3 sessions' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('img', { name: 'Estimated one rep max of Bench Press over 3 sessions' }),
+    ).toBeInTheDocument()
     expect(screen.getByText('7 Nov 2026')).toBeInTheDocument()
     expect(screen.getByText('90 kg × 6 reps')).toBeInTheDocument()
     expect(screen.getByText('108')).toBeInTheDocument()

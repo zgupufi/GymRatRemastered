@@ -12,7 +12,12 @@ import { SplitPage } from './SplitPage'
 vi.mock('../../api/split')
 vi.mock('../../api/workouts')
 
-const push: WorkoutSummary = { id: 'w1', name: 'Push day', exerciseCount: 6, mainMuscles: ['Chest', 'Triceps', 'Chest'] }
+const push: WorkoutSummary = {
+  id: 'w1',
+  name: 'Push day',
+  exerciseCount: 6,
+  mainMuscles: ['Chest', 'Triceps', 'Chest'],
+}
 const legs: WorkoutSummary = { id: 'w2', name: 'Leg day', exerciseCount: 5, mainMuscles: ['Quads'] }
 const everything: WorkoutSummary = {
   id: 'w3',
@@ -45,7 +50,12 @@ describe('SplitPage', () => {
 
   beforeEach(() => {
     vi.mocked(getSplit).mockResolvedValue(days({ 1: push }))
-    vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [push, legs, everything], page: 1, pageSize: 100, totalCount: 3 })
+    vi.mocked(getWorkoutSummaries).mockResolvedValue({
+      items: [push, legs, everything],
+      page: 1,
+      pageSize: 100,
+      totalCount: 3,
+    })
     vi.mocked(assignSplitDay).mockResolvedValue(undefined)
   })
 
@@ -62,7 +72,9 @@ describe('SplitPage', () => {
     expect(within(monday).getAllByText('Chest')).toHaveLength(1)
     expect(within(monday).getByText('Triceps')).toBeInTheDocument()
     expect(screen.getAllByRole('listitem').filter((item) => item.classList.contains('day-card'))).toHaveLength(7)
-    expect(within(screen.getByRole('listitem', { name: 'Tuesday' })).getByRole('button', { name: 'Tuesday workout' })).toHaveTextContent('Rest day')
+    expect(
+      within(screen.getByRole('listitem', { name: 'Tuesday' })).getByRole('button', { name: 'Tuesday workout' }),
+    ).toHaveTextContent('Rest day')
   })
 
   it.each([
@@ -96,7 +108,9 @@ describe('SplitPage', () => {
     act(() => announceWorkoutsChanged())
 
     const tuesday = await screen.findByRole('listitem', { name: 'Tuesday' })
-    await waitFor(() => expect(within(tuesday).getByRole('button', { name: 'Tuesday workout' })).toHaveTextContent('Leg day'))
+    await waitFor(() =>
+      expect(within(tuesday).getByRole('button', { name: 'Tuesday workout' })).toHaveTextContent('Leg day'),
+    )
     expect(getSplit).toHaveBeenCalledTimes(2)
   })
 

@@ -13,7 +13,13 @@ interface SegmentedControlProps<T extends string> {
   wide?: boolean
 }
 
-export function SegmentedControl<T extends string>({ label, options, value, onChange, wide }: SegmentedControlProps<T>) {
+export function SegmentedControl<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+  wide,
+}: SegmentedControlProps<T>) {
   return (
     <div className={`segmented${wide ? ' segmented--wide' : ''}`} role="radiogroup" aria-label={label}>
       {options.map((option) => (

@@ -18,7 +18,9 @@ export const DayCard = forwardRef<HTMLLIElement, DayCardProps>(function DayCard(
 ) {
   const assigned = workouts.find((workout) => workout.id === workoutId)
   const muscles = assigned ? [...new Set(assigned.mainMuscles)] : []
-  const classes = ['day-card', assigned ? 'day-card--assigned' : '', isToday ? 'day-card--today' : ''].filter(Boolean).join(' ')
+  const classes = ['day-card', assigned ? 'day-card--assigned' : '', isToday ? 'day-card--today' : '']
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <li ref={ref} className={classes} aria-label={name}>

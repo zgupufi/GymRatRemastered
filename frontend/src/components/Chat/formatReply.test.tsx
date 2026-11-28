@@ -4,7 +4,9 @@ import { formatReply } from './formatReply'
 
 describe('formatReply', () => {
   it('renders paragraphs, bold text and bullet lists', () => {
-    const { container } = render(<div>{formatReply('Done. Created **Leg Day**:\n- Squat\n* Leg press\n1. Lunge\n\nEnjoy')}</div>)
+    const { container } = render(
+      <div>{formatReply('Done. Created **Leg Day**:\n- Squat\n* Leg press\n1. Lunge\n\nEnjoy')}</div>,
+    )
 
     expect(container.querySelectorAll('p')).toHaveLength(2)
     expect(container.querySelector('strong')?.textContent).toBe('Leg Day')

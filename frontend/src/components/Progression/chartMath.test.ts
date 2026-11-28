@@ -40,7 +40,12 @@ describe('chartMath', () => {
   })
 
   it('draws a two point curve', () => {
-    expect(smoothPath([{ x: 0, y: 0 }, { x: 3, y: 3 }])).toBe('M0,0 C1,1 2,2 3,3')
+    expect(
+      smoothPath([
+        { x: 0, y: 0 },
+        { x: 3, y: 3 },
+      ]),
+    ).toBe('M0,0 C1,1 2,2 3,3')
   })
 
   it('picks evenly spread label indexes', () => {

@@ -75,9 +75,7 @@ describe('apiClient', () => {
   })
 
   it('throws an ApiError carrying the backend error code', async () => {
-    mockFetch(
-      Response.json({ code: 'Exercises.NameRequired', message: 'Name is required.' }, { status: 400 }),
-    )
+    mockFetch(Response.json({ code: 'Exercises.NameRequired', message: 'Name is required.' }, { status: 400 }))
 
     const error: unknown = await apiClient.post('/api/exercises', {}).catch((e: unknown) => e)
 
@@ -205,7 +203,10 @@ describe('apiClient', () => {
 
 describe('silent refresh', () => {
   const INVALID = () =>
-    Response.json({ code: 'BLException_AuthService_InvalidRefreshToken', message: 'The session has expired.' }, { status: 400 })
+    Response.json(
+      { code: 'BLException_AuthService_InvalidRefreshToken', message: 'The session has expired.' },
+      { status: 400 },
+    )
   const refreshed = (accessToken: string) => Response.json({ accessToken, expiresAt: '2999-01-01T00:00:00Z' })
   const unauthorized = () => new Response(null, { status: 401 })
 
@@ -216,7 +217,9 @@ describe('silent refresh', () => {
   })
 
   function stubFetch(handler: (url: string, init?: RequestInit) => Response | Promise<Response>) {
-    const fetchMock = vi.fn<typeof fetch>().mockImplementation((input, init) => Promise.resolve(handler(input as string, init)))
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockImplementation((input, init) => Promise.resolve(handler(input as string, init)))
     vi.stubGlobal('fetch', fetchMock)
     return fetchMock
   }
@@ -237,7 +240,9 @@ describe('silent refresh', () => {
       if (url === '/api/auth/refresh') {
         return refreshed('fresh')
       }
-      return new Headers(init?.headers).get('Authorization') === 'Bearer fresh' ? Response.json({ id: 7 }) : unauthorized()
+      return new Headers(init?.headers).get('Authorization') === 'Bearer fresh'
+        ? Response.json({ id: 7 })
+        : unauthorized()
     })
 
     const result = await apiClient.get<{ id: number }>('/api/things')
@@ -254,7 +259,9 @@ describe('silent refresh', () => {
       if (url === '/api/auth/refresh') {
         return refreshed('fresh')
       }
-      return new Headers(init?.headers).get('Authorization') === 'Bearer fresh' ? new Response(null, { status: 204 }) : unauthorized()
+      return new Headers(init?.headers).get('Authorization') === 'Bearer fresh'
+        ? new Response(null, { status: 204 })
+        : unauthorized()
     })
 
     await apiClient.put('/api/sessions/1/sets', { reps: 8 })
@@ -313,7 +320,9 @@ describe('silent refresh', () => {
       if (url === '/api/auth/refresh') {
         return refreshed('fresh')
       }
-      return new Headers(init?.headers).get('Authorization') === 'Bearer fresh' ? Response.json({ ok: true }) : unauthorized()
+      return new Headers(init?.headers).get('Authorization') === 'Bearer fresh'
+        ? Response.json({ ok: true })
+        : unauthorized()
     })
 
     await Promise.all([apiClient.get('/api/a'), apiClient.get('/api/b'), apiClient.get('/api/c')])
@@ -346,7 +355,9 @@ describe('silent refresh', () => {
     })
 
     it('reports unavailable when the server is rate limiting', async () => {
-      stubFetch(() => Response.json({ code: 'BLException_AuthService_TooManyAttempts', message: 'Slow down.' }, { status: 400 }))
+      stubFetch(() =>
+        Response.json({ code: 'BLException_AuthService_TooManyAttempts', message: 'Slow down.' }, { status: 400 }),
+      )
 
       expect(await refreshSession()).toBe('unavailable')
     })

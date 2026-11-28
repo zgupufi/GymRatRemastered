@@ -16,7 +16,10 @@ export function updateUserSettings(settings: UserSettings): Promise<void> {
 }
 
 export function changePassword(currentPassword: string, newPassword: string): Promise<void> {
-  return apiClient.post('/api/users/me/password', { currentPassword, newPassword } satisfies Schema<'ChangePasswordRequest'>)
+  return apiClient.post('/api/users/me/password', {
+    currentPassword,
+    newPassword,
+  } satisfies Schema<'ChangePasswordRequest'>)
 }
 
 export function deleteAccount(password: string): Promise<void> {

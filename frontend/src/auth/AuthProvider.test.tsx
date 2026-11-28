@@ -37,7 +37,10 @@ function refreshed(accessToken = 'refreshed-token') {
 }
 
 function invalidRefreshToken() {
-  return Response.json({ code: 'BLException_AuthService_InvalidRefreshToken', message: 'The session has expired.' }, { status: 400 })
+  return Response.json(
+    { code: 'BLException_AuthService_InvalidRefreshToken', message: 'The session has expired.' },
+    { status: 400 },
+  )
 }
 
 function Probe() {
@@ -47,7 +50,21 @@ function Probe() {
       <p>status:{auth.status}</p>
       <p>user:{auth.user?.firstName ?? 'none'}</p>
       <button onClick={() => auth.login('rafael@example.com', 'secret').catch(() => undefined)}>login</button>
-      <button onClick={() => auth.register({ email: 'rafael@example.com', password: 'secret123', firstName: 'Rafael', lastName: null, weightUnit: WeightUnit.Kilograms }).catch(() => undefined)}>register</button>
+      <button
+        onClick={() =>
+          auth
+            .register({
+              email: 'rafael@example.com',
+              password: 'secret123',
+              firstName: 'Rafael',
+              lastName: null,
+              weightUnit: WeightUnit.Kilograms,
+            })
+            .catch(() => undefined)
+        }
+      >
+        register
+      </button>
       <button onClick={auth.logout}>logout</button>
     </>
   )
@@ -165,7 +182,10 @@ describe('AuthProvider', () => {
   it('ignores a refresh that finishes after unmounting', async () => {
     markSessionActive()
     let finish: (response: Response) => void = () => undefined
-    vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockReturnValue(new Promise<Response>((resolve) => (finish = resolve))))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockReturnValue(new Promise<Response>((resolve) => (finish = resolve))),
+    )
 
     const { unmount } = renderProvider()
     unmount()
@@ -235,7 +255,13 @@ describe('AuthProvider', () => {
         <button
           onClick={() =>
             auth
-              .register({ email: 'rafael@example.com', password: 'secret123', firstName: 'Rafael', lastName: null, weightUnit: WeightUnit.Kilograms })
+              .register({
+                email: 'rafael@example.com',
+                password: 'secret123',
+                firstName: 'Rafael',
+                lastName: null,
+                weightUnit: WeightUnit.Kilograms,
+              })
               .catch((error: unknown) => {
                 failure = error
               })

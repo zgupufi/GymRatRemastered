@@ -23,7 +23,12 @@ export function ExerciseCard({ exercise, onAdd }: ExerciseCardProps) {
         <p className="exercise-card__muscles">{muscles}</p>
         <DifficultyChip difficulty={exercise.difficulty} />
       </div>
-      <button type="button" className="exercise-card__add" aria-label={`Add ${exercise.name} to a workout`} onClick={() => onAdd(exercise)}>
+      <button
+        type="button"
+        className="exercise-card__add"
+        aria-label={`Add ${exercise.name} to a workout`}
+        onClick={() => onAdd(exercise)}
+      >
         <Plus size={20} aria-hidden="true" />
       </button>
     </article>

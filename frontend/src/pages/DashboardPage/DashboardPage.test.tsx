@@ -25,7 +25,19 @@ const push: WorkoutSummary = { id: 'w1', name: 'Push day', exerciseCount: 2, mai
 const pull: WorkoutSummary = { id: 'w2', name: 'Pull day', exerciseCount: 1, mainMuscles: ['Back'] }
 
 function exercise(id: string, name: string): Exercise {
-  return { id, name, mainMuscle: 'Chest', secondaryMuscles: [], equipment: 'Barbell', difficulty: 'Beginner', movementPattern: 'Push', description: null, setup: 'Set up.', execution: 'Do it.', youtubeLink: null }
+  return {
+    id,
+    name,
+    mainMuscle: 'Chest',
+    secondaryMuscles: [],
+    equipment: 'Barbell',
+    difficulty: 'Beginner',
+    movementPattern: 'Push',
+    description: null,
+    setup: 'Set up.',
+    execution: 'Do it.',
+    youtubeLink: null,
+  }
 }
 
 const pushDetails: Workout = {
@@ -51,7 +63,12 @@ function otherDay() {
 }
 
 function mockWorkouts(total: number) {
-  vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: total > 0 ? [push] : [], page: 1, pageSize: 1, totalCount: total })
+  vi.mocked(getWorkoutSummaries).mockResolvedValue({
+    items: total > 0 ? [push] : [],
+    page: 1,
+    pageSize: 1,
+    totalCount: total,
+  })
 }
 
 const PROFILE: UserProfile = {
@@ -102,7 +119,12 @@ describe('DashboardPage', () => {
     mockWorkouts(0)
     vi.mocked(getSplit).mockResolvedValue(splitWith({}))
     vi.mocked(getWorkout).mockResolvedValue(pushDetails)
-    vi.mocked(getLastSession).mockResolvedValue({ sessionId: null, startedAt: null, durationSeconds: null, exercises: [] })
+    vi.mocked(getLastSession).mockResolvedValue({
+      sessionId: null,
+      startedAt: null,
+      durationSeconds: null,
+      exercises: [],
+    })
   })
 
   afterEach(() => {
@@ -202,7 +224,9 @@ describe('DashboardPage', () => {
   it('navigates when a link is clicked', async () => {
     renderHome()
 
-    await userEvent.click(within(await screen.findByRole('region', { name: 'Jump to' })).getByRole('link', { name: 'Workouts' }))
+    await userEvent.click(
+      within(await screen.findByRole('region', { name: 'Jump to' })).getByRole('link', { name: 'Workouts' }),
+    )
 
     expect(await screen.findByRole('heading', { name: 'Workouts page' })).toBeInTheDocument()
   })
@@ -280,7 +304,12 @@ describe('Settings entry point', () => {
     vi.mocked(getUserProfile).mockResolvedValue(PROFILE)
     vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [], page: 1, pageSize: 1, totalCount: 0 })
     vi.mocked(getSplit).mockResolvedValue(splitWith({}))
-    vi.mocked(getLastSession).mockResolvedValue({ sessionId: null, startedAt: null, durationSeconds: null, exercises: [] })
+    vi.mocked(getLastSession).mockResolvedValue({
+      sessionId: null,
+      startedAt: null,
+      durationSeconds: null,
+      exercises: [],
+    })
     renderHome()
 
     expect(await screen.findByRole('link', { name: 'Settings' })).toHaveAttribute('href', '/settings')

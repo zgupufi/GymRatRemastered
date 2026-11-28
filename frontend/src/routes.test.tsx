@@ -146,7 +146,9 @@ describe('AppRoutes', () => {
     localStorage.clear()
     setAccessToken(null)
     const guest = renderAt('/')
-    expect(await guest.findByRole('heading', { level: 1, name: 'Log workouts. Get stronger. Stay motivated.' })).toBeInTheDocument()
+    expect(
+      await guest.findByRole('heading', { level: 1, name: 'Log workouts. Get stronger. Stay motivated.' }),
+    ).toBeInTheDocument()
     guest.unmount()
 
     givenRestorableSession()

@@ -101,8 +101,6 @@ describe('LandingPage', () => {
   it('shows the current year in the footer', () => {
     renderLanding()
 
-    expect(
-      screen.getByText(`© ${new Date().getFullYear()} GymRat. Engineered for athletes.`),
-    ).toBeInTheDocument()
+    expect(screen.getByText(`© ${new Date().getFullYear()} GymRat. Engineered for athletes.`)).toBeInTheDocument()
   })
 })

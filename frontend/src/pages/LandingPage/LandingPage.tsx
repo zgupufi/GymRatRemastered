@@ -160,8 +160,7 @@ export function LandingPage() {
                 Free workout tracker
               </span>
               <h1 id="hero-title" className="hero__title">
-                <span>Log workouts.</span>{' '}
-                <span className="hero__title-accent">Get stronger.</span>{' '}
+                <span>Log workouts.</span> <span className="hero__title-accent">Get stronger.</span>{' '}
                 <span>Stay motivated.</span>
               </h1>
               <p className="hero__lead">

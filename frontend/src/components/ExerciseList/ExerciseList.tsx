@@ -95,7 +95,12 @@ export function ExerciseList() {
     setMore({ key: queryKey, failed: false })
     searchExercises({ term, muscle, sortBy: 'MainMuscle', page: loaded.page + 1, pageSize: PAGE_SIZE }, request.signal)
       .then((result) => {
-        setLoaded({ key: queryKey, items: [...loaded.items, ...result.items], total: result.totalCount, page: result.page })
+        setLoaded({
+          key: queryKey,
+          items: [...loaded.items, ...result.items],
+          total: result.totalCount,
+          page: result.page,
+        })
         setMore(null)
       })
       .catch(() => {
@@ -193,7 +198,15 @@ export function ExerciseList() {
           ) : null}
         </>
       ) : null}
-      {addingId ? <AddToWorkoutModal key={addingId} open exerciseId={addingId} exerciseName={items.find((item) => item.id === addingId)?.name} onClose={() => setAddingId(null)} /> : null}
+      {addingId ? (
+        <AddToWorkoutModal
+          key={addingId}
+          open
+          exerciseId={addingId}
+          exerciseName={items.find((item) => item.id === addingId)?.name}
+          onClose={() => setAddingId(null)}
+        />
+      ) : null}
     </section>
   )
 }

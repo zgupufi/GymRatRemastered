@@ -266,7 +266,9 @@ describe('SettingsPage', () => {
     })
 
     it('shows the server error when the current password is wrong', async () => {
-      vi.mocked(changePassword).mockRejectedValue(new ApiError(400, 'The password is not correct.', 'BLException_UsersService_InvalidPassword'))
+      vi.mocked(changePassword).mockRejectedValue(
+        new ApiError(400, 'The password is not correct.', 'BLException_UsersService_InvalidPassword'),
+      )
       await openForm()
       await userEvent.type(screen.getByLabelText('Current password'), 'wrong-password')
       await userEvent.type(screen.getByLabelText('New password'), 'new-password-1')
@@ -316,11 +318,15 @@ describe('SettingsPage', () => {
       await waitFor(() => expect(deleteAccount).toHaveBeenCalledWith('my-password'))
       expect(await screen.findByRole('heading', { level: 1, name: 'Login page' })).toBeInTheDocument()
       expect(await screen.findByText('Your account was deleted.')).toBeInTheDocument()
-      await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'Login page' })).toHaveAttribute('data-from', '{}'))
+      await waitFor(() =>
+        expect(screen.getByRole('heading', { level: 1, name: 'Login page' })).toHaveAttribute('data-from', '{}'),
+      )
     })
 
     it('keeps the dialog open and shows the error when the password is wrong', async () => {
-      vi.mocked(deleteAccount).mockRejectedValue(new ApiError(400, 'The password is not correct.', 'BLException_UsersService_InvalidPassword'))
+      vi.mocked(deleteAccount).mockRejectedValue(
+        new ApiError(400, 'The password is not correct.', 'BLException_UsersService_InvalidPassword'),
+      )
       const dialog = await openDialog()
       await userEvent.type(within(dialog).getByLabelText('Enter your current password to confirm'), 'wrong')
 

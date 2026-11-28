@@ -35,7 +35,14 @@ const bench: Exercise = {
   youtubeLink: null,
 }
 const row: Exercise = { ...bench, id: 'e2', name: 'Barbell Row', mainMuscle: 'Back', secondaryMuscles: ['Lats'] }
-const squat: Exercise = { ...bench, id: 'e3', name: 'Squat', mainMuscle: 'Legs', secondaryMuscles: [], equipment: 'Machine' }
+const squat: Exercise = {
+  ...bench,
+  id: 'e3',
+  name: 'Squat',
+  mainMuscle: 'Legs',
+  secondaryMuscles: [],
+  equipment: 'Machine',
+}
 
 const push: WorkoutSummary = { id: 'w1', name: 'Push day', exerciseCount: 2, mainMuscles: ['Chest', 'Shoulders'] }
 const pull: WorkoutSummary = { id: 'w2', name: 'Pull day', exerciseCount: 1, mainMuscles: ['Back'] }
@@ -138,7 +145,10 @@ describe('WorkoutsPage', () => {
     await userEvent.type(screen.getByRole('textbox', { name: 'Search workouts' }), 'zzz')
 
     expect(await screen.findByText('No workouts match “zzz”')).toBeInTheDocument()
-    expect(getWorkoutSummaries).toHaveBeenLastCalledWith(expect.objectContaining({ term: 'zzz', page: 1 }), expect.any(AbortSignal))
+    expect(getWorkoutSummaries).toHaveBeenLastCalledWith(
+      expect.objectContaining({ term: 'zzz', page: 1 }),
+      expect.any(AbortSignal),
+    )
   })
 
   it('sorts by name', async () => {
@@ -163,11 +173,21 @@ describe('WorkoutsPage', () => {
 
     vi.mocked(getWorkoutSummaries).mockResolvedValue(page([push], { page: 2, totalCount: 12 }))
     await userEvent.click(screen.getByRole('button', { name: 'Next' }))
-    await waitFor(() => expect(getWorkoutSummaries).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 }), expect.any(AbortSignal)))
+    await waitFor(() =>
+      expect(getWorkoutSummaries).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 2 }),
+        expect.any(AbortSignal),
+      ),
+    )
     vi.mocked(getWorkoutSummaries).mockResolvedValue(page([push], { page: 1, totalCount: 12 }))
     await userEvent.click(await screen.findByRole('button', { name: 'Previous' }))
 
-    await waitFor(() => expect(getWorkoutSummaries).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }), expect.any(AbortSignal)))
+    await waitFor(() =>
+      expect(getWorkoutSummaries).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1 }),
+        expect.any(AbortSignal),
+      ),
+    )
   })
 
   it('steps back a page when the current one becomes empty', async () => {
@@ -397,7 +417,11 @@ describe('WorkoutsPage', () => {
 
     await expand()
 
-    await waitFor(() => expect(replaceWorkoutExercises).toHaveBeenCalledWith('w1', [{ exerciseId: 'e1', targetSets: 4, repsMin: 8, repsMax: 12 }]))
+    await waitFor(() =>
+      expect(replaceWorkoutExercises).toHaveBeenCalledWith('w1', [
+        { exerciseId: 'e1', targetSets: 4, repsMin: 8, repsMax: 12 },
+      ]),
+    )
   })
 
   it('reorders with the keyboard', async () => {
