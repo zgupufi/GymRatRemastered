@@ -26,6 +26,25 @@ The example file sets `ASPNETCORE_ENVIRONMENT=Development`, which lets the API s
 
 `Development` is for your own machine only: it switches the startup checks off, accepts the public placeholder secrets and exposes `/openapi/v1.json`. When the compose stack runs anywhere else, remove the `ASPNETCORE_ENVIRONMENT` line from `infra/.env` or set it to `Production`, and set real values for `JWT_KEY`, `PASSWORD_PEPPER` and `POSTGRES_PASSWORD`.
 
+## Demo data
+
+With the stack running (`docker compose up --build` from `infra`, or `up backend` for the API alone), seed a demo account from the repository root with Node 22 or newer:
+
+```bash
+node scripts/demo/seed.mjs
+```
+
+It creates `demo@gymrat.test` with the password `GymRat-Demo-1`, four workouts, a Monday, Tuesday, Thursday and Friday split, and 30 finished sessions over the last eight weeks. Today is left empty. The weights follow the targets the API serves, and the last sessions leave targets that add reps, add weight, hold and stall. It takes well under a minute.
+
+The account, workouts, split and sets are created through the API. The API cannot date a session in the past, so the script then moves the dates with SQL, run by `psql` inside the Compose `postgres` service. It only accepts an API on `localhost`, and the SQL only reaches the Compose database on your machine. The password is public, so do not use this account anywhere else.
+
+- `--reset` deletes the demo account with all its data and seeds it again, which also moves the history up to today. Use it after a run that failed part way too.
+- `--docker "wsl -d Ubuntu docker"` for Docker that only runs inside WSL.
+- `--compose-project <name>` if the stack was started with `docker compose -p <name>`.
+- `--api`, `--email` and `--password` change the defaults (`--api` is `http://localhost:8080`). `--help` lists every option.
+
+Registration and login are rate limited, so running it several times within a minute can be refused. The script's tests run with `node --test "scripts/demo/*.test.mjs"`, and the CI `e2e` job runs them and then seeds the stack.
+
 ## Required settings outside Development
 
 In any environment other than `Development` and `Testing` the API validates its settings at startup and exits with a message that names the setting (never its value) when one of these rules is broken:
