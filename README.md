@@ -39,6 +39,10 @@ In any environment other than `Development` and `Testing` the API validates its 
 
 Generate each secret separately, for example with `openssl rand -base64 48`. Changing the pepper invalidates every stored password.
 
+## Free web deployment
+
+`docs/DEPLOY_FREE.md` walks through hosting the frontend on Cloudflare Pages, the API on Render and the database on Neon, all on free tiers. The startup checks described below apply there too.
+
 ## Changing the database
 
 Add a new XML changeset under `database/changelog/changes`, include it in `db.changelog-master.xml`, and run `docker compose up db`. Never edit a changeset that has already been applied.
