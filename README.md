@@ -119,6 +119,20 @@ The static site sends a content security policy (scripts, styles and fonts from 
 
 CI fails when either file is out of date, and the frontend type check fails when the code no longer matches the types. An action must return `ActionResult<TResponse>` for its response type to appear in the document. The status codes listed in the document are the framework defaults and can differ from what the API returns.
 
+## Frontend lint, format and accessibility checks
+
+Run from `frontend`:
+
+```bash
+npm run lint
+npm run format:check
+npm run format
+```
+
+`npm run lint` runs oxlint with type information, so it also catches missing hook dependencies, floating promises and the `jsx-a11y` rules. Warnings fail the run. `npm run format` rewrites files with Prettier; `format:check` runs in CI and fails on unformatted code. The pre-commit hook checks the format of staged frontend files and lints them without the type-aware rules, which only CI and `npm run lint` check.
+
+Each page test has a `has no accessibility violations` case that calls `expectNoA11yViolations` (`src/test/a11y.ts`, axe through `vitest-axe`). Add one for every new page. jsdom cannot measure layout, so colour contrast is not checked there; `src/styles/contrast.test.ts` covers the colour tokens.
+
 ## Dependency and code scanning
 
 The `audit` job in CI fails when a NuGet or npm package, direct or transitive, has a known high or critical vulnerability. Run the same checks locally:
