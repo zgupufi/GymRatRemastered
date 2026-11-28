@@ -35,7 +35,7 @@ const bench: Exercise = {
   youtubeLink: null,
 }
 const row: Exercise = { ...bench, id: 'e2', name: 'Barbell Row', mainMuscle: 'Back', secondaryMuscles: ['Lats'] }
-const squat: Exercise = { ...bench, id: 'e3', name: 'Squat', mainMuscle: 'Quads', secondaryMuscles: [], equipment: 'Machine' }
+const squat: Exercise = { ...bench, id: 'e3', name: 'Squat', mainMuscle: 'Legs', secondaryMuscles: [], equipment: 'Machine' }
 
 const push: WorkoutSummary = { id: 'w1', name: 'Push day', exerciseCount: 2, mainMuscles: ['Chest', 'Shoulders'] }
 const pull: WorkoutSummary = { id: 'w2', name: 'Pull day', exerciseCount: 1, mainMuscles: ['Back'] }

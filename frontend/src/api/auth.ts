@@ -1,26 +1,15 @@
 import { apiClient } from './client'
+import type { Schema } from './schema'
 
-export const WeightUnit = { Kilograms: 0, Pounds: 1 } as const
+export const WeightUnit = { Kilograms: 0, Pounds: 1 } as const satisfies Record<string, Schema<'WeightUnit'>>
 
-export type WeightUnit = (typeof WeightUnit)[keyof typeof WeightUnit]
+export type WeightUnit = Schema<'WeightUnit'>
 
-export interface LoginRequest {
-  email: string
-  password: string
-}
+export type LoginRequest = Schema<'LoginRequest'>
 
-export interface LoginResponse {
-  accessToken: string
-  expiresAt: string
-}
+export type LoginResponse = Schema<'LoginResponse'>
 
-export interface RegisterRequest {
-  email: string
-  password: string
-  firstName: string
-  lastName: string | null
-  weightUnit: WeightUnit
-}
+export type RegisterRequest = Schema<'RegisterRequest'>
 
 export function login(request: LoginRequest): Promise<LoginResponse> {
   return apiClient.post<LoginResponse>('/api/auth/login', request)

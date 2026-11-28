@@ -1,25 +1,10 @@
 import { apiClient } from './client'
 import type { PagedResult } from './pagination'
+import type { Schema } from './schema'
 
-export type SuggestionStatus = 'Pending' | 'Applied' | 'Dismissed' | 'Expired'
+export type SuggestionStatus = Schema<'SuggestionStatus'>
 
-export interface CoachSuggestion {
-  id: string
-  workoutId: string
-  workoutName: string
-  exerciseId: string
-  exerciseName: string
-  targetSets: number | null
-  repsMin: number | null
-  repsMax: number | null
-  weightStepKg: number | null
-  currentTargetSets: number
-  currentRepsMin: number
-  currentRepsMax: number
-  currentWeightStepKg: number
-  rationale: string
-  status: SuggestionStatus
-}
+export type CoachSuggestion = Schema<'CoachSuggestionDto'>
 
 const PENDING_PAGE_SIZE = 100
 

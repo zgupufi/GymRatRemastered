@@ -12,7 +12,7 @@ vi.mock('../../api/exercises', async (importOriginal) => ({
   searchExercises: vi.fn(),
 }))
 
-function exercise(id: string, name: string, mainMuscle: string): Exercise {
+function exercise(id: string, name: string, mainMuscle: Exercise['mainMuscle']): Exercise {
   return { id, name, mainMuscle, secondaryMuscles: ['Triceps'], equipment: 'Barbell', difficulty: 'Intermediate', movementPattern: 'Push', description: null, setup: 'Set up.', execution: 'Do it.', youtubeLink: null }
 }
 

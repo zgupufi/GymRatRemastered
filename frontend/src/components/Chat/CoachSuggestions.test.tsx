@@ -17,6 +17,7 @@ vi.mock('../../lib/workoutsChanged', () => ({ announceWorkoutsChanged: vi.fn() }
 
 const suggestion: CoachSuggestion = {
   id: 'c1',
+  kind: 'ExerciseChange',
   workoutId: 'w1',
   workoutName: 'Push Day',
   exerciseId: 'e1',
@@ -29,6 +30,9 @@ const suggestion: CoachSuggestion = {
   currentRepsMin: 8,
   currentRepsMax: 12,
   currentWeightStepKg: 2.5,
+  exercises: [],
+  scheduledDays: [],
+  sessionCount: 3,
   rationale: 'Three stalled sessions at 80 kg.',
   status: 'Pending',
 }

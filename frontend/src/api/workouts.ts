@@ -1,35 +1,14 @@
 import { apiClient } from './client'
-import type { Exercise } from './exercises'
 import { toQuery, type ListParams, type PagedResult } from './pagination'
+import type { Schema } from './schema'
 
-export interface WorkoutSummary {
-  id: string
-  name: string
-  exerciseCount: number
-  mainMuscles: string[]
-}
+export type WorkoutSummary = Schema<'WorkoutSummaryDto'>
 
-export interface WorkoutExercise {
-  order: number
-  targetSets: number
-  repsMin: number
-  repsMax: number
-  weightStepKg: number
-  exercise: Exercise
-}
+export type WorkoutExercise = Schema<'WorkoutExerciseDto'>
 
-export interface Workout {
-  id: string
-  name: string
-  exercises: WorkoutExercise[]
-}
+export type Workout = Schema<'WorkoutDto'>
 
-export interface WorkoutExerciseEntry {
-  exerciseId: string
-  targetSets: number
-  repsMin?: number
-  repsMax?: number
-}
+export type WorkoutExerciseEntry = Schema<'WorkoutExerciseRequest'>
 
 export type WorkoutSortField = 'CreatedAt' | 'Name'
 
@@ -41,16 +20,16 @@ export function getWorkout(id: string, signal?: AbortSignal): Promise<Workout> {
   return apiClient.get<Workout>(`/api/workouts/${id}`, signal)
 }
 
-export function createWorkout(name: string): Promise<{ id: string }> {
-  return apiClient.post<{ id: string }>('/api/workouts', { name })
+export function createWorkout(name: string): Promise<Schema<'CreateWorkoutResponse'>> {
+  return apiClient.post<Schema<'CreateWorkoutResponse'>>('/api/workouts', { name } satisfies Schema<'CreateWorkoutRequest'>)
 }
 
 export function renameWorkout(id: string, name: string): Promise<void> {
-  return apiClient.patch(`/api/workouts/${id}`, { name })
+  return apiClient.patch(`/api/workouts/${id}`, { name } satisfies Schema<'RenameWorkoutRequest'>)
 }
 
 export function replaceWorkoutExercises(id: string, exercises: WorkoutExerciseEntry[]): Promise<void> {
-  return apiClient.put(`/api/workouts/${id}/exercises`, { exercises })
+  return apiClient.put(`/api/workouts/${id}/exercises`, { exercises } satisfies Schema<'ReplaceWorkoutExercisesRequest'>)
 }
 
 export function deleteWorkout(id: string): Promise<void> {

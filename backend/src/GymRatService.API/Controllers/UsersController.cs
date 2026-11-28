@@ -1,5 +1,6 @@
 using GymRatService.API.Extensions;
 using GymRatService.API.Results;
+using GymRatService.Common.DTOs.Export;
 using GymRatService.Common.DTOs.Users;
 using GymRatService.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -13,7 +14,7 @@ namespace GymRatService.API.Controllers;
 public class UsersController(IUsersService usersService, IExportService exportService) : ControllerBase
 {
     [HttpGet("me")]
-    public async Task<IActionResult> GetUserProfileAsync(CancellationToken cancellationToken)
+    public async Task<ActionResult<UserProfileDto>> GetUserProfileAsync(CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 
@@ -54,7 +55,7 @@ public class UsersController(IUsersService usersService, IExportService exportSe
 
     [HttpGet("me/export")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-    public async Task<IActionResult> GetUserExportAsync(CancellationToken cancellationToken)
+    public async Task<ActionResult<UserExportDto>> GetUserExportAsync(CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 

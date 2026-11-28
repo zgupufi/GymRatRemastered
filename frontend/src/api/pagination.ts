@@ -1,9 +1,6 @@
-export interface PagedResult<T> {
-  items: T[]
-  page: number
-  pageSize: number
-  totalCount: number
-}
+import type { Schema } from './schema'
+
+export type PagedResult<T> = Omit<Schema<'PagedResultOfExerciseDto'>, 'items'> & { items: T[] }
 
 export type SortDirection = 'Ascending' | 'Descending'
 

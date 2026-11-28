@@ -1,21 +1,10 @@
 import { apiClient } from './client'
 import { toQuery, type ListParams, type PagedResult } from './pagination'
+import type { Schema } from './schema'
 
-export interface Exercise {
-  id: string
-  name: string
-  mainMuscle: string
-  secondaryMuscles: string[]
-  equipment: string
-  difficulty: string
-  movementPattern: string
-  description: string | null
-  setup: string | null
-  execution: string | null
-  youtubeLink: string | null
-}
+export type Exercise = Schema<'ExerciseDto'>
 
-export const MUSCLE_GROUPS = ['Back', 'Biceps', 'Chest', 'Core', 'Legs', 'Shoulders', 'Triceps']
+export const MUSCLE_GROUPS: Schema<'MuscleGroup'>[] = ['Back', 'Biceps', 'Chest', 'Core', 'Legs', 'Shoulders', 'Triceps']
 
 export type ExerciseSortField = 'Name' | 'MainMuscle' | 'Difficulty'
 
