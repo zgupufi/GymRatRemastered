@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react'
 import { Button } from '../ui/Button'
+import { ButtonLink } from '../ui/ButtonLink'
 
 interface PageErrorBoundaryProps {
   resetKey: string
@@ -30,12 +31,19 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
       return (
         <main className="page">
           <header className="page__header" role="alert">
-            <h1>This page did not load</h1>
-            <p>Check your connection, then reload to try again.</p>
+            <h1>Something went wrong</h1>
+            <p>This page could not be shown. Reload to try again.</p>
           </header>
-          <Button variant="secondary" onClick={() => window.location.reload()}>
-            Reload
-          </Button>
+          <div className="page__actions">
+            <Button variant="secondary" onClick={() => window.location.reload()}>
+              Reload
+            </Button>
+            {this.state.resetKey === '/' ? null : (
+              <ButtonLink to="/" variant="ghost">
+                Go to home
+              </ButtonLink>
+            )}
+          </div>
         </main>
       )
     }

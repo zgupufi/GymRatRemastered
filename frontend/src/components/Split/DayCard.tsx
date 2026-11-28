@@ -33,7 +33,7 @@ export const DayCard = forwardRef<HTMLLIElement, DayCardProps>(function DayCard(
           <small>Main focus</small>
           <div className="day-card__chips">
             {muscles.length >= FULL_BODY_THRESHOLD ? (
-              <span className="chip chip--blue">Full body</span>
+              <span className="chip">Full body</span>
             ) : (
               muscles.map((muscle) => (
                 <span key={muscle} className="chip">
