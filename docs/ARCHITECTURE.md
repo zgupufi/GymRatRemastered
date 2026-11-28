@@ -65,7 +65,7 @@ erDiagram
     Exercises ||--o{ ExerciseTranslations : "is described by"
 ```
 
-- `Exercises` (entity `ExerciseCard`) is a shared catalog seeded by Liquibase. The other tables hold user data, owned directly or through a parent row, and it is deleted with the account.
+- `Exercises` (entity `ExerciseCard`), `ExerciseSecondaryMuscles` and `ExerciseTranslations` are the shared catalog, filled by Liquibase. The other tables hold user data, owned directly or through a parent row, and it is deleted with the account.
 - Deleting a workout keeps its sessions and their sets: `WorkoutSessions.WorkoutId` becomes null.
 - A user has at most one unfinished session (a partial unique index) and at most one workout per split day.
 - Ids are UUID v7 ([008](decisions/008-uuid-v7-ids.md)) and weights are kilograms ([004](decisions/004-weights-in-kilograms.md)). The two exercise child tables are keyed by the exercise and a value instead of an id.

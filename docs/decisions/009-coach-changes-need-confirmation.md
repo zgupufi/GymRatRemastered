@@ -14,6 +14,7 @@ Creating a workout (with or without exercises) and renaming one happen at once, 
 
 ## Consequences
 
-- A suggestion expires after seven days, or when applying it finds that the workout changed.
+- A suggestion expires after seven days, or when applying it finds that what it was based on has changed. For an exercise change, that is the exercise's sets, rep range or weight step. For a replacement or deletion, it is the workout's exercise list, in order, with those settings. A rename expires neither.
+- If the exercise of a suggested change was removed from the workout, applying it fails but does not expire the suggestion, which stays pending.
 - A reply can make at most three proposals.
 - A new tool that deletes or overwrites a user's setup should create a suggestion instead of writing.
