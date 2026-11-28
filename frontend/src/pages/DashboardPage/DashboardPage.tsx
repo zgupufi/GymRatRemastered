@@ -20,9 +20,9 @@ interface JumpLink {
 
 const jumpLinks: JumpLink[] = [
   { to: '/workouts', title: 'Workouts', icon: Dumbbell },
-  { to: '/split', title: 'Training split', icon: CalendarDays },
-  { to: '/progress', title: 'Progression', icon: LineChart },
-  { to: '/exercises', title: 'Exercise library', icon: BookOpen },
+  { to: '/split', title: 'Split', icon: CalendarDays },
+  { to: '/progress', title: 'Progress', icon: LineChart },
+  { to: '/exercises', title: 'Library', icon: BookOpen },
 ]
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']

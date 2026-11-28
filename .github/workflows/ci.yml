@@ -220,7 +220,7 @@ jobs:
           fi
           files=$(git diff --name-only "$BASE_SHA...HEAD")
           echo "$files"
-          if echo "$files" | grep -Eq '^(frontend/|backend/|database/|infra/|e2e/|\.github/workflows/ci\.yml$)'; then
+          if echo "$files" | grep -Eq '^(frontend/|backend/|database/|infra/|e2e/|scripts/demo/|\.github/workflows/ci\.yml$)'; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -275,6 +275,16 @@ jobs:
         if: steps.changes.outputs.run == 'true'
         working-directory: e2e
         run: npm test
+
+      - name: Demo data script tests
+        if: steps.changes.outputs.run == 'true'
+        run: node --test scripts/demo/*.test.mjs
+
+      - name: Seed demo data, then reset and seed again
+        if: steps.changes.outputs.run == 'true'
+        run: |
+          node scripts/demo/seed.mjs
+          node scripts/demo/seed.mjs --reset
 
       - name: Upload failure screenshots
         if: failure() && steps.changes.outputs.run == 'true'
