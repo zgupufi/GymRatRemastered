@@ -20,6 +20,10 @@ if (( ${#backend[@]} + ${#frontend[@]} == 0 )); then
   exit 0
 fi
 
+checkout_staged() {
+  printf '%s\0' "$@" | git checkout-index --prefix="$snapshot/" -z --stdin
+}
+
 snapshot="$(mktemp -d)"
 trap 'rm -rf "$snapshot"' EXIT
 
@@ -27,7 +31,7 @@ git ls-files -z -- '.editorconfig' '*/.editorconfig' 'frontend/.oxlintrc.json' |
   git checkout-index --prefix="$snapshot/" -z --stdin
 
 if (( ${#backend[@]} > 0 )); then
-  git checkout-index --prefix="$snapshot/" -- "${backend[@]}"
+  checkout_staged "${backend[@]}"
   if ! (cd "$snapshot" && dotnet format whitespace backend --folder --verify-no-changes); then
     echo "Format the files above with: dotnet format whitespace backend --folder --include <files>" >&2
     echo "Paths after --include start with backend/. Then stage them again." >&2
@@ -41,6 +45,7 @@ if (( ${#frontend[@]} > 0 )); then
     echo "oxlint is not installed. Run npm install in frontend/." >&2
     exit 1
   fi
-  git checkout-index --prefix="$snapshot/" -- "${frontend[@]}"
-  (cd "$snapshot/frontend" && node "$oxlint" --config .oxlintrc.json "${frontend[@]#frontend/}")
+  checkout_staged "${frontend[@]}"
+  (cd "$snapshot/frontend" && printf '%s\0' "${frontend[@]#frontend/}" |
+    xargs -0 -s 20000 node "$oxlint" --config .oxlintrc.json)
 fi

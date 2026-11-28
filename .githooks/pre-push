@@ -26,13 +26,11 @@ while read -r _ local_sha _ remote_sha; do
     continue
   fi
 
-  changed="$(git diff --name-only --no-renames "$base" "$local_sha")"
-
-  if grep -Eq '^(backend|database)/' <<<"$changed"; then
+  if ! git diff --quiet --no-renames "$base" "$local_sha" -- backend database; then
     backend=true
   fi
 
-  if grep -q '^frontend/' <<<"$changed"; then
+  if ! git diff --quiet --no-renames "$base" "$local_sha" -- frontend; then
     frontend=true
   fi
 done
