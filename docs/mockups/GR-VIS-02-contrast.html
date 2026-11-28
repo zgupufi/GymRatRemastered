@@ -1,0 +1,48 @@
+<!doctype html><meta charset="utf-8"><style>
+body{margin:0;padding:32px;width:1000px;background:#05070d;color:#f5f7fb;font:15px/1.45 'Segoe UI Variable Text','Segoe UI',system-ui}
+h1{margin:0 0 4px;font-size:28px;letter-spacing:-.03em}h2{font-size:19px;margin:24px 0 0}p{margin:0}.sub{color:#b4bccc}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:40px}.label{margin:18px 0 6px;font-size:13px;color:#b4bccc}
+.card{background:#111725;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:14px;display:grid;gap:8px}
+.row{display:grid;grid-template-columns:28px 1fr 1fr 44px;gap:8px;align-items:center}.n{text-align:center;color:#b4bccc;font-weight:600;font-size:20px}
+.in{height:44px;display:grid;place-items:center;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);font-size:18px;font-weight:600}
+.ph,.info{color:var(--info)}.check{height:44px;display:grid;place-items:center;border-radius:14px;background:rgba(255,255,255,.06)}.done{background:#22c58b;color:#03140d}.dis{color:var(--off);opacity:.6}
+.tag{font-size:11px;color:#8b95a9;text-align:right}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.actions span{height:42px;display:grid;place-items:center;border:1px dashed rgba(255,255,255,.14);border-radius:14px;color:#b4bccc;font-weight:600;font-size:14px}.actions .off{color:var(--off)}
+.field{height:50px;display:flex;align-items:center;padding:0 14px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);color:#8b95a9}
+.jump{display:flex;justify-content:space-between;font-weight:600}.grip{display:flex;gap:12px}.cell{background:#182033;border:0}.focus{box-shadow:inset 0 0 0 1.5px #22c58b,0 0 0 3px rgba(34,197,139,.3)}
+.circle{width:36px;height:36px;border-radius:50%;background:#222b40;display:grid;place-items:center}.axis{display:flex;justify-content:space-between;font-size:11px}
+.coach{grid-template-columns:1fr 44px;align-items:center}.send{height:44px;border-radius:50%;background:rgba(255,255,255,.12);display:grid;place-items:center;color:var(--off)}
+table{margin-top:12px;width:100%;border-collapse:separate;border-spacing:3px;font-size:13px}th{text-align:left;color:#b4bccc;font-weight:600}th i{font-weight:400;font-style:normal;color:#8b95a9}td{padding:10px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.1)}td b{display:block;font-size:11px}.ok{color:#22c58b}.no{color:#ff6b6d}
+</style><h1>VIS-02 · Contrast for secondary text</h1><p class="sub">Informational text and placeholders move from --text-4 to --text-3 (#8b95a9). Only disabled controls keep --text-4, raised to #8a94a8. No layout or size changes.</p>
+<div class="cols"><section style="--info:#6b758a;--off:#6b758a"><h2>Before</h2>
+<p class="label">Workout screen: set inputs (placeholders)</p>
+<div class="card">
+<div class="row"><span class="n">1</span><span class="in typed">62.5</span><span class="in typed">8</span><span class="check done">✓</span></div>
+<div class="row"><span class="n">2</span><span class="in ph">62.5</span><span class="in ph">8</span><span class="check">✓</span></div>
+<div class="row"><span class="n">3</span><span class="in ph">60</span><span class="in ph">10</span><span class="check dis">✓</span></div>
+<p class="tag">Row 3 check button is disabled</p>
+<div class="actions"><span>+ Add set</span><span class="off">− Remove set</span></div>
+<p class="tag">"Remove set" is disabled</p></div>
+<p class="label">Login and search fields (placeholders)</p>
+<div class="card"><div class="field">✉&nbsp;&nbsp;<span class="info">name@example.com</span></div><div class="field">⌕&nbsp;&nbsp;<span class="info">Search exercises…</span></div></div>
+<p class="label">Dashboard link arrow · Workout editor drag grip</p>
+<div class="card"><div class="jump">View progression<span class="info">›</span></div><div class="grip"><span class="info">⠿</span>Bench press</div></div>
+<p class="label">Landing page phone preview</p>
+<div class="card"><div class="row"><span class="n">3</span><span class="in cell info">62.5</span><span class="in cell info focus">8</span><span class="circle info">✓</span></div><div class="axis info"><span>Sep</span><span>Oct</span><span>Nov</span></div></div>
+<p class="label">Coach: send button while the box is empty (disabled)</p>
+<div class="card coach"><div class="field"><span style="color:#8b95a9">Ask the coach…</span></div><span class="send off">↑</span></div></section><section style="--info:#8b95a9;--off:#8a94a8"><h2>After</h2>
+<p class="label">Workout screen: set inputs (placeholders)</p>
+<div class="card">
+<div class="row"><span class="n">1</span><span class="in typed">62.5</span><span class="in typed">8</span><span class="check done">✓</span></div>
+<div class="row"><span class="n">2</span><span class="in ph">62.5</span><span class="in ph">8</span><span class="check">✓</span></div>
+<div class="row"><span class="n">3</span><span class="in ph">60</span><span class="in ph">10</span><span class="check dis">✓</span></div>
+<p class="tag">Row 3 check button is disabled</p>
+<div class="actions"><span>+ Add set</span><span class="off">− Remove set</span></div>
+<p class="tag">"Remove set" is disabled</p></div>
+<p class="label">Login and search fields (placeholders)</p>
+<div class="card"><div class="field">✉&nbsp;&nbsp;<span class="info">name@example.com</span></div><div class="field">⌕&nbsp;&nbsp;<span class="info">Search exercises…</span></div></div>
+<p class="label">Dashboard link arrow · Workout editor drag grip</p>
+<div class="card"><div class="jump">View progression<span class="info">›</span></div><div class="grip"><span class="info">⠿</span>Bench press</div></div>
+<p class="label">Landing page phone preview</p>
+<div class="card"><div class="row"><span class="n">3</span><span class="in cell info">62.5</span><span class="in cell info focus">8</span><span class="circle info">✓</span></div><div class="axis info"><span>Sep</span><span>Oct</span><span>Nov</span></div></div>
+<p class="label">Coach: send button while the box is empty (disabled)</p>
+<div class="card coach"><div class="field"><span style="color:#8b95a9">Ask the coach…</span></div><span class="send off">↑</span></div></section></div><h2>Contrast on each surface (WCAG AA needs 4.50)</h2><table><tr><th></th><th>--bg</th><th>--bg-elevated</th><th>--surface</th><th>--surface-2</th><th>--surface-3</th></tr><tr><th>--text<br><i>#f5f7fb</i></th><td style="background:#05070d;color:#f5f7fb">Aa 18.78 <b class="ok">pass</b></td><td style="background:#0b0f19;color:#f5f7fb">Aa 17.86 <b class="ok">pass</b></td><td style="background:#111725;color:#f5f7fb">Aa 16.69 <b class="ok">pass</b></td><td style="background:#182033;color:#f5f7fb">Aa 15.14 <b class="ok">pass</b></td><td style="background:#222b40;color:#f5f7fb">Aa 13.16 <b class="ok">pass</b></td></tr><tr><th>--text-2<br><i>#b4bccc</i></th><td style="background:#05070d;color:#b4bccc">Aa 10.56 <b class="ok">pass</b></td><td style="background:#0b0f19;color:#b4bccc">Aa 10.04 <b class="ok">pass</b></td><td style="background:#111725;color:#b4bccc">Aa 9.38 <b class="ok">pass</b></td><td style="background:#182033;color:#b4bccc">Aa 8.51 <b class="ok">pass</b></td><td style="background:#222b40;color:#b4bccc">Aa 7.40 <b class="ok">pass</b></td></tr><tr><th>--text-3<br><i>#8b95a9</i></th><td style="background:#05070d;color:#8b95a9">Aa 6.68 <b class="ok">pass</b></td><td style="background:#0b0f19;color:#8b95a9">Aa 6.36 <b class="ok">pass</b></td><td style="background:#111725;color:#8b95a9">Aa 5.94 <b class="ok">pass</b></td><td style="background:#182033;color:#8b95a9">Aa 5.39 <b class="ok">pass</b></td><td style="background:#222b40;color:#8b95a9">Aa 4.69 <b class="ok">pass</b></td></tr><tr><th>--text-4 now<br><i>#6b758a</i></th><td style="background:#05070d;color:#6b758a">Aa 4.35 <b class="no">fail</b></td><td style="background:#0b0f19;color:#6b758a">Aa 4.14 <b class="no">fail</b></td><td style="background:#111725;color:#6b758a">Aa 3.87 <b class="no">fail</b></td><td style="background:#182033;color:#6b758a">Aa 3.51 <b class="no">fail</b></td><td style="background:#222b40;color:#6b758a">Aa 3.05 <b class="no">fail</b></td></tr><tr><th>--text-4 new<br><i>#8a94a8</i></th><td style="background:#05070d;color:#8a94a8">Aa 6.60 <b class="ok">pass</b></td><td style="background:#0b0f19;color:#8a94a8">Aa 6.28 <b class="ok">pass</b></td><td style="background:#111725;color:#8a94a8">Aa 5.87 <b class="ok">pass</b></td><td style="background:#182033;color:#8a94a8">Aa 5.32 <b class="ok">pass</b></td><td style="background:#222b40;color:#8a94a8">Aa 4.63 <b class="ok">pass</b></td></tr></table>

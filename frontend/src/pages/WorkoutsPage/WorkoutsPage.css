@@ -413,7 +413,7 @@
   height: 2rem;
   border: 0;
   background: transparent;
-  color: var(--text-4);
+  color: var(--text-3);
   touch-action: none;
   cursor: grab;
 }

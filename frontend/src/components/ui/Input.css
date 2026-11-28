@@ -51,7 +51,7 @@
 
 .field__input::placeholder,
 .number-input::placeholder {
-  color: var(--text-4);
+  color: var(--text-3);
 }
 
 .field__message {
