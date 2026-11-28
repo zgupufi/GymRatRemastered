@@ -24,7 +24,7 @@ builder.Services.AddCors(options =>
         .AllowCredentials());
 });
 
-if (!builder.Environment.IsGeneratingOpenApiDocument())
+if (!HostEnvironmentExtensions.IsGeneratingOpenApiDocument())
 {
     builder.Services.AddStartupSettings(builder.Configuration);
 }

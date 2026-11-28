@@ -11,6 +11,6 @@ public static class HostEnvironmentExtensions
     public static bool AllowsDevelopmentSettings(this IHostEnvironment environment) =>
         environment.IsDevelopment() || environment.IsEnvironment(TestingEnvironment);
 
-    public static bool IsGeneratingOpenApiDocument(this IHostEnvironment environment) =>
+    public static bool IsGeneratingOpenApiDocument() =>
         Assembly.GetEntryAssembly()?.GetName().Name == OpenApiGeneratorAssembly;
 }

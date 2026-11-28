@@ -1,6 +1,6 @@
 using GymRatService.API.Extensions;
-using GymRatService.Common.DTOs.Export;
 using GymRatService.API.Results;
+using GymRatService.Common.DTOs.Export;
 using GymRatService.Common.DTOs.Users;
 using GymRatService.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
