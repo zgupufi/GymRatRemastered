@@ -1,17 +1,33 @@
+import { lazy } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { RequireAuth } from './auth/RequireAuth'
 import { AppShell } from './components/layout/AppShell'
 import { PlaceholderPage } from './pages/PlaceholderPage'
-import { ProgressionPage } from './pages/ProgressionPage/ProgressionPage'
-import { WorkoutExecutionPage } from './pages/WorkoutExecutionPage/WorkoutExecutionPage'
-import { WorkoutsPage } from './pages/WorkoutsPage/WorkoutsPage'
-import { SplitPage } from './pages/SplitPage/SplitPage'
-import { ExercisesPage } from './pages/ExercisesPage/ExercisesPage'
-import { ExerciseDetailsPage } from './pages/ExerciseDetailsPage/ExerciseDetailsPage'
 import { HomePage } from './pages/HomePage'
-import { SettingsPage } from './pages/SettingsPage/SettingsPage'
 import { LoginPage } from './pages/LoginPage/LoginPage'
 import { RegisterPage } from './pages/RegisterPage/RegisterPage'
+
+const ExercisesPage = lazy(async () => ({
+  default: (await import('./pages/ExercisesPage/ExercisesPage')).ExercisesPage,
+}))
+const ExerciseDetailsPage = lazy(async () => ({
+  default: (await import('./pages/ExerciseDetailsPage/ExerciseDetailsPage')).ExerciseDetailsPage,
+}))
+const WorkoutsPage = lazy(async () => ({
+  default: (await import('./pages/WorkoutsPage/WorkoutsPage')).WorkoutsPage,
+}))
+const SplitPage = lazy(async () => ({
+  default: (await import('./pages/SplitPage/SplitPage')).SplitPage,
+}))
+const WorkoutExecutionPage = lazy(async () => ({
+  default: (await import('./pages/WorkoutExecutionPage/WorkoutExecutionPage')).WorkoutExecutionPage,
+}))
+const ProgressionPage = lazy(async () => ({
+  default: (await import('./pages/ProgressionPage/ProgressionPage')).ProgressionPage,
+}))
+const SettingsPage = lazy(async () => ({
+  default: (await import('./pages/SettingsPage/SettingsPage')).SettingsPage,
+}))
 
 export function AppRoutes() {
   return (

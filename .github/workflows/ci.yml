@@ -75,6 +75,9 @@ jobs:
       - name: Type-check and build
         run: npm run build
 
+      - name: Check entry bundle size
+        run: npm run check:bundle
+
       - name: Report bundle size
         run: |
           {

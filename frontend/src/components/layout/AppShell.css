@@ -57,6 +57,12 @@
   }
 }
 
+.page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 .page__header {
   display: flex;
   flex-direction: column;
