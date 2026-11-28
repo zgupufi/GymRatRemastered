@@ -317,7 +317,7 @@ function DeleteDialog({ open, onClose }: { open: boolean; onClose: () => void })
         <p>This permanently deletes:</p>
         <ul>
           <li>Your profile and settings</li>
-          <li>All workouts and your training split</li>
+          <li>All workouts and your split</li>
           <li>Every session and logged set</li>
           <li>Coach suggestions</li>
         </ul>

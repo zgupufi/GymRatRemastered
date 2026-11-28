@@ -193,9 +193,9 @@ describe('DashboardPage', () => {
 
     const jump = within(screen.getByRole('region', { name: 'Jump to' }))
     expect(jump.getByRole('link', { name: 'Workouts' })).toHaveAttribute('href', '/workouts')
-    expect(jump.getByRole('link', { name: 'Training split' })).toHaveAttribute('href', '/split')
-    expect(jump.getByRole('link', { name: 'Progression' })).toHaveAttribute('href', '/progress')
-    expect(jump.getByRole('link', { name: 'Exercise library' })).toHaveAttribute('href', '/exercises')
+    expect(jump.getByRole('link', { name: 'Split' })).toHaveAttribute('href', '/split')
+    expect(jump.getByRole('link', { name: 'Progress' })).toHaveAttribute('href', '/progress')
+    expect(jump.getByRole('link', { name: 'Library' })).toHaveAttribute('href', '/exercises')
   })
 
   it('navigates when a link is clicked', async () => {

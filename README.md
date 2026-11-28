@@ -114,7 +114,7 @@ Without a key the endpoint answers 400 `BLException_ChatService_ProviderUnavaila
 
 ## End-to-end smoke test
 
-`e2e/` holds a Playwright test that registers a user, builds a workout and split, runs the workout, resumes it after a reload and checks progression, on a desktop and a phone viewport. Start the stack from `infra`, then run it from `e2e`:
+`e2e/` holds a Playwright test that registers a user, builds a workout and split, runs the workout, resumes it after a reload and checks progress, on a desktop and a phone viewport. Start the stack from `infra`, then run it from `e2e`:
 
 ```
 npm ci
