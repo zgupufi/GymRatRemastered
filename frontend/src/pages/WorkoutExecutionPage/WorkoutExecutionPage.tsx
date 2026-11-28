@@ -6,6 +6,7 @@ import { getSplit } from '../../api/split'
 import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } from '../../api/workouts'
 import { useAuth } from '../../auth/AuthContext'
 import { RunningWorkout } from '../../components/Execution/RunningWorkout'
+import { waitForPendingSaves } from '../../components/Execution/saveQueue'
 import { WorkoutPickerModal } from '../../components/Execution/WorkoutPickerModal'
 import { BackButton } from '../../components/ui/BackButton'
 import { Button } from '../../components/ui/Button'
@@ -47,6 +48,7 @@ export function WorkoutExecutionPage() {
   useEffect(() => {
     const controller = new AbortController()
     const resumeActive = async (): Promise<Phase | null> => {
+      await waitForPendingSaves()
       const active = await getActiveSession(controller.signal)
       if (!active.sessionId || !active.workoutId) {
         return null

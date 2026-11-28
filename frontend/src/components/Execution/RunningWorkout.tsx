@@ -13,6 +13,7 @@ import { Button } from '../ui/Button'
 import { Modal } from '../ui/Modal'
 import { useToast } from '../ui/ToastContext'
 import { RestTimerPill } from './RestTimerPill'
+import { enqueueSave } from './saveQueue'
 import { addDraft, applyTarget, draftsFromSaved, emptyDrafts, removeLastDraft, summarize, toEntries, type SetDraft, type WorkoutResult } from './sets'
 import { SetsCard } from './SetsCard'
 import { TargetBanner } from './TargetBanner'
@@ -51,7 +52,6 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
   const [busy, setBusy] = useState(false)
   const [confirmingEnd, setConfirmingEnd] = useState(false)
   const advanceTimer = useRef<number | undefined>(undefined)
-  const saveQueue = useRef<Promise<void>>(Promise.resolve())
   const savedExercises = useRef(new Set(resume?.exercises.filter((item) => item.sets.length > 0).map((item) => item.exerciseId)))
   const rest = useRestTimer()
   const elapsed = useStopwatch(true, resume?.startedAt ? Date.parse(resume.startedAt) : undefined)
@@ -73,7 +73,7 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
   const detail = [exercise.mainMuscle, exercise.equipment].filter(Boolean).join(' · ')
   const target = targets.find((item) => item.order === index + 1)
 
-  const saveExercise = async (position: number, current: Record<string, SetDraft[]>) => {
+  const sendSets = async (position: number, current: Record<string, SetDraft[]>) => {
     const exerciseId = workout.exercises[position].exercise.id
     const entries = toEntries(current[exerciseId], unit)
     if (entries.length > 0 || savedExercises.current.has(exerciseId)) {
@@ -90,6 +90,8 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
       }
     }
   }
+
+  const saveExercise = (position: number, current: Record<string, SetDraft[]>) => enqueueSave(() => sendSets(position, current))
 
   const move = async (target: number) => {
     window.clearTimeout(advanceTimer.current)
@@ -127,9 +129,7 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
   }
 
   const persistSets = (position: number, current: Record<string, SetDraft[]>) => {
-    saveQueue.current = saveQueue.current
-      .then(() => saveExercise(position, current))
-      .catch(() => showToast('error', 'Could not save your sets. Try again.'))
+    saveExercise(position, current).catch(() => showToast('error', 'Could not save your sets. Try again.'))
   }
 
   const updateDrafts = (change: (current: SetDraft[]) => SetDraft[]) => {

@@ -451,6 +451,98 @@ describe('WorkoutExecutionPage', () => {
     expect(finishSession).not.toHaveBeenCalled()
   })
 
+  it('waits for a pending set save before reloading the session', async () => {
+    let completeSave!: () => void
+    vi.mocked(saveExerciseSets).mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        completeSave = resolve
+      }),
+    )
+    const user = userEvent.setup()
+    const first = renderPage()
+    await startToday(user)
+    await fillSet(user, 1, '60', '8')
+    first.unmount()
+    vi.mocked(getActiveSession).mockClear()
+    vi.mocked(getActiveSession).mockResolvedValue({
+      sessionId: 's1',
+      workoutId: 'w1',
+      startedAt: new Date().toISOString(),
+      exercises: [{ exerciseId: 'e1', sets: [{ setNumber: 1, reps: 8, weightKg: 60 }] }],
+    })
+
+    renderPage()
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)))
+    expect(getActiveSession).not.toHaveBeenCalled()
+    await act(async () => completeSave())
+
+    expect(await screen.findByRole('button', { name: 'Undo set 1' })).toBeInTheDocument()
+    expect(getActiveSession).toHaveBeenCalledTimes(1)
+  })
+
+  it('reloads the session after a pending set save fails', async () => {
+    let failSave!: (reason: Error) => void
+    vi.mocked(saveExerciseSets).mockReturnValueOnce(
+      new Promise<void>((_, reject) => {
+        failSave = reject
+      }),
+    )
+    const user = userEvent.setup()
+    const first = renderPage()
+    await startToday(user)
+    await fillSet(user, 1, '60', '8')
+    first.unmount()
+
+    renderPage()
+    await act(async () => failSave(new Error('boom')))
+
+    expect(await screen.findByRole('button', { name: 'Start workout' })).toBeInTheDocument()
+  })
+
+  it('offers a retry instead of loading a stale session when a pending save takes too long', async () => {
+    let completeSave!: () => void
+    vi.mocked(saveExerciseSets).mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        completeSave = resolve
+      }),
+    )
+    const user = userEvent.setup()
+    const first = renderPage()
+    await startToday(user)
+    await fillSet(user, 1, '60', '8')
+    first.unmount()
+    vi.mocked(getActiveSession).mockClear()
+    vi.useFakeTimers()
+
+    renderPage()
+    await act(() => vi.advanceTimersByTimeAsync(10_000))
+
+    expect(screen.getByRole('heading', { name: 'Could not load your workout' })).toBeInTheDocument()
+    expect(getActiveSession).not.toHaveBeenCalled()
+    vi.useRealTimers()
+    await act(async () => completeSave())
+  })
+
+  it('sends the save made when changing exercise after the save still in progress', async () => {
+    let completeSave!: () => void
+    vi.mocked(saveExerciseSets).mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        completeSave = resolve
+      }),
+    )
+    const user = userEvent.setup()
+    renderPage()
+    await startToday(user)
+    await fillSet(user, 1, '60', '8')
+
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    expect(saveExerciseSets).toHaveBeenCalledTimes(1)
+    await act(async () => completeSave())
+
+    expect(await screen.findByText('Exercise 2 of 2')).toBeInTheDocument()
+    expect(saveExerciseSets).toHaveBeenCalledTimes(2)
+  })
+
   it('leaves the workout active when opening exercise details after saving a set', async () => {
     const user = userEvent.setup()
     renderPage()
