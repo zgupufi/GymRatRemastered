@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
@@ -93,6 +94,19 @@ public sealed class GymRatApiFactory(string environment = "Testing") : WebApplic
                         ? TestAuthHandler.SchemeName
                         : JwtBearerDefaults.AuthenticationScheme);
         });
+    }
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        var lifetime = new GatedHostLifetime();
+        builder.ConfigureServices(services => services.AddSingleton<IHostLifetime>(lifetime));
+
+        var host = builder.Build();
+        var start = host.StartAsync();
+        lifetime.Release();
+        start.GetAwaiter().GetResult();
+
+        return host;
     }
 
     public HttpClient CreateAuthenticatedClient()
