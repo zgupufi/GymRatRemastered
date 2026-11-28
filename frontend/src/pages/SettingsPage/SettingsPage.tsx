@@ -11,8 +11,10 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import { SegmentedControl } from '../../components/ui/SegmentedControl'
+import { Switch } from '../../components/ui/Switch'
 import { useToast } from '../../components/ui/ToastContext'
 import { saveBlob } from '../../lib/download'
+import { readHapticsEnabled, writeHapticsEnabled } from '../../lib/haptics'
 import './SettingsPage.css'
 
 export const MIN_REST_SECONDS = 30
@@ -61,6 +63,7 @@ function PreferencesSection({ user }: { user: UserProfile }) {
   const { showToast } = useToast()
   const [unit, setUnit] = useState<UnitKey>(user.weightUnit === WeightUnit.Pounds ? 'lbs' : 'kg')
   const [restSeconds, setRestSeconds] = useState(user.defaultRestTimeSeconds)
+  const [haptics, setHaptics] = useState(readHapticsEnabled)
   const [saving, setSaving] = useState(false)
 
   const changeRest = (delta: number) => {
@@ -74,6 +77,7 @@ function PreferencesSection({ user }: { user: UserProfile }) {
         weightUnit: unit === 'lbs' ? WeightUnit.Pounds : WeightUnit.Kilograms,
         defaultRestTimeSeconds: restSeconds,
       })
+      writeHapticsEnabled(haptics)
       showToast('success', 'Settings saved.')
     } catch (error) {
       showToast('error', friendlyErrorMessage(error))
@@ -120,6 +124,16 @@ function PreferencesSection({ user }: { user: UserProfile }) {
               <Plus size={18} aria-hidden="true" />
             </button>
           </div>
+        </div>
+        <div className="settings-page__row">
+          <div className="settings-page__text">
+            <span className="settings-page__key">Vibration</span>
+            <span className="settings-page__hint">
+              <span className="settings-page__long">Completed set, finished workout and end of rest, on phones that support it</span>
+              <span className="settings-page__short">Sets, finish and rest end</span>
+            </span>
+          </div>
+          <Switch label="Vibration" checked={haptics} onChange={setHaptics} />
         </div>
       </div>
       <div className="settings-page__save">

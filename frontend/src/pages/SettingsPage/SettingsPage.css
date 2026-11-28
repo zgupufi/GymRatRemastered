@@ -197,6 +197,10 @@
   }
 }
 
+.settings-page__short {
+  display: none;
+}
+
 .settings-page .button {
   white-space: nowrap;
 }
@@ -214,6 +218,10 @@
 @media (max-width: 40rem) {
   .settings-page__long {
     display: none;
+  }
+
+  .settings-page__short {
+    display: inline;
   }
 
   .settings-page__row--danger {

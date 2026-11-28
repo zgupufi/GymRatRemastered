@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { MotionConfig } from 'motion/react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
-import { installHaptics } from '../../lib/haptics'
 import { pageTitle } from '../../lib/pageTitle'
 import { clearChatEntries } from '../Chat/chatStorage'
 import { ChatErrorBoundary } from '../Chat/ChatErrorBoundary'
@@ -15,7 +14,6 @@ import './AppShell.css'
 export function AppShell() {
   const { pathname } = useLocation()
   const { status } = useAuth()
-  useEffect(() => installHaptics(), [])
   useEffect(() => {
     document.title = pageTitle(pathname)
   }, [pathname])

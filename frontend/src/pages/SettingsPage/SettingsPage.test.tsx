@@ -136,6 +136,39 @@ describe('SettingsPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Settings' })).toBeInTheDocument()
   })
 
+  it('has vibration on by default and stores the choice only when saved', async () => {
+    await openSettings()
+    const vibration = screen.getByRole('switch', { name: 'Vibration' })
+    expect(vibration).toBeChecked()
+
+    await userEvent.click(vibration)
+    expect(vibration).not.toBeChecked()
+    expect(localStorage.getItem('gymrat.haptics')).toBeNull()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    await waitFor(() => expect(localStorage.getItem('gymrat.haptics')).toBe('off'))
+  })
+
+  it('shows vibration as off when it was turned off on this device', async () => {
+    localStorage.setItem('gymrat.haptics', 'off')
+
+    await openSettings()
+
+    expect(screen.getByRole('switch', { name: 'Vibration' })).not.toBeChecked()
+  })
+
+  it('keeps the stored vibration choice when saving fails', async () => {
+    vi.mocked(updateUserSettings).mockRejectedValue(new ApiError(500, 'Boom'))
+    await openSettings()
+
+    await userEvent.click(screen.getByRole('switch', { name: 'Vibration' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Save changes' })).toBeEnabled())
+    expect(localStorage.getItem('gymrat.haptics')).toBeNull()
+  })
+
   it('saves kilograms when kilograms is selected', async () => {
     vi.mocked(getUserProfile).mockResolvedValue({ ...PROFILE, weightUnit: WeightUnit.Pounds })
     await openSettings()

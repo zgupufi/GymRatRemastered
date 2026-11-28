@@ -1,9 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { installHaptics, tapHaptic } from './haptics'
-
-function press(element: Element) {
-  element.dispatchEvent(new Event('pointerdown', { bubbles: true }))
-}
+import { readHapticsEnabled, restOverHaptic, setCompletedHaptic, workoutFinishedHaptic, writeHapticsEnabled } from './haptics'
 
 describe('haptics', () => {
   const vibrate = vi.fn<(pattern: VibratePattern) => boolean>().mockReturnValue(true)
@@ -14,48 +10,55 @@ describe('haptics', () => {
 
   afterEach(() => {
     vibrate.mockClear()
-    document.body.innerHTML = ''
+    localStorage.clear()
+    vi.restoreAllMocks()
   })
 
-  it('vibrates for a tap', () => {
-    tapHaptic()
+  it.each([
+    ['a completed set', setCompletedHaptic, 30],
+    ['a finished workout', workoutFinishedHaptic, [100, 80, 100, 80, 300]],
+    ['the end of rest', restOverHaptic, [200, 100, 200]],
+  ])('vibrates for %s', (_, haptic, pattern) => {
+    haptic()
 
-    expect(vibrate).toHaveBeenCalledWith(15)
+    expect(vibrate).toHaveBeenCalledExactlyOnceWith(pattern)
   })
 
-  it('vibrates when a button is pressed', () => {
-    const uninstall = installHaptics()
-    document.body.innerHTML = '<button><span id="inner">Go</span></button>'
+  it('stays still for every event when turned off', () => {
+    writeHapticsEnabled(false)
 
-    press(document.getElementById('inner')!)
-
-    expect(vibrate).toHaveBeenCalledTimes(1)
-    uninstall()
-  })
-
-  it('ignores disabled controls and plain content', () => {
-    const uninstall = installHaptics()
-    document.body.innerHTML = '<button disabled id="b">Go</button><p id="p">Text</p>'
-
-    press(document.getElementById('b')!)
-    press(document.getElementById('p')!)
+    setCompletedHaptic()
+    workoutFinishedHaptic()
+    restOverHaptic()
 
     expect(vibrate).not.toHaveBeenCalled()
-    uninstall()
+  })
+
+  it('stores the setting and defaults to on', () => {
+    expect(readHapticsEnabled()).toBe(true)
+
+    writeHapticsEnabled(false)
+    expect(readHapticsEnabled()).toBe(false)
+
+    writeHapticsEnabled(true)
+    expect(readHapticsEnabled()).toBe(true)
+  })
+
+  it('survives storage that throws', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('blocked')
+    })
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('blocked')
+    })
+
+    expect(readHapticsEnabled()).toBe(true)
+    expect(() => writeHapticsEnabled(false)).not.toThrow()
   })
 
   it('does nothing when the Vibration API is missing', () => {
     Object.defineProperty(navigator, 'vibrate', { value: undefined, configurable: true })
 
-    expect(() => tapHaptic()).not.toThrow()
-  })
-
-  it('ignores presses whose target is not an element', () => {
-    const uninstall = installHaptics()
-
-    document.dispatchEvent(new Event('pointerdown'))
-
-    expect(vibrate).not.toHaveBeenCalled()
-    uninstall()
+    expect(() => setCompletedHaptic()).not.toThrow()
   })
 })
