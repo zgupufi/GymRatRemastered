@@ -459,45 +459,40 @@ describe('WorkoutExecutionPage', () => {
     expect(finishSession).not.toHaveBeenCalled()
   })
 
-  it('finishes the session only after pending set saves complete', async () => {
-    const order: string[] = []
-    let release: () => void = () => undefined
-    vi.mocked(saveExerciseSets).mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          release = () => {
-            order.push('saved')
-            resolve()
-          }
-        }),
-    )
-    vi.mocked(finishSession).mockImplementation(async () => {
-      order.push('finished')
+  it('lets a pending set save complete after leaving without finishing the session', async () => {
+    let completeSave!: () => void
+    const pendingSave = new Promise<void>((resolve) => {
+      completeSave = resolve
     })
+    vi.mocked(saveExerciseSets).mockReturnValueOnce(pendingSave)
     const user = userEvent.setup()
     const view = renderPage()
     await startToday(user)
     await fillSet(user, 1, '60', '8')
+    expect(saveExerciseSets).toHaveBeenCalledExactlyOnceWith('s1', 'e1', [{ reps: 8, weightKg: 60 }])
 
     view.unmount()
+    await act(async () => {
+      completeSave()
+      await pendingSave
+    })
     await new Promise((resolve) => setTimeout(resolve, 20))
-    expect(finishSession).not.toHaveBeenCalled()
-    release()
 
-    await waitFor(() => expect(finishSession).toHaveBeenCalledWith('s1'))
-    expect(order).toEqual(['saved', 'finished'])
+    expect(finishSession).not.toHaveBeenCalled()
   })
 
-  it('finishes the session when the running workout is left without ending it', async () => {
+  it('leaves the workout active when opening exercise details after saving a set', async () => {
     const user = userEvent.setup()
-    const view = renderPage()
+    renderPage()
     await startToday(user)
     await fillSet(user, 1, '60', '8')
+    expect(saveExerciseSets).toHaveBeenCalledExactlyOnceWith('s1', 'e1', [{ reps: 8, weightKg: 60 }])
 
-    view.unmount()
+    await user.click(screen.getByRole('link', { name: 'Bench Press' }))
+    expect(await screen.findByRole('heading', { name: 'Exercise details' })).toBeInTheDocument()
+    await new Promise((resolve) => setTimeout(resolve, 20))
 
-    await waitFor(() => expect(finishSession).toHaveBeenCalledWith('s1'))
-    expect(finishSession).toHaveBeenCalledTimes(1)
+    expect(finishSession).not.toHaveBeenCalled()
   })
 
   it('does not finish the session twice when it is ended normally', async () => {

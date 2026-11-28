@@ -1,7 +1,7 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getExercise, searchExercises } from './api/exercises'
 import { apiClient, setAccessToken } from './api/client'
 import { login, WeightUnit } from './api/auth'
@@ -45,6 +45,20 @@ function rejectAfterRestoring() {
 }
 
 describe('AppRoutes', () => {
+  beforeAll(async () => {
+    await Promise.all([
+      import('./components/Chat/ChatWidget'),
+      import('./pages/DashboardPage/DashboardPage'),
+      import('./pages/ExerciseDetailsPage/ExerciseDetailsPage'),
+      import('./pages/ExercisesPage/ExercisesPage'),
+      import('./pages/ProgressionPage/ProgressionPage'),
+      import('./pages/SettingsPage/SettingsPage'),
+      import('./pages/SplitPage/SplitPage'),
+      import('./pages/WorkoutExecutionPage/WorkoutExecutionPage'),
+      import('./pages/WorkoutsPage/WorkoutsPage'),
+    ])
+  }, 60_000)
+
   beforeEach(() => {
     vi.mocked(searchExercises).mockResolvedValue({ items: [], page: 1, pageSize: 24, totalCount: 0 })
     vi.mocked(getExercise).mockResolvedValue({

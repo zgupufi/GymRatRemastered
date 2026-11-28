@@ -1,4 +1,5 @@
 import { ArrowLeft, ArrowUp, Bot, Check, Clock, Search, TrendingUp } from 'lucide-react'
+import '../../components/ui/Chip.css'
 
 type SetState = 'done' | 'current' | 'next'
 

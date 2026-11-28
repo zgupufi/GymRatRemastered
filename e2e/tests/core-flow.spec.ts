@@ -69,7 +69,13 @@ test('register, plan, train, resume and review progress', async ({ page }, testI
   await goTo(page, 'Home')
   await expect(page.getByRole('list', { name: /Exercises in today/ })).toContainText(FIRST_EXERCISE)
   await page.getByRole('link', { name: 'Start workout' }).click()
+  const started = page.waitForResponse(
+    (response) => response.url().endsWith('/api/sessions') && response.request().method() === 'POST',
+  )
   await page.getByRole('button', { name: 'Start workout' }).click()
+  const startResponse = await started
+  expect(startResponse.ok()).toBe(true)
+  const { id: sessionId } = await startResponse.json() as { id: string }
   await expect(page.getByText('Exercise 1 of 2')).toBeVisible()
   await expect(page.getByRole('heading', { name: FIRST_EXERCISE })).toBeVisible()
 
@@ -77,6 +83,21 @@ test('register, plan, train, resume and review progress', async ({ page }, testI
   await expect(page.getByText('Exercise 2 of 2')).toBeVisible()
   await expect(page.getByRole('heading', { name: SECOND_EXERCISE })).toBeVisible()
   await logSet(page, SECOND_WEIGHT, '12')
+
+  await page.getByRole('link', { name: SECOND_EXERCISE, exact: true }).click()
+  await expect(page.getByRole('heading', { level: 1, name: SECOND_EXERCISE })).toBeVisible()
+
+  const active = page.waitForResponse(
+    (response) => response.url().endsWith('/api/sessions/active') && response.request().method() === 'GET',
+  )
+  await page.goBack()
+  const activeResponse = await active
+  expect(activeResponse.ok()).toBe(true)
+  expect(await activeResponse.json()).toMatchObject({ sessionId })
+  await expect(page.getByText('Exercise 2 of 2')).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Set 1 weight' })).toHaveValue(SECOND_WEIGHT)
+  await expect(page.getByRole('spinbutton', { name: 'Set 1 reps' })).toHaveValue('12')
+  await expect(page.getByRole('button', { name: 'Undo set 1' })).toBeVisible()
 
   await page.reload()
   await expect(page.getByText('Exercise 2 of 2')).toBeVisible()
