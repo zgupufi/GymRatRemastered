@@ -19,6 +19,7 @@ import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } fr
 import { AuthContext, type AuthApi } from '../../auth/AuthContext'
 import { ToastProvider } from '../../components/ui/Toast'
 import { WorkoutExecutionPage } from './WorkoutExecutionPage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/sessions')
 vi.mock('../../api/split')
@@ -226,5 +227,13 @@ describe('WorkoutExecutionPage targets and effort', () => {
 
     expect(screen.queryByRole('region', { name: "Today's target" })).not.toBeInTheDocument()
     expect(screen.getByLabelText('Set 1 weight')).toHaveAttribute('placeholder', '-')
+  })
+
+  it('has no accessibility violations', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await startToday(user)
+
+    await expectNoA11yViolations()
   })
 })

@@ -20,6 +20,7 @@ import { ToastProvider } from '../../components/ui/Toast'
 import { saveBlob } from '../../lib/download'
 import { givenRestorableSession } from '../../test/sessionFixture'
 import { SettingsPage } from './SettingsPage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/users')
 vi.mock('../../lib/download')
@@ -351,5 +352,11 @@ describe('SettingsPage', () => {
       expect(within(reopened).getByLabelText('Enter your current password to confirm')).toHaveValue('')
       expect(within(reopened).queryByText('Enter your password.')).not.toBeInTheDocument()
     })
+  })
+
+  it('has no accessibility violations', async () => {
+    await openSettings()
+
+    await expectNoA11yViolations()
   })
 })

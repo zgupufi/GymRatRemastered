@@ -18,6 +18,7 @@ import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } fr
 import { AuthContext, type AuthApi } from '../../auth/AuthContext'
 import { ToastProvider } from '../../components/ui/Toast'
 import { WorkoutExecutionPage } from './WorkoutExecutionPage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/sessions')
 vi.mock('../../api/split')
@@ -732,5 +733,12 @@ describe('WorkoutExecutionPage picker', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(screen.getByRole('heading', { level: 1, name: 'Push day' })).toBeInTheDocument()
+  })
+
+  it('has no accessibility violations', async () => {
+    renderPage()
+    await screen.findByRole('heading', { level: 1, name: 'Push day' })
+
+    await expectNoA11yViolations()
   })
 })

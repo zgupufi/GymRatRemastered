@@ -16,6 +16,7 @@ import {
 import { ToastProvider } from '../../components/ui/Toast'
 import { announceWorkoutsChanged } from '../../lib/workoutsChanged'
 import { WorkoutsPage } from './WorkoutsPage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/workouts')
 vi.mock('../../api/exercises')
@@ -475,5 +476,12 @@ describe('WorkoutsPage', () => {
     expect(await screen.findByRole('button', { name: 'Add Squat' })).toBeInTheDocument()
     await userEvent.click(document.body)
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Add Squat' })).not.toBeInTheDocument())
+  })
+
+  it('has no accessibility violations', async () => {
+    renderPage()
+    await screen.findByText('Push day')
+
+    await expectNoA11yViolations()
   })
 })

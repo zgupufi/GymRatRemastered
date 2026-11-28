@@ -8,6 +8,7 @@ import { getWorkoutSummaries, type WorkoutSummary } from '../../api/workouts'
 import { ToastProvider } from '../../components/ui/Toast'
 import { announceWorkoutsChanged } from '../../lib/workoutsChanged'
 import { SplitPage } from './SplitPage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/split')
 vi.mock('../../api/workouts')
@@ -216,5 +217,12 @@ describe('SplitPage', () => {
     await user.click(screen.getByRole('button', { name: 'Try again' }))
 
     await waitFor(() => expect(screen.getByRole('listitem', { name: 'Monday' })).toBeInTheDocument())
+  })
+
+  it('has no accessibility violations', async () => {
+    renderPage()
+    await screen.findByRole('listitem', { name: 'Monday' })
+
+    await expectNoA11yViolations()
   })
 })

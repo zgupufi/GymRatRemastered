@@ -15,6 +15,7 @@ import { givenRestorableSession } from '../../test/sessionFixture'
 import { AppNav } from '../../components/layout/AppNav'
 import { ToastProvider } from '../../components/ui/Toast'
 import { HomePage } from '../HomePage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/users')
 vi.mock('../../api/split')
@@ -132,6 +133,21 @@ describe('DashboardPage', () => {
     localStorage.clear()
     setAccessToken(null)
     vi.resetAllMocks()
+  })
+
+  it('has no accessibility violations', async () => {
+    mockWorkouts(2)
+    vi.mocked(getSplit).mockResolvedValue(splitWith({ [todayNumber()]: push }))
+    vi.mocked(getLastSession).mockResolvedValue({
+      sessionId: 's1',
+      startedAt: '2026-11-04T10:00:00Z',
+      durationSeconds: 100,
+      exercises: [],
+    })
+    renderHome()
+    await screen.findByRole('heading', { level: 1, name: 'Push day' })
+
+    await expectNoA11yViolations()
   })
 
   it('guides a new account through setting up the first week', async () => {
