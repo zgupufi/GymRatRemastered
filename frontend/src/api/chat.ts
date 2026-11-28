@@ -1,21 +1,14 @@
 import { apiClient } from './client'
-import type { CoachSuggestion } from './coach'
+import type { Schema } from './schema'
 
-export type ChatRole = 'User' | 'Assistant'
+export type ChatRole = Schema<'ChatRole'>
 
-export interface ChatHistoryItem {
-  role: ChatRole
-  content: string
-}
+export type ChatHistoryItem = Schema<'ChatHistoryItem'>
 
-export interface ChatReply {
-  reply: string
-  workoutsChanged: boolean
-  suggestions: CoachSuggestion[]
-}
+export type ChatReply = Schema<'ChatMessageResponse'>
 
 export const MAX_CHAT_MESSAGE_LENGTH = 1000
 
 export function sendChatMessage(message: string, history: ChatHistoryItem[]): Promise<ChatReply> {
-  return apiClient.post<ChatReply>('/api/chat/messages', { message, history })
+  return apiClient.post<ChatReply>('/api/chat/messages', { message, history } satisfies Schema<'ChatMessageRequest'>)
 }

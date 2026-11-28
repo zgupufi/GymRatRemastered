@@ -1,4 +1,5 @@
 using GymRatService.API.Extensions;
+using GymRatService.Common.DTOs.Coach;
 using GymRatService.Common.Filtering;
 using GymRatService.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -12,7 +13,7 @@ namespace GymRatService.API.Controllers;
 public class CoachController(ICoachService coachService) : ControllerBase
 {
     [HttpGet("suggestions")]
-    public async Task<IActionResult> GetPendingSuggestionsAsync([FromQuery] CoachSuggestionFilter filter, CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResult<CoachSuggestionDto>>> GetPendingSuggestionsAsync([FromQuery] CoachSuggestionFilter filter, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 

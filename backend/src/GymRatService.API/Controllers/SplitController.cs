@@ -13,7 +13,7 @@ namespace GymRatService.API.Controllers;
 public class SplitController(ISplitService splitService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetSplitAsync(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<SplitDayDto>>> GetSplitAsync(CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 

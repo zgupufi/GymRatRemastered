@@ -1,4 +1,6 @@
 using GymRatService.API.Extensions;
+using GymRatService.Common.DTOs.Exercises;
+using GymRatService.Common.DTOs.Sessions;
 using GymRatService.Common.Filtering;
 using GymRatService.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -12,7 +14,7 @@ namespace GymRatService.API.Controllers;
 public class ExercisesController(IExercisesService exercisesService, ISessionsService sessionsService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetExercisesAsync([FromQuery] ExerciseFilter filter, CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResult<ExerciseDto>>> GetExercisesAsync([FromQuery] ExerciseFilter filter, CancellationToken cancellationToken)
     {
         var response = await exercisesService.GetExercisesAsync(filter, cancellationToken);
 
@@ -20,7 +22,7 @@ public class ExercisesController(IExercisesService exercisesService, ISessionsSe
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetExerciseAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<ExerciseDto>> GetExerciseAsync(Guid id, CancellationToken cancellationToken)
     {
         var response = await exercisesService.GetExerciseAsync(id, cancellationToken);
 
@@ -28,7 +30,7 @@ public class ExercisesController(IExercisesService exercisesService, ISessionsSe
     }
 
     [HttpGet("{id}/progress")]
-    public async Task<IActionResult> GetExerciseProgressAsync(Guid id, [FromQuery] ProgressFilter filter, CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<ExerciseProgressDto>>> GetExerciseProgressAsync(Guid id, [FromQuery] ProgressFilter filter, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 

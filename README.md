@@ -108,6 +108,17 @@ The static site sends a content security policy (scripts, styles and fonts from 
 
 `frontend/public/_headers` sets the same cache headers on Cloudflare Pages, which compresses with gzip or brotli by itself. Client routes other than `/` keep the Pages default for HTML (`max-age=0, must-revalidate`), because a `Cache-Control` under `/*` would be merged into the `/assets/*` one. `e2e/tests/static-caching.spec.ts` checks the nginx behaviour.
 
+## API types
+
+`dotnet build` writes the OpenAPI document to `backend/openapi/GymRatService.API.json`. The frontend types in `frontend/src/api/generated.ts` are generated from it. After changing a DTO, an enum or a controller signature, run both and commit the two files:
+
+```sh
+(cd backend && dotnet build)
+(cd frontend && npm run generate:api)
+```
+
+CI fails when either file is out of date, and the frontend type check fails when the code no longer matches the types. An action must return `ActionResult<TResponse>` for its response type to appear in the document. The status codes listed in the document are the framework defaults and can differ from what the API returns.
+
 ## Dependency and code scanning
 
 The `audit` job in CI fails when a NuGet or npm package, direct or transitive, has a known high or critical vulnerability. Run the same checks locally:

@@ -30,6 +30,13 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
+      - name: Check the committed OpenAPI document is up to date
+        run: |
+          if ! git diff --exit-code -- openapi; then
+            echo "::error::backend/openapi is out of date. Run 'dotnet build' in backend, then 'npm run generate:api' in frontend, and commit the result."
+            exit 1
+          fi
+
       - name: Test with 90% coverage gate
         run: ../scripts/coverage/check.sh backend
 
@@ -50,6 +57,14 @@ jobs:
 
       - name: Install
         run: npm ci
+
+      - name: Check the generated API types are up to date
+        run: |
+          npm run generate:api
+          if ! git diff --exit-code -- src/api/generated.ts; then
+            echo "::error::src/api/generated.ts is out of date. Run 'npm run generate:api' in frontend and commit the result."
+            exit 1
+          fi
 
       - name: Lint
         run: npm run lint

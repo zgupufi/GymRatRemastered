@@ -24,7 +24,10 @@ builder.Services.AddCors(options =>
         .AllowCredentials());
 });
 
-builder.Services.AddStartupSettings(builder.Configuration);
+if (!builder.Environment.IsGeneratingOpenApiDocument())
+{
+    builder.Services.AddStartupSettings(builder.Configuration);
+}
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -57,7 +60,7 @@ builder.Services.AddTransportSecurity();
 
 builder.Services.AddRequestValidation();
 builder.Services.AddControllers(options => options.Filters.AddService<ValidationActionFilter>());
-builder.Services.AddOpenApi();
+builder.Services.AddApiDocument();
 
 builder.Services.AddServiceLayer(builder.Configuration.GetConnectionString("DefaultConnection"));
 

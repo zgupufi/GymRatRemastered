@@ -12,7 +12,7 @@ namespace GymRatService.API.Controllers;
 public class ChatController(IChatService chatService) : ControllerBase
 {
     [HttpPost("messages")]
-    public async Task<IActionResult> SendMessageAsync(ChatMessageRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<ChatMessageResponse>> SendMessageAsync(ChatMessageRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 

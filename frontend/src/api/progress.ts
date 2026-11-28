@@ -1,15 +1,9 @@
 import { apiClient } from './client'
+import type { Schema } from './schema'
 
-export interface BestSet {
-  reps: number
-  weightKg: number
-}
+export type BestSet = Schema<'BestSetDto'>
 
-export interface ProgressPoint {
-  date: string
-  bestSet: BestSet
-  estimatedOneRepMax: number
-}
+export type ProgressPoint = Schema<'ExerciseProgressDto'>
 
 function localTimeZone(): string | undefined {
   try {

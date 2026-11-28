@@ -1,17 +1,10 @@
-import type { WeightUnit } from './auth'
 import { apiClient } from './client'
+import type { Schema } from './schema'
 
-export interface UserProfile {
-  firstName: string
-  lastName: string | null
-  email: string
-  weightUnit: WeightUnit
-  defaultRestTimeSeconds: number
-}
+export type UserProfile = Schema<'UserProfileDto'>
 
-export interface UserSettings {
-  weightUnit: WeightUnit
-  defaultRestTimeSeconds: number
+export type UserSettings = {
+  [Key in keyof Schema<'UpdateUserSettingsRequest'>]: NonNullable<Schema<'UpdateUserSettingsRequest'>[Key]>
 }
 
 export function getUserProfile(signal?: AbortSignal): Promise<UserProfile> {
@@ -23,11 +16,11 @@ export function updateUserSettings(settings: UserSettings): Promise<void> {
 }
 
 export function changePassword(currentPassword: string, newPassword: string): Promise<void> {
-  return apiClient.post('/api/users/me/password', { currentPassword, newPassword })
+  return apiClient.post('/api/users/me/password', { currentPassword, newPassword } satisfies Schema<'ChangePasswordRequest'>)
 }
 
 export function deleteAccount(password: string): Promise<void> {
-  return apiClient.delete('/api/users/me', { password })
+  return apiClient.delete('/api/users/me', { password } satisfies Schema<'DeleteAccountRequest'>)
 }
 
 export function downloadExport(signal?: AbortSignal): Promise<Blob> {

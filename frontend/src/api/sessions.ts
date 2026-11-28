@@ -1,60 +1,24 @@
 import { apiClient } from './client'
+import type { Schema } from './schema'
 
-export interface SessionSet {
-  setNumber: number
-  reps: number
-  weightKg: number
-  repsInReserve?: number | null
-}
+export type SessionSet = Schema<'SessionSetDto'>
 
-export interface LastSessionExercise {
-  exerciseId: string
-  sets: SessionSet[]
-}
+export type LastSessionExercise = Schema<'LastSessionExerciseDto'>
 
-export interface LastSession {
-  sessionId: string | null
-  startedAt: string | null
-  durationSeconds: number | null
-  exercises: LastSessionExercise[]
-}
+export type LastSession = Schema<'LastSessionDto'>
 
-export interface ActiveSession {
-  sessionId: string | null
-  workoutId: string | null
-  startedAt: string | null
-  exercises: LastSessionExercise[]
-}
+export type ActiveSession = Schema<'ActiveSessionDto'>
 
-export interface SessionSetEntry {
-  reps: number
-  weightKg: number
-  repsInReserve?: number | null
-}
+export type SessionSetEntry = Schema<'SessionSetRequest'>
 
-export type ProgressionReason = 'NoHistory' | 'Hold' | 'Stalled' | 'IncreaseWeight' | 'AddRep'
+export type ProgressionReason = Schema<'ProgressionReason'>
 
-export interface ExerciseTarget {
-  order: number
-  exerciseId: string
-  sets: number
-  repsMin: number
-  repsMax: number
-  weightKg: number | null
-  reps: number
-  reason: ProgressionReason
-  lastWeightKg: number | null
-  lastReps: number[]
-}
+export type ExerciseTarget = Schema<'ExerciseTargetDto'>
 
-export interface ServedTarget {
-  weightKg: number | null
-  reps: number
-  reason: ProgressionReason
-}
+export type ServedTarget = Schema<'ServedTargetRequest'>
 
-export function startSession(workoutId: string): Promise<{ id: string }> {
-  return apiClient.post<{ id: string }>('/api/sessions', { workoutId })
+export function startSession(workoutId: string): Promise<Schema<'StartSessionResponse'>> {
+  return apiClient.post<Schema<'StartSessionResponse'>>('/api/sessions', { workoutId } satisfies Schema<'StartSessionRequest'>)
 }
 
 export function getActiveSession(signal?: AbortSignal): Promise<ActiveSession> {
@@ -62,7 +26,7 @@ export function getActiveSession(signal?: AbortSignal): Promise<ActiveSession> {
 }
 
 export function saveExerciseSets(sessionId: string, exerciseId: string, sets: SessionSetEntry[], target?: ServedTarget): Promise<void> {
-  return apiClient.put(`/api/sessions/${sessionId}/exercises/${exerciseId}/sets`, target ? { sets, target } : { sets })
+  return apiClient.put(`/api/sessions/${sessionId}/exercises/${exerciseId}/sets`, (target ? { sets, target } : { sets }) satisfies Schema<'SaveExerciseSetsRequest'>)
 }
 
 export function finishSession(sessionId: string): Promise<void> {

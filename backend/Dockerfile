@@ -9,7 +9,7 @@ COPY src/GymRatService.API/GymRatService.API.csproj src/GymRatService.API/
 RUN dotnet restore src/GymRatService.API/GymRatService.API.csproj
 
 COPY src/ src/
-RUN dotnet publish src/GymRatService.API/GymRatService.API.csproj -c Release --no-restore -o /app
+RUN dotnet publish src/GymRatService.API/GymRatService.API.csproj -c Release --no-restore -p:OpenApiGenerateDocumentsOnBuild=false -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app

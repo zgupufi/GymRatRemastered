@@ -1,3 +1,5 @@
+import type { Schema } from './schema'
+
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? ''
 
 export interface FieldError {
@@ -67,8 +69,8 @@ async function requestRefresh(): Promise<RefreshOutcome> {
     const rejected = response.status === 401 || (isApiErrorBody(body) && body.code === INVALID_REFRESH_TOKEN_CODE)
     return rejected ? 'rejected' : 'unavailable'
   }
-  if (typeof body === 'object' && body !== null && typeof (body as { accessToken?: unknown }).accessToken === 'string') {
-    accessToken = (body as { accessToken: string }).accessToken
+  if (typeof body === 'object' && body !== null && typeof (body as Schema<'LoginResponse'>).accessToken === 'string') {
+    accessToken = (body as Schema<'LoginResponse'>).accessToken
     return 'refreshed'
   }
   return 'unavailable'

@@ -27,7 +27,7 @@ public class AuthController(IAuthService authService, RefreshTokenCookie refresh
     [AllowAnonymous]
     [HttpPost("login")]
     [EnableRateLimiting(RateLimitingExtensions.LoginPolicy)]
-    public async Task<IActionResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<LoginResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
     {
         var response = await authService.LoginAsync(request, cancellationToken);
 
@@ -40,7 +40,7 @@ public class AuthController(IAuthService authService, RefreshTokenCookie refresh
     [HttpPost("refresh")]
     [ServiceFilter(typeof(AllowedOriginFilter))]
     [EnableRateLimiting(RateLimitingExtensions.RefreshPolicy)]
-    public async Task<IActionResult> RefreshAsync(CancellationToken cancellationToken)
+    public async Task<ActionResult<LoginResponse>> RefreshAsync(CancellationToken cancellationToken)
     {
         var response = await authService.RefreshAsync(refreshTokenCookie.Read(Request), cancellationToken);
 

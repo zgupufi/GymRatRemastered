@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MotionGlobalConfig } from 'motion/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Exercise } from '../../api/exercises'
 import { WeightUnit } from '../../api/auth'
 import { finishSession, getActiveSession, getLastSession, getTargets, saveExerciseSets, startSession, type ExerciseTarget } from '../../api/sessions'
 import { getSplit } from '../../api/split'
@@ -17,7 +18,7 @@ vi.mock('../../api/workouts')
 
 const push: WorkoutSummary = { id: 'w1', name: 'Push day', exerciseCount: 2, mainMuscles: ['Chest'] }
 
-function exercise(id: string, name: string) {
+function exercise(id: string, name: string): Exercise {
   return { id, name, mainMuscle: 'Chest', secondaryMuscles: [], equipment: 'Barbell', difficulty: 'Beginner', movementPattern: 'Push', description: null, setup: 'Set up.', execution: 'Do it.', youtubeLink: null }
 }
 

@@ -1,4 +1,6 @@
 using GymRatService.API.Extensions;
+using GymRatService.Common.DTOs.Sessions;
+using GymRatService.Common.DTOs.Targets;
 using GymRatService.Common.DTOs.Workouts;
 using GymRatService.Common.Filtering;
 using GymRatService.Service.Interfaces;
@@ -13,7 +15,7 @@ namespace GymRatService.API.Controllers;
 public class WorkoutsController(IWorkoutsService workoutsService, ISessionsService sessionsService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetWorkoutSummariesAsync([FromQuery] WorkoutFilter filter, CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResult<WorkoutSummaryDto>>> GetWorkoutSummariesAsync([FromQuery] WorkoutFilter filter, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 
@@ -23,7 +25,7 @@ public class WorkoutsController(IWorkoutsService workoutsService, ISessionsServi
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetWorkoutAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<WorkoutDto>> GetWorkoutAsync(Guid id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 
@@ -33,7 +35,7 @@ public class WorkoutsController(IWorkoutsService workoutsService, ISessionsServi
     }
 
     [HttpGet("{id}/last-session")]
-    public async Task<IActionResult> GetLastSessionAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<LastSessionDto>> GetLastSessionAsync(Guid id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 
@@ -43,7 +45,7 @@ public class WorkoutsController(IWorkoutsService workoutsService, ISessionsServi
     }
 
     [HttpGet("{id}/targets")]
-    public async Task<IActionResult> GetTargetsAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<ExerciseTargetDto>>> GetTargetsAsync(Guid id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 
@@ -53,7 +55,7 @@ public class WorkoutsController(IWorkoutsService workoutsService, ISessionsServi
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateWorkoutAsync(CreateWorkoutRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<CreateWorkoutResponse>> CreateWorkoutAsync(CreateWorkoutRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 

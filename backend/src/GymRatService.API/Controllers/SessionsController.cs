@@ -12,7 +12,7 @@ namespace GymRatService.API.Controllers;
 public class SessionsController(ISessionsService sessionsService) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> StartSessionAsync(StartSessionRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<StartSessionResponse>> StartSessionAsync(StartSessionRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 
@@ -22,7 +22,7 @@ public class SessionsController(ISessionsService sessionsService) : ControllerBa
     }
 
     [HttpGet("active")]
-    public async Task<IActionResult> GetActiveSessionAsync(CancellationToken cancellationToken)
+    public async Task<ActionResult<ActiveSessionDto>> GetActiveSessionAsync(CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 
