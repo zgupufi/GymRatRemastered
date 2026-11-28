@@ -42,7 +42,7 @@ Write the date and result of each drill at the bottom of this file.
 
 `Uptime check` (`.github/workflows/uptime.yml`) requests `API_HEALTH_URL` every 10 minutes and fails if there is no successful answer within 90 seconds and two retries. A failing run emails the repository owner. It also keeps the free Render service awake. GitHub's scheduler can delay runs by several minutes, so this is a smoke alarm, not an SLA.
 
-Until BE-05 lands, `/health` only proves the API process is up. After BE-05 it also checks the database.
+`GET /health` and `HEAD /health` return 200 when the API can reach PostgreSQL and 503 when the database check fails. The probe needs no credentials from the caller and has a four-second database timeout. Both the uptime workflow and the Render blueprint in PR #30 use this path. Repeated database failures can cause Render to restart the API.
 
 If the site is down:
 1. Open the Render dashboard, look at the latest deploy and the logs.
@@ -50,12 +50,16 @@ If the site is down:
 3. Check Neon for a paused or over-quota project.
 4. If a release caused it, redeploy the previous successful deploy from the Render dashboard.
 
-## 4. Error tracking (pending)
+## 4. Error tracking
+
+For an unexpected API error, take the `traceId` from the 500 response and search for it in the Production JSON console logs. The error entry records the exception type. The request entry records the method, route template, status, duration in milliseconds and authenticated user ID when available. If a download fails after it starts, the API closes the stream and records the failure under the same trace ID.
+
+### External tracker (pending)
 
 Not wired up in this change. It needs a new dependency in the frontend and the API (for example the Sentry free tier), which is an open decision in `docs/APP_REVIEW_REPORT.md` section 15. When approved, the requirements are:
 - one release tag per deploy (the commit SHA) on both sides, so an error shows the release it came from;
 - personal data scrubbing: no request bodies, no tokens, no emails, user id only;
-- the trace id from BE-05 attached to API events;
+- the API response trace ID attached to API events;
 - a forced error in each of the frontend and the API shows up in the tracker with the release tag.
 
 ## 5. Release checklist
@@ -69,7 +73,7 @@ Before merging to `main` (which deploys the API and frontend):
 - [ ] A backup from the last 24 hours exists (Actions > `Backup database`). For a risky migration, run it by hand first.
 
 After deploy, smoke test on the live site:
-- [ ] `/health` answers.
+- [ ] `/health` returns HTTP 200.
 - [ ] Register or log in, open Home.
 - [ ] Open a workout, start it, log a set, finish it.
 - [ ] Open the coach and send a message.

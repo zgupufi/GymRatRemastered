@@ -51,4 +51,6 @@ public static class ErrorCodes
     public const string CoachTooManyProposals = "BLException_CoachService_TooManyProposals";
 
     public const string InvalidRequest = "BLException_Validation_InvalidRequest";
+
+    public const string InternalServerError = "InternalServerError";
 }

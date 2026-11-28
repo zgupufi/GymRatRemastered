@@ -2,16 +2,23 @@ using System.Text;
 using GymRatService.API.Cookies;
 using GymRatService.API.Extensions;
 using GymRatService.API.Filters;
+using GymRatService.API.Health;
 using GymRatService.API.Middleware;
 using GymRatService.Common.Settings;
 using GymRatService.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 
 const string FrontendCorsPolicy = "Frontend";
 string[] supportedCultures = ["en", "ro"];
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (builder.Environment.IsProduction())
+{
+    builder.Logging.AddJsonConsole();
+}
 
 builder.WebHost.ConfigureKestrel(options => options.LimitRequestBodySize());
 
@@ -64,6 +71,9 @@ builder.Services.AddApiDocument();
 
 builder.Services.AddServiceLayer(builder.Configuration.GetConnectionString("DefaultConnection"));
 
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("database", timeout: TimeSpan.FromSeconds(4));
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -71,6 +81,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseTrustedForwardedHeaders();
 app.UseTransportSecurity();
 
@@ -79,6 +90,22 @@ app.UseRequestLocalization(new RequestLocalizationOptions()
     .AddSupportedCultures(supportedCultures)
     .AddSupportedUICultures(supportedCultures));
 
+var errorPipeline = ((IApplicationBuilder)app).New();
+if (!app.Environment.AllowsDevelopmentSettings())
+{
+    // The exception middleware clears the original response headers.
+    errorPipeline.UseHsts();
+}
+errorPipeline.Run(UnexpectedExceptionHandler.WriteAsync);
+
+app.UseExceptionHandler(new ExceptionHandlerOptions
+{
+    ExceptionHandler = errorPipeline.Build(),
+    SuppressDiagnosticsCallback = _ => true,
+});
+
+app.Use(UnexpectedExceptionHandler.AbortFailedResponseAsync);
+app.UseRouting();
 app.UseMiddleware<BusinessLogicExceptionMiddleware>();
 
 app.UseCors(FrontendCorsPolicy);
@@ -89,5 +116,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = (_, _) => Task.CompletedTask,
+})
+    .WithMetadata(new HttpMethodMetadata([HttpMethods.Get, HttpMethods.Head]))
+    .AllowAnonymous()
+    .ExcludeFromDescription();
 
 app.Run();

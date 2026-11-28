@@ -18,6 +18,16 @@ public sealed class PostgresSmokeTests : IDisposable
     public void Dispose() => _factory.Dispose();
 
     [PostgresFact]
+    public async Task Health_ReturnsOk_WhenPostgresIsReachable()
+    {
+        using var client = _factory.CreateClient();
+
+        using var response = await client.GetAsync("/health");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [PostgresFact]
     public async Task Register_StoresTheUserAndTheProfileCanBeRead()
     {
         // Arrange

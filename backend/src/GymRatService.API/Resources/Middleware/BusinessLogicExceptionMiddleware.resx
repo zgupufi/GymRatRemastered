@@ -87,4 +87,7 @@
   <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
     <value>The request is not valid.</value>
   </data>
+  <data name="InternalServerError" xml:space="preserve">
+    <value>An unexpected error occurred. Try again.</value>
+  </data>
 </root>

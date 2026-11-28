@@ -87,4 +87,7 @@
   <data name="BLException_Validation_InvalidRequest" xml:space="preserve">
     <value>Cererea nu este validă.</value>
   </data>
+  <data name="InternalServerError" xml:space="preserve">
+    <value>A apărut o eroare neașteptată. Încearcă din nou.</value>
+  </data>
 </root>
