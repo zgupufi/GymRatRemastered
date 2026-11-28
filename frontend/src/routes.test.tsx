@@ -36,7 +36,7 @@ function renderAt(path: string) {
 function rejectAfterRestoring() {
   let restored = false
   return vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
-    if (String(input) === '/api/auth/refresh' && !restored) {
+    if ((input as string) === '/api/auth/refresh' && !restored) {
       restored = true
       return Promise.resolve(Response.json({ accessToken: 'token', expiresAt: '2999-01-01T00:00:00Z' }))
     }

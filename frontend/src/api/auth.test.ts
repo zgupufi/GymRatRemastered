@@ -28,7 +28,7 @@ describe('auth api', () => {
     await register({ email: 'a@b.co', password: 'secret123', firstName: 'A', lastName: null, weightUnit: WeightUnit.Pounds })
 
     expect(fetchMock.mock.calls[0][0]).toBe('/api/auth/register')
-    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({ weightUnit: 1, lastName: null })
+    expect(JSON.parse(fetchMock.mock.calls[0][1]?.body as string)).toMatchObject({ weightUnit: 1, lastName: null })
   })
 
   it('posts to the logout endpoint', async () => {

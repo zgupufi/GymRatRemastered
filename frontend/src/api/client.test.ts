@@ -216,7 +216,7 @@ describe('silent refresh', () => {
   })
 
   function stubFetch(handler: (url: string, init?: RequestInit) => Response | Promise<Response>) {
-    const fetchMock = vi.fn<typeof fetch>().mockImplementation((input, init) => Promise.resolve(handler(String(input), init)))
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation((input, init) => Promise.resolve(handler(input as string, init)))
     vi.stubGlobal('fetch', fetchMock)
     return fetchMock
   }

@@ -201,7 +201,7 @@ describe('AuthProvider', () => {
     expect(await screen.findByText('status:authenticated')).toBeInTheDocument()
     expect(login).toHaveBeenCalledWith({ email: 'rafael@example.com', password: 'secret' })
     expect(localStorage.getItem(HINT_KEY)).toBe('1')
-    expect(JSON.stringify({ ...localStorage })).not.toContain('token-1')
+    expect(JSON.stringify(Object.entries(localStorage))).not.toContain('token-1')
   })
 
   it('stays anonymous and stores nothing when the profile fails after login', async () => {

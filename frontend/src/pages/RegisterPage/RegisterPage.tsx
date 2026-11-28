@@ -92,7 +92,7 @@ export function RegisterPage() {
       })
     } catch (error) {
       if (error instanceof LoginAfterRegisterError) {
-        navigate('/login', { replace: true, state: { notice: ACCOUNT_CREATED } })
+        void navigate('/login', { replace: true, state: { notice: ACCOUNT_CREATED } })
         return
       }
       if (error instanceof ApiError && error.code === EMAIL_EXISTS_CODE) {

@@ -63,10 +63,12 @@ function renderPage() {
   )
 }
 
+const scrollIntoView = vi.fn()
+
 describe('WorkoutsPage', () => {
   beforeAll(() => {
     MotionGlobalConfig.skipAnimations = true
-    Element.prototype.scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
   })
 
   beforeEach(() => {
@@ -194,7 +196,7 @@ describe('WorkoutsPage', () => {
     expect(await screen.findByRole('textbox', { name: 'Search exercises' })).toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: 'Workout name' })).not.toBeInTheDocument()
     expect(createWorkout).toHaveBeenCalledWith(expect.stringMatching(/^New workout - /))
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' })
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' })
   })
 
   it('reports a failed creation', async () => {

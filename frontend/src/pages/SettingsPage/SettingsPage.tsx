@@ -253,7 +253,7 @@ function AccountSection() {
   const passwordChanged = () => {
     logout()
     showToast('success', 'Password changed. Log in again with the new one.')
-    navigate('/login')
+    void navigate('/login')
   }
 
   return (

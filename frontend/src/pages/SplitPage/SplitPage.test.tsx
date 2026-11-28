@@ -35,10 +35,12 @@ function renderPage() {
   )
 }
 
+const scrollIntoView = vi.fn()
+
 describe('SplitPage', () => {
   beforeAll(() => {
     MotionGlobalConfig.skipAnimations = true
-    Element.prototype.scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
   })
 
   beforeEach(() => {
@@ -74,7 +76,7 @@ describe('SplitPage', () => {
     const card = await screen.findByRole('listitem', { name })
     expect(within(card).getByText('Today')).toBeInTheDocument()
     expect(screen.getAllByText('Today')).toHaveLength(1)
-    await waitFor(() => expect(Element.prototype.scrollIntoView).toHaveBeenCalled())
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalled())
   })
 
   it('shows a full body chip from six muscle groups', async () => {
