@@ -10,9 +10,18 @@ function declarations(block: string) {
   return Object.fromEntries([...block.matchAll(/(--[\w-]+):\s*(#[0-9a-f]{6})\s*;/gi)].map((match) => [match[1], match[2]]))
 }
 
-function blockAfter(marker: string) {
-  const start = tokensCss.indexOf('{', tokensCss.indexOf(marker) + marker.length)
-  return tokensCss.slice(start + 1, tokensCss.indexOf('}', start))
+function rootBlock(opening: RegExp) {
+  const match = opening.exec(tokensCss)
+  if (!match) throw new Error(`tokens.css has no block matching ${opening}`)
+  const start = match.index + match[0].length
+  return tokensCss.slice(start, tokensCss.indexOf('}', start))
+}
+
+function targetsOnlyDisabled(selector: string) {
+  return selector
+    .replace(/:not\([^()]*\)/g, '')
+    .split(',')
+    .every((part) => part.includes(':disabled'))
 }
 
 function luminance(hex: string) {
@@ -28,8 +37,8 @@ function contrast(first: string, second: string) {
   return (lighter + 0.05) / (darker + 0.05)
 }
 
-const base = declarations(blockAfter(':root'))
-const moreContrast = { ...base, ...declarations(blockAfter('(prefers-contrast: more) {\n  :root')) }
+const base = declarations(rootBlock(/:root\s*\{/))
+const moreContrast = { ...base, ...declarations(rootBlock(/\(prefers-contrast: more\)\s*\{\s*:root\s*\{/)) }
 const pairs = textTokens.flatMap((text) => surfaceTokens.map((surface) => ({ text, surface })))
 
 describe.each([
@@ -53,6 +62,6 @@ describe('text color usage', () => {
     const selectors = rules.filter(([, , body]) => body.includes('var(--text-4)')).map(([, selector]) => selector.trim())
 
     expect(selectors.length).toBeGreaterThan(0)
-    expect(selectors.filter((selector) => !selector.split(',').every((part) => part.includes(':disabled')))).toEqual([])
+    expect(selectors.filter((selector) => !targetsOnlyDisabled(selector))).toEqual([])
   })
 })
