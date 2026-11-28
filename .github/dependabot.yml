@@ -1,0 +1,68 @@
+version: 2
+
+updates:
+  - package-ecosystem: nuget
+    directory: /backend
+    schedule:
+      interval: weekly
+    groups:
+      nuget-minor-and-patch:
+        update-types: [minor, patch]
+      nuget-security:
+        applies-to: security-updates
+        patterns: ['*']
+    ignore:
+      - dependency-name: Microsoft.AspNetCore.*
+        update-types: ['version-update:semver-major']
+      - dependency-name: Microsoft.EntityFrameworkCore*
+        update-types: ['version-update:semver-major']
+      - dependency-name: Microsoft.Extensions.Localization
+        update-types: ['version-update:semver-major']
+      - dependency-name: Npgsql.EntityFrameworkCore.PostgreSQL
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: npm
+    directories: [/frontend, /e2e]
+    schedule:
+      interval: weekly
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+      npm-security:
+        applies-to: security-updates
+        patterns: ['*']
+    ignore:
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: docker
+    directories: [/backend, /frontend]
+    schedule:
+      interval: weekly
+    groups:
+      docker-minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: dotnet/*
+        update-types: ['version-update:semver-major']
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: docker-compose
+    directory: /infra
+    schedule:
+      interval: weekly
+    groups:
+      compose-minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: postgres
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']

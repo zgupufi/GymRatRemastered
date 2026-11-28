@@ -89,6 +89,20 @@ The static site sends a content security policy (scripts, styles and fonts from 
 
 `frontend/public/_headers` sets the same cache headers on Cloudflare Pages, which compresses with gzip or brotli by itself. Client routes other than `/` keep the Pages default for HTML (`max-age=0, must-revalidate`), because a `Cache-Control` under `/*` would be merged into the `/assets/*` one. `e2e/tests/static-caching.spec.ts` checks the nginx behaviour.
 
+## Dependency and code scanning
+
+The `audit` job in CI fails when a NuGet or npm package, direct or transitive, has a known high or critical vulnerability. Run the same checks locally:
+
+```bash
+scripts/audit/nuget.sh
+(cd frontend && npm audit --audit-level=high)
+(cd e2e && npm audit --audit-level=high)
+```
+
+A new advisory can turn the job red on a branch that did not touch any package. Fix it by updating the package. For npm, run `npm audit fix`. For a direct NuGet package, change its version in `backend/Directory.Packages.props`. For a transitive NuGet package, update the package that brings it in, or add a `<PackageVersion>` in `Directory.Packages.props` plus a `<PackageReference>` in the project that uses it. A `<PackageVersion>` alone does not change a transitive version, because transitive pinning is off.
+
+`.github/dependabot.yml` opens weekly update pull requests for NuGet, npm, Docker, Docker Compose and GitHub Actions. `.github/workflows/codeql.yml` runs CodeQL on C# and TypeScript for every pull request, every push to `main` and once a week.
+
 ## AI coach
 
 `POST /api/chat/messages` talks to an LLM through `Microsoft.Extensions.AI` (`IChatClient`). The default is `baidu/ernie-5.5-flash-preview:free` through OpenRouter's OpenAI-compatible endpoint, with `google/gemma-4-31b-it:free` as `AiCoach:FallbackModel` (used on 429, 5xx, timeout or an empty reply). The API key is never stored in the repo:
