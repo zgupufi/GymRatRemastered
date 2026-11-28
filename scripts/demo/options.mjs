@@ -12,6 +12,10 @@ export const USAGE = `Usage: node scripts/demo/seed.mjs [options]
   --compose-project <name>  Compose project name, if the stack was started with -p
   --help                    show this text`
 
+function splitCommand(command) {
+  return [...command.matchAll(/"([^"]*)"|[^\s"]+/g)].map((match) => match[1] ?? match[0]).filter(Boolean)
+}
+
 export function parseOptions(args) {
   const { values } = parseArgs({
     args,
@@ -31,7 +35,7 @@ export function parseOptions(args) {
     throw new Error(`The demo seed only runs against a local API, not "${url.hostname}".`)
   }
 
-  const docker = values.docker.split(' ').filter(Boolean)
+  const docker = splitCommand(values.docker)
   if (docker.length === 0) {
     throw new Error('--docker must not be empty.')
   }

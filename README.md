@@ -39,11 +39,11 @@ It creates `demo@gymrat.test` with the password `GymRat-Demo-1`, four workouts, 
 The account, workouts, split and sets are created through the API. The API cannot date a session in the past, so the script then moves the dates with SQL, run by `psql` inside the Compose `postgres` service. It only accepts an API on `localhost`, and the SQL only reaches the Compose database on your machine. The password is public, so do not use this account anywhere else.
 
 - `--reset` deletes the demo account with all its data and seeds it again, which also moves the history up to today. Use it after a run that failed part way too.
-- `--docker "wsl -d Ubuntu docker"` for Docker that only runs inside WSL.
+- `--docker "wsl -d Ubuntu docker"` for Docker that only runs inside WSL. Put double quotes inside the value around a path with spaces.
 - `--compose-project <name>` if the stack was started with `docker compose -p <name>`.
 - `--api`, `--email` and `--password` change the defaults (`--api` is `http://localhost:8080`). `--help` lists every option.
 
-Registration and login are rate limited, so running it several times within a minute can be refused. The script's tests run with `node --test "scripts/demo/*.test.mjs"`, and the CI `e2e` job runs them and then seeds the stack.
+Registration and login are rate limited. When the API refuses a call for that reason and asks to wait 90 seconds or less, the script waits and tries again, up to three times, so a run can take a few minutes. It stops with the error on a longer wait, such as after several wrong passwords for the same email. The script's tests run with `node --test "scripts/demo/*.test.mjs"`, and the CI `e2e` job runs them and then seeds the stack.
 
 ## Required settings outside Development
 

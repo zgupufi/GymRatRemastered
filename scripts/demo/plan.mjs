@@ -24,7 +24,7 @@ export const WORKOUTS = [
       exercise('Bench Press', 3, 6, 8, 2.5, 60, 'increase'),
       exercise('Barbell Rows', 3, 8, 10, 2.5, 50),
       exercise('Overhead Press', 3, 6, 8, 2.5, 35, 'stall'),
-      exercise('Pull-ups', 3, 5, 12, 1.25, 0),
+      exercise('Pull-ups', 3, 5, 15, 1.25, 0),
       exercise('Triceps Pushdowns', 3, 10, 12, 1.25, 20),
     ],
   },
@@ -77,7 +77,7 @@ export function buildSchedule(now) {
   }
   const kept = slots.filter((_, index) => !SKIPPED_SLOTS.includes(index))
   return kept.map(({ workout, day }, index) => {
-    const startedAt = new Date(day.getTime() + (17 * 60 + ((index * 7) % 45)) * 60 * 1000)
+    const startedAt = new Date(day.getTime() + (12 * 60 + ((index * 7) % 45)) * 60 * 1000)
     const durationSeconds = (48 + ((index * 11) % 23)) * 60
     return {
       workout,

@@ -1,52 +1,10 @@
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { createAccount, createClient } from './api.mjs'
 import { USAGE, parseOptions, psqlCommand } from './options.mjs'
 import { WORKOUTS, buildBackdateSql, buildSchedule, performSets } from './plan.mjs'
 
 const INFRA_DIRECTORY = fileURLToPath(new URL('../../infra', import.meta.url))
-
-const EMAIL_EXISTS = 'BLException_AuthService_EmailAlreadyExists'
-
-class ApiError extends Error {
-  constructor(method, path, status, body) {
-    super(`${method} ${path} answered ${status} ${JSON.stringify(body)}`)
-    this.code = body?.code
-  }
-}
-
-function createClient(baseUrl) {
-  let token
-  const send = async (method, path, body) => {
-    const response = await fetch(`${baseUrl}${path}`, {
-      method,
-      headers: {
-        'Accept-Language': 'en',
-        ...(body ? { 'Content-Type': 'application/json' } : {}),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    }).catch((error) => {
-      throw new Error(`Could not reach the API at ${baseUrl}. Is the stack running? (${error.cause?.message ?? error.message})`)
-    })
-    const text = await response.text()
-    let data = null
-    try {
-      data = text ? JSON.parse(text) : null
-    } catch {
-      data = text
-    }
-    if (!response.ok) {
-      throw new ApiError(method, path, response.status, data)
-    }
-    return data
-  }
-  return {
-    send,
-    login: async (email, password) => {
-      token = (await send('POST', '/api/auth/login', { email, password })).accessToken
-    },
-  }
-}
 
 function runSql(options, sql) {
   const { command, args } = psqlCommand(options)
@@ -54,24 +12,6 @@ function runSql(options, sql) {
   if (result.error || result.status !== 0) {
     throw new Error(`Could not run SQL in the Compose database: ${result.error?.message ?? result.stderr.trim()}`)
   }
-}
-
-async function createAccount(client, { email, password, reset }) {
-  const account = { email, password, firstName: 'Demo', lastName: 'Lifter', weightUnit: 0 }
-  try {
-    await client.send('POST', '/api/auth/register', account)
-  } catch (error) {
-    if (error.code !== EMAIL_EXISTS) {
-      throw error
-    }
-    if (!reset) {
-      throw new Error(`${email} already exists. Run again with --reset to delete it with all its data and seed it again.`)
-    }
-    await client.login(email, password)
-    await client.send('DELETE', '/api/users/me', { password })
-    await client.send('POST', '/api/auth/register', account)
-  }
-  await client.login(email, password)
 }
 
 async function findExerciseIds(client, names) {
@@ -153,7 +93,8 @@ async function seed(options) {
   runSql(options, buildBackdateSql(sessions, [...workoutIds.values()], createdAt))
   await verifyDates(client, sessions)
 
-  console.log(`Seeded ${options.email} / ${options.password}: ${workoutIds.size} workouts, a weekly split and ${sessions.length} sessions.`)
+  console.log(`Seeded ${options.email}: ${workoutIds.size} workouts, a weekly split and ${sessions.length} sessions.`)
+  console.log('Log in with the --password value, or with the default shown by --help.')
 }
 
 try {

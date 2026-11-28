@@ -21,6 +21,12 @@ test('Docker can be called through WSL with a named Compose project', () => {
   assert.equal(options.reset, true)
 })
 
+test('a quoted Docker path keeps its spaces', () => {
+  const options = parseOptions(['--docker', '"C:/Program Files/Docker/docker.exe" --context desktop'])
+
+  assert.deepEqual(options.docker, ['C:/Program Files/Docker/docker.exe', '--context', 'desktop'])
+})
+
 test('only an API on this machine is accepted', () => {
   assert.equal(parseOptions(['--api', 'http://127.0.0.1:8180/']).api, 'http://127.0.0.1:8180')
   assert.equal(parseOptions(['--api', 'http://[::1]:8080']).api, 'http://[::1]:8080')
