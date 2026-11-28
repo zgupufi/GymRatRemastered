@@ -58,7 +58,10 @@ describe('AddToWorkoutModal', () => {
   })
 
   it('adds the exercise to the chosen workout and closes after a moment', async () => {
-    vi.mocked(getAllWorkoutSummaries).mockResolvedValue([summary, { ...summary, id: 'w2', name: 'Legs', exerciseCount: 0 }])
+    vi.mocked(getAllWorkoutSummaries).mockResolvedValue([
+      summary,
+      { ...summary, id: 'w2', name: 'Legs', exerciseCount: 0 },
+    ])
     vi.mocked(getWorkout).mockResolvedValue(workoutWith('e1'))
     vi.mocked(replaceWorkoutExercises).mockResolvedValue()
     const onClose = renderModal()

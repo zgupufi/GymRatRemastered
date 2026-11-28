@@ -15,6 +15,7 @@ import { givenRestorableSession } from '../../test/sessionFixture'
 import { AppNav } from '../../components/layout/AppNav'
 import { ToastProvider } from '../../components/ui/Toast'
 import { HomePage } from '../HomePage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/users')
 vi.mock('../../api/split')
@@ -25,7 +26,19 @@ const push: WorkoutSummary = { id: 'w1', name: 'Push day', exerciseCount: 2, mai
 const pull: WorkoutSummary = { id: 'w2', name: 'Pull day', exerciseCount: 1, mainMuscles: ['Back'] }
 
 function exercise(id: string, name: string): Exercise {
-  return { id, name, mainMuscle: 'Chest', secondaryMuscles: [], equipment: 'Barbell', difficulty: 'Beginner', movementPattern: 'Push', description: null, setup: 'Set up.', execution: 'Do it.', youtubeLink: null }
+  return {
+    id,
+    name,
+    mainMuscle: 'Chest',
+    secondaryMuscles: [],
+    equipment: 'Barbell',
+    difficulty: 'Beginner',
+    movementPattern: 'Push',
+    description: null,
+    setup: 'Set up.',
+    execution: 'Do it.',
+    youtubeLink: null,
+  }
 }
 
 const pushDetails: Workout = {
@@ -51,7 +64,12 @@ function otherDay() {
 }
 
 function mockWorkouts(total: number) {
-  vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: total > 0 ? [push] : [], page: 1, pageSize: 1, totalCount: total })
+  vi.mocked(getWorkoutSummaries).mockResolvedValue({
+    items: total > 0 ? [push] : [],
+    page: 1,
+    pageSize: 1,
+    totalCount: total,
+  })
 }
 
 const PROFILE: UserProfile = {
@@ -102,7 +120,12 @@ describe('DashboardPage', () => {
     mockWorkouts(0)
     vi.mocked(getSplit).mockResolvedValue(splitWith({}))
     vi.mocked(getWorkout).mockResolvedValue(pushDetails)
-    vi.mocked(getLastSession).mockResolvedValue({ sessionId: null, startedAt: null, durationSeconds: null, exercises: [] })
+    vi.mocked(getLastSession).mockResolvedValue({
+      sessionId: null,
+      startedAt: null,
+      durationSeconds: null,
+      exercises: [],
+    })
   })
 
   afterEach(() => {
@@ -110,6 +133,21 @@ describe('DashboardPage', () => {
     localStorage.clear()
     setAccessToken(null)
     vi.resetAllMocks()
+  })
+
+  it('has no accessibility violations', async () => {
+    mockWorkouts(2)
+    vi.mocked(getSplit).mockResolvedValue(splitWith({ [todayNumber()]: push }))
+    vi.mocked(getLastSession).mockResolvedValue({
+      sessionId: 's1',
+      startedAt: '2026-11-04T10:00:00Z',
+      durationSeconds: 100,
+      exercises: [],
+    })
+    renderHome()
+    await screen.findByRole('heading', { level: 1, name: 'Push day' })
+
+    await expectNoA11yViolations()
   })
 
   it('guides a new account through setting up the first week', async () => {
@@ -202,7 +240,9 @@ describe('DashboardPage', () => {
   it('navigates when a link is clicked', async () => {
     renderHome()
 
-    await userEvent.click(within(await screen.findByRole('region', { name: 'Jump to' })).getByRole('link', { name: 'Workouts' }))
+    await userEvent.click(
+      within(await screen.findByRole('region', { name: 'Jump to' })).getByRole('link', { name: 'Workouts' }),
+    )
 
     expect(await screen.findByRole('heading', { name: 'Workouts page' })).toBeInTheDocument()
   })
@@ -280,7 +320,12 @@ describe('Settings entry point', () => {
     vi.mocked(getUserProfile).mockResolvedValue(PROFILE)
     vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [], page: 1, pageSize: 1, totalCount: 0 })
     vi.mocked(getSplit).mockResolvedValue(splitWith({}))
-    vi.mocked(getLastSession).mockResolvedValue({ sessionId: null, startedAt: null, durationSeconds: null, exercises: [] })
+    vi.mocked(getLastSession).mockResolvedValue({
+      sessionId: null,
+      startedAt: null,
+      durationSeconds: null,
+      exercises: [],
+    })
     renderHome()
 
     expect(await screen.findByRole('link', { name: 'Settings' })).toHaveAttribute('href', '/settings')

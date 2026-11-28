@@ -2,7 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { WeightUnit } from '../../api/auth'
 import type { ExerciseTarget } from '../../api/sessions'
 import { displayWeight } from '../../lib/weight'
-import { addDraft, applyTarget, canRemoveLast, effortLabel, emptyDraft, MAX_SETS, removeLastDraft, toEntries } from './sets'
+import {
+  addDraft,
+  applyTarget,
+  canRemoveLast,
+  effortLabel,
+  emptyDraft,
+  MAX_SETS,
+  removeLastDraft,
+  toEntries,
+} from './sets'
 
 const target: ExerciseTarget = {
   order: 1,
@@ -41,9 +50,14 @@ describe('smart sets', () => {
   it('fills unfinished sets with the target in the user unit', () => {
     const drafts = [{ weight: '50', reps: '5', done: true, effort: null }, emptyDraft()]
 
-    expect(applyTarget(drafts, target, WeightUnit.Kilograms)).toEqual([drafts[0], { weight: '62.5', reps: '8', done: false, effort: null }])
+    expect(applyTarget(drafts, target, WeightUnit.Kilograms)).toEqual([
+      drafts[0],
+      { weight: '62.5', reps: '8', done: false, effort: null },
+    ])
     expect(applyTarget([emptyDraft()], target, WeightUnit.Pounds)[0].weight).toBe('138')
-    expect(applyTarget([{ ...emptyDraft(), weight: '40' }], { ...target, weightKg: null }, WeightUnit.Kilograms)[0]).toEqual({
+    expect(
+      applyTarget([{ ...emptyDraft(), weight: '40' }], { ...target, weightKg: null }, WeightUnit.Kilograms)[0],
+    ).toEqual({
       weight: '40',
       reps: '8',
       done: false,
@@ -60,7 +74,10 @@ describe('smart sets', () => {
       WeightUnit.Kilograms,
     )
 
-    expect(entries).toEqual([{ reps: 8, weightKg: 60, repsInReserve: 0 }, { reps: 8, weightKg: 60 }])
+    expect(entries).toEqual([
+      { reps: 8, weightKg: 60, repsInReserve: 0 },
+      { reps: 8, weightKg: 60 },
+    ])
   })
 
   it('labels the effort scale', () => {

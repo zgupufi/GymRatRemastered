@@ -20,14 +20,21 @@ export type ServedTarget = Schema<'ServedTargetRequest'>
 const WRITE_TIMEOUT_MS = 15_000
 
 export function startSession(workoutId: string): Promise<Schema<'StartSessionResponse'>> {
-  return apiClient.post<Schema<'StartSessionResponse'>>('/api/sessions', { workoutId } satisfies Schema<'StartSessionRequest'>)
+  return apiClient.post<Schema<'StartSessionResponse'>>('/api/sessions', {
+    workoutId,
+  } satisfies Schema<'StartSessionRequest'>)
 }
 
 export function getActiveSession(signal?: AbortSignal): Promise<ActiveSession> {
   return apiClient.get<ActiveSession>('/api/sessions/active', signal)
 }
 
-export function saveExerciseSets(sessionId: string, exerciseId: string, sets: SessionSetEntry[], target?: ServedTarget): Promise<void> {
+export function saveExerciseSets(
+  sessionId: string,
+  exerciseId: string,
+  sets: SessionSetEntry[],
+  target?: ServedTarget,
+): Promise<void> {
   return apiClient.put(
     `/api/sessions/${sessionId}/exercises/${exerciseId}/sets`,
     (target ? { sets, target } : { sets }) satisfies Schema<'SaveExerciseSetsRequest'>,

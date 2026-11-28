@@ -16,18 +16,20 @@ if ! git diff --cached --check -- backend frontend; then
   exit 1
 fi
 
-if (( ${#backend[@]} + ${#frontend[@]} == 0 )); then
+mapfile -d '' -t formatted < <(staged 'frontend/*')
+
+if (( ${#backend[@]} + ${#formatted[@]} == 0 )); then
   exit 0
 fi
 
 checkout_staged() {
-  printf '%s\0' "$@" | git checkout-index --prefix="$snapshot/" -z --stdin
+  printf '%s\0' "$@" | git checkout-index --force --prefix="$snapshot/" -z --stdin
 }
 
 snapshot="$(mktemp -d)"
 trap 'rm -rf "$snapshot"' EXIT
 
-git ls-files -z -- '.editorconfig' '*/.editorconfig' 'frontend/.oxlintrc.json' |
+git ls-files -z -- '.editorconfig' '*/.editorconfig' 'frontend/.oxlintrc.json' 'frontend/.prettierrc.json' 'frontend/.prettierignore' |
   git checkout-index --prefix="$snapshot/" -z --stdin
 
 if (( ${#backend[@]} > 0 )); then
@@ -48,4 +50,18 @@ if (( ${#frontend[@]} > 0 )); then
   checkout_staged "${frontend[@]}"
   (cd "$snapshot/frontend" && printf '%s\0' "${frontend[@]#frontend/}" |
     xargs -0 -s 20000 node "$oxlint" --config .oxlintrc.json)
+fi
+
+if (( ${#formatted[@]} > 0 )); then
+  prettier="$root/frontend/node_modules/prettier/bin/prettier.cjs"
+  if [[ ! -f "$prettier" ]]; then
+    echo "Prettier is not installed. Run npm install in frontend/." >&2
+    exit 1
+  fi
+  checkout_staged "${formatted[@]}"
+  if ! (cd "$snapshot/frontend" && printf '%s\0' "${formatted[@]#frontend/}" |
+    xargs -0 -s 20000 node "$prettier" --check --ignore-unknown); then
+    echo "Format the files above with: npm run format (in frontend/), then stage them again." >&2
+    exit 1
+  fi
 fi

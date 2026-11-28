@@ -11,13 +11,17 @@
   border-radius: 50%;
   background: var(--emerald);
   color: var(--on-accent);
-  box-shadow: 0 10px 30px -6px color-mix(in srgb, var(--emerald) 55%, transparent), 0 1px 0 color-mix(in srgb, var(--text) 35%, transparent) inset;
+  box-shadow:
+    0 10px 30px -6px color-mix(in srgb, var(--emerald) 55%, transparent),
+    0 1px 0 color-mix(in srgb, var(--text) 35%, transparent) inset;
   cursor: pointer;
 }
 
 .coach__fab:focus-visible {
   outline: 0;
-  box-shadow: 0 10px 30px -6px color-mix(in srgb, var(--emerald) 55%, transparent), 0 0 0 4px color-mix(in srgb, var(--emerald) 35%, transparent);
+  box-shadow:
+    0 10px 30px -6px color-mix(in srgb, var(--emerald) 55%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--emerald) 35%, transparent);
 }
 
 .coach {

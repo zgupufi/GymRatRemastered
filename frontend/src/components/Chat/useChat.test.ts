@@ -21,7 +21,10 @@ describe('toHistory', () => {
   })
 
   it('never starts with an assistant message', () => {
-    const entries = [entry(0, 'user'), ...Array.from({ length: 10 }, (_, index) => entry(index + 1, index % 2 === 0 ? 'assistant' : 'user'))]
+    const entries = [
+      entry(0, 'user'),
+      ...Array.from({ length: 10 }, (_, index) => entry(index + 1, index % 2 === 0 ? 'assistant' : 'user')),
+    ]
 
     const history = toHistory(entries)
 
@@ -30,7 +33,13 @@ describe('toHistory', () => {
   })
 
   it('drops errors and the user message of a failed send', () => {
-    const entries = [entry(0, 'user'), entry(1, 'assistant'), entry(2, 'user', 'failed'), entry(3, 'error'), entry(4, 'user', 'next')]
+    const entries = [
+      entry(0, 'user'),
+      entry(1, 'assistant'),
+      entry(2, 'user', 'failed'),
+      entry(3, 'error'),
+      entry(4, 'user', 'next'),
+    ]
 
     expect(toHistory(entries)).toEqual([
       { role: 'User', content: 'm0' },

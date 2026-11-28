@@ -8,6 +8,7 @@ import { getExercise, type Exercise } from '../../api/exercises'
 import { getAllWorkoutSummaries } from '../../api/workouts'
 import { ToastProvider } from '../../components/ui/Toast'
 import { ExerciseDetailsPage } from './ExerciseDetailsPage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/exercises')
 vi.mock('../../api/workouts')
@@ -63,7 +64,12 @@ describe('ExerciseDetailsPage', () => {
   })
 
   it('falls back when there is no video, secondary muscle or difficulty', async () => {
-    vi.mocked(getExercise).mockResolvedValue({ ...benchPress, youtubeLink: null, secondaryMuscles: [], description: null })
+    vi.mocked(getExercise).mockResolvedValue({
+      ...benchPress,
+      youtubeLink: null,
+      secondaryMuscles: [],
+      description: null,
+    })
 
     renderPage()
 
@@ -123,5 +129,13 @@ describe('ExerciseDetailsPage', () => {
     await Promise.resolve()
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('has no accessibility violations', async () => {
+    vi.mocked(getExercise).mockResolvedValue(benchPress)
+    renderPage()
+    await screen.findByRole('heading', { level: 1, name: 'Bench Press' })
+
+    await expectNoA11yViolations()
   })
 })

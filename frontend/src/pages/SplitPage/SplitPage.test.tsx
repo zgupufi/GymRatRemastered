@@ -8,11 +8,17 @@ import { getWorkoutSummaries, type WorkoutSummary } from '../../api/workouts'
 import { ToastProvider } from '../../components/ui/Toast'
 import { announceWorkoutsChanged } from '../../lib/workoutsChanged'
 import { SplitPage } from './SplitPage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/split')
 vi.mock('../../api/workouts')
 
-const push: WorkoutSummary = { id: 'w1', name: 'Push day', exerciseCount: 6, mainMuscles: ['Chest', 'Triceps', 'Chest'] }
+const push: WorkoutSummary = {
+  id: 'w1',
+  name: 'Push day',
+  exerciseCount: 6,
+  mainMuscles: ['Chest', 'Triceps', 'Chest'],
+}
 const legs: WorkoutSummary = { id: 'w2', name: 'Leg day', exerciseCount: 5, mainMuscles: ['Quads'] }
 const everything: WorkoutSummary = {
   id: 'w3',
@@ -35,15 +41,22 @@ function renderPage() {
   )
 }
 
+const scrollIntoView = vi.fn()
+
 describe('SplitPage', () => {
   beforeAll(() => {
     MotionGlobalConfig.skipAnimations = true
-    Element.prototype.scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
   })
 
   beforeEach(() => {
     vi.mocked(getSplit).mockResolvedValue(days({ 1: push }))
-    vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [push, legs, everything], page: 1, pageSize: 100, totalCount: 3 })
+    vi.mocked(getWorkoutSummaries).mockResolvedValue({
+      items: [push, legs, everything],
+      page: 1,
+      pageSize: 100,
+      totalCount: 3,
+    })
     vi.mocked(assignSplitDay).mockResolvedValue(undefined)
   })
 
@@ -60,7 +73,9 @@ describe('SplitPage', () => {
     expect(within(monday).getAllByText('Chest')).toHaveLength(1)
     expect(within(monday).getByText('Triceps')).toBeInTheDocument()
     expect(screen.getAllByRole('listitem').filter((item) => item.classList.contains('day-card'))).toHaveLength(7)
-    expect(within(screen.getByRole('listitem', { name: 'Tuesday' })).getByRole('button', { name: 'Tuesday workout' })).toHaveTextContent('Rest day')
+    expect(
+      within(screen.getByRole('listitem', { name: 'Tuesday' })).getByRole('button', { name: 'Tuesday workout' }),
+    ).toHaveTextContent('Rest day')
   })
 
   it.each([
@@ -74,7 +89,7 @@ describe('SplitPage', () => {
     const card = await screen.findByRole('listitem', { name })
     expect(within(card).getByText('Today')).toBeInTheDocument()
     expect(screen.getAllByText('Today')).toHaveLength(1)
-    await waitFor(() => expect(Element.prototype.scrollIntoView).toHaveBeenCalled())
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalled())
   })
 
   it('shows a full body chip from six muscle groups', async () => {
@@ -94,7 +109,9 @@ describe('SplitPage', () => {
     act(() => announceWorkoutsChanged())
 
     const tuesday = await screen.findByRole('listitem', { name: 'Tuesday' })
-    await waitFor(() => expect(within(tuesday).getByRole('button', { name: 'Tuesday workout' })).toHaveTextContent('Leg day'))
+    await waitFor(() =>
+      expect(within(tuesday).getByRole('button', { name: 'Tuesday workout' })).toHaveTextContent('Leg day'),
+    )
     expect(getSplit).toHaveBeenCalledTimes(2)
   })
 
@@ -200,5 +217,12 @@ describe('SplitPage', () => {
     await user.click(screen.getByRole('button', { name: 'Try again' }))
 
     await waitFor(() => expect(screen.getByRole('listitem', { name: 'Monday' })).toBeInTheDocument())
+  })
+
+  it('has no accessibility violations', async () => {
+    renderPage()
+    await screen.findByRole('listitem', { name: 'Monday' })
+
+    await expectNoA11yViolations()
   })
 })

@@ -22,6 +22,11 @@
 
 .exercise-card__name {
   margin-bottom: var(--space-1);
+  font-size: 1.0625rem;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  text-wrap: wrap;
 }
 
 .exercise-card__link {

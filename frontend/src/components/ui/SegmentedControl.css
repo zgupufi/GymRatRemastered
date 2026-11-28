@@ -14,7 +14,9 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-3);
-  transition: background 160ms ease, color 160ms ease;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
 }
 
 .segmented__option--on {

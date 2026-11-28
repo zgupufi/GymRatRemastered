@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { readHapticsEnabled, restOverHaptic, setCompletedHaptic, workoutFinishedHaptic, writeHapticsEnabled } from './haptics'
+import {
+  readHapticsEnabled,
+  restOverHaptic,
+  setCompletedHaptic,
+  workoutFinishedHaptic,
+  writeHapticsEnabled,
+} from './haptics'
 
 describe('haptics', () => {
   const vibrate = vi.fn<(pattern: VibratePattern) => boolean>().mockReturnValue(true)

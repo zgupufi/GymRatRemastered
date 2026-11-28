@@ -26,10 +26,7 @@ interface Choice {
 
 type SuggestionState = { status: 'loading' } | { status: 'error' } | { status: 'loaded'; items: Exercise[] }
 
-type ProgressState =
-  | { status: 'loading' }
-  | { status: 'error' }
-  | { status: 'loaded'; points: ProgressPoint[] }
+type ProgressState = { status: 'loading' } | { status: 'error' } | { status: 'loaded'; points: ProgressPoint[] }
 
 function todaySplitDay(): number {
   return ((new Date().getDay() + 6) % 7) + 1
@@ -58,7 +55,9 @@ export function ProgressionPage() {
       .then((workout) => {
         if (workout) {
           setToday(
-            workout.exercises.slice(0, TODAY_COUNT).map((entry) => ({ id: entry.exercise.id, name: entry.exercise.name })),
+            workout.exercises
+              .slice(0, TODAY_COUNT)
+              .map((entry) => ({ id: entry.exercise.id, name: entry.exercise.name })),
           )
         }
       })
@@ -124,33 +123,33 @@ export function ProgressionPage() {
 
       <Card tone="material" className="progression-page__panel">
         <div className="progression-page__search">
-        <Input
-          label="Exercise"
-          placeholder="Search exercises…"
-          icon={<Search size={18} />}
-          value={term}
-          onChange={(event) => changeTerm(event.target.value)}
-          autoComplete="off"
-        />
-        {showSuggestions ? (
-          <div className="progression-page__suggestions">
-            {suggestions.status === 'loading' ? <Spinner label="Searching…" /> : null}
-            {suggestions.status === 'error' ? <p role="alert">Could not search exercises. Try again.</p> : null}
-            {suggestions.status === 'loaded' && suggestions.items.length === 0 ? <p>No exercises found.</p> : null}
-            {suggestions.status === 'loaded' && suggestions.items.length > 0 ? (
-              <ul aria-label="Matching exercises">
-                {suggestions.items.map((exercise) => (
-                  <li key={exercise.id}>
-                    <button type="button" onClick={() => choose({ id: exercise.id, name: exercise.name })}>
-                      <span>{exercise.name}</span>
-                      <span className="progression-page__muscle">{exercise.mainMuscle}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-        ) : null}
+          <Input
+            label="Exercise"
+            placeholder="Search exercises…"
+            icon={<Search size={18} />}
+            value={term}
+            onChange={(event) => changeTerm(event.target.value)}
+            autoComplete="off"
+          />
+          {showSuggestions ? (
+            <div className="progression-page__suggestions">
+              {suggestions.status === 'loading' ? <Spinner label="Searching…" /> : null}
+              {suggestions.status === 'error' ? <p role="alert">Could not search exercises. Try again.</p> : null}
+              {suggestions.status === 'loaded' && suggestions.items.length === 0 ? <p>No exercises found.</p> : null}
+              {suggestions.status === 'loaded' && suggestions.items.length > 0 ? (
+                <ul aria-label="Matching exercises">
+                  {suggestions.items.map((exercise) => (
+                    <li key={exercise.id}>
+                      <button type="button" onClick={() => choose({ id: exercise.id, name: exercise.name })}>
+                        <span>{exercise.name}</span>
+                        <span className="progression-page__muscle">{exercise.mainMuscle}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
         </div>
         {today.length > 0 ? (
           <section className="progression-page__today" aria-label="From today's workout">
@@ -172,7 +171,11 @@ export function ProgressionPage() {
         ) : null}
       </Card>
 
-      {!selected ? <p className="progression-page__hint">Search for an exercise to see how your estimated one-rep max has changed.</p> : null}
+      {!selected ? (
+        <p className="progression-page__hint">
+          Search for an exercise to see how your estimated one-rep max has changed.
+        </p>
+      ) : null}
 
       {selected ? (
         <Card tone="material" className="progression-page__panel">
@@ -181,7 +184,9 @@ export function ProgressionPage() {
               <h2>{selected.name}</h2>
               <p>Estimated 1 rep max, {label}</p>
             </div>
-            {progress.status === 'loaded' && progress.points.length > 1 ? <Summary points={progress.points} unit={unit} /> : null}
+            {progress.status === 'loaded' && progress.points.length > 1 ? (
+              <Summary points={progress.points} unit={unit} />
+            ) : null}
           </header>
           {progress.status === 'loading' ? <Spinner label="Loading progress…" /> : null}
           {progress.status === 'error' ? (
@@ -211,8 +216,8 @@ export function ProgressionPage() {
                 {displayWeight(progress.points[0].bestSet.weightKg, unit)} {label} × {progress.points[0].bestSet.reps}
               </strong>
               <p>
-                Estimated 1 rep max {displayWeight(progress.points[0].estimatedOneRepMax, unit)} {label}. Log one more session with this exercise to
-                see your trend.
+                Estimated 1 rep max {displayWeight(progress.points[0].estimatedOneRepMax, unit)} {label}. Log one more
+                session with this exercise to see your trend.
               </p>
             </div>
           ) : null}
@@ -233,7 +238,9 @@ function Summary({ points, unit }: { points: ProgressPoint[]; unit: WeightUnit }
   return (
     <dl className="progression-page__summary">
       <div>
-        <dd>{last} {label}</dd>
+        <dd>
+          {last} {label}
+        </dd>
         <dt>Current</dt>
       </div>
       <div>

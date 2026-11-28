@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Check, Play, Target } from 'lucide-react'
 import { WeightUnit } from '../../api/auth'
-import { getActiveSession, getLastSession, getTargets, startSession, type ActiveSession, type ExerciseTarget, type LastSession } from '../../api/sessions'
+import {
+  getActiveSession,
+  getLastSession,
+  getTargets,
+  startSession,
+  type ActiveSession,
+  type ExerciseTarget,
+  type LastSession,
+} from '../../api/sessions'
 import { getSplit } from '../../api/split'
 import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } from '../../api/workouts'
 import { useAuth } from '../../auth/AuthContext'
@@ -26,7 +34,14 @@ type Phase =
   | { name: 'error' }
   | { name: 'idle'; workout: WorkoutSummary | null }
   | { name: 'finished'; seconds: number; workoutName: string; result: WorkoutResult }
-  | { name: 'running'; workout: Workout; sessionId: string; last: LastSession; targets: ExerciseTarget[]; resume?: ActiveSession }
+  | {
+      name: 'running'
+      workout: Workout
+      sessionId: string
+      last: LastSession
+      targets: ExerciseTarget[]
+      resume?: ActiveSession
+    }
 
 function todayNumber(): number {
   const jsDay = new Date().getDay()
@@ -58,11 +73,16 @@ export function WorkoutExecutionPage() {
         getLastSession(active.workoutId, controller.signal),
         getTargets(active.workoutId, controller.signal).catch((): ExerciseTarget[] => []),
       ])
-      return workout.exercises.length > 0 ? { name: 'running', workout, sessionId: active.sessionId, last, targets, resume: active } : null
+      return workout.exercises.length > 0
+        ? { name: 'running', workout, sessionId: active.sessionId, last, targets, resume: active }
+        : null
     }
     Promise.all([
       getSplit(controller.signal),
-      getWorkoutSummaries({ sortBy: 'Name', direction: 'Ascending', page: 1, pageSize: MAX_WORKOUTS }, controller.signal),
+      getWorkoutSummaries(
+        { sortBy: 'Name', direction: 'Ascending', page: 1, pageSize: MAX_WORKOUTS },
+        controller.signal,
+      ),
       resumeActive(),
     ])
       .then(([days, summaries, resumed]) => {
@@ -133,7 +153,9 @@ export function WorkoutExecutionPage() {
         unit={unit}
         restSeconds={restSeconds}
         resume={phase.resume}
-        onFinished={(seconds, result) => setPhase({ name: 'finished', seconds, workoutName: phase.workout.name, result })}
+        onFinished={(seconds, result) =>
+          setPhase({ name: 'finished', seconds, workoutName: phase.workout.name, result })
+        }
       />
     )
   }
@@ -169,7 +191,9 @@ export function WorkoutExecutionPage() {
                 <li key={item.name}>
                   <span>{item.name}</span>
                   <span>
-                    {item.best ? `${displayWeight(item.best.weightKg, unit)} ${unitLabel(unit).toLowerCase()} × ${item.best.reps}` : null}
+                    {item.best
+                      ? `${displayWeight(item.best.weightKg, unit)} ${unitLabel(unit).toLowerCase()} × ${item.best.reps}`
+                      : null}
                   </span>
                 </li>
               ))}

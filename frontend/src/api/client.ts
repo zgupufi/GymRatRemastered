@@ -83,7 +83,9 @@ export function refreshSession(): Promise<RefreshOutcome> {
   return refreshInFlight
 }
 
-async function send(path: string, init?: RequestInit, retried = false): Promise<Response> {
+type ApiRequestInit = Omit<RequestInit, 'headers'> & { headers?: Record<string, string> }
+
+async function send(path: string, init?: ApiRequestInit, retried = false): Promise<Response> {
   let response: Response
   try {
     response = await fetch(`${BASE_URL}${path}`, {
@@ -123,13 +125,13 @@ async function send(path: string, init?: RequestInit, retried = false): Promise<
   return response
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: ApiRequestInit): Promise<T> {
   const response = await send(path, init)
   const text = await response.text()
   return (text ? JSON.parse(text) : undefined) as T
 }
 
-function withJsonBody(method: string, body: unknown): RequestInit {
+function withJsonBody(method: string, body: unknown): ApiRequestInit {
   return {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -139,8 +141,10 @@ function withJsonBody(method: string, body: unknown): RequestInit {
 
 export const apiClient = {
   get: <T>(path: string, signal?: AbortSignal) => request<T>(path, { signal }),
-  post: <T = void>(path: string, body: unknown, signal?: AbortSignal) => request<T>(path, { ...withJsonBody('POST', body), signal }),
-  put: (path: string, body: unknown, signal?: AbortSignal) => request<void>(path, { ...withJsonBody('PUT', body), signal }),
+  post: <T = void>(path: string, body: unknown, signal?: AbortSignal) =>
+    request<T>(path, { ...withJsonBody('POST', body), signal }),
+  put: (path: string, body: unknown, signal?: AbortSignal) =>
+    request<void>(path, { ...withJsonBody('PUT', body), signal }),
   patch: (path: string, body: unknown) => request<void>(path, withJsonBody('PATCH', body)),
   delete: (path: string, body?: unknown) =>
     request<void>(path, body === undefined ? { method: 'DELETE' } : withJsonBody('DELETE', body)),

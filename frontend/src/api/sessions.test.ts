@@ -56,9 +56,12 @@ describe('sessions api', () => {
     const timeout = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(controller.signal)
     vi.stubGlobal(
       'fetch',
-      vi.fn<typeof fetch>((_input, init) => new Promise((_resolve, reject) => {
-        init?.signal?.addEventListener('abort', () => reject(new DOMException('timed out', 'TimeoutError')))
-      })),
+      vi.fn<typeof fetch>(
+        (_input, init) =>
+          new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => reject(new DOMException('timed out', 'TimeoutError')))
+          }),
+      ),
     )
 
     const request = call()

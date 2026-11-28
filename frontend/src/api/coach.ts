@@ -9,7 +9,10 @@ export type CoachSuggestion = Schema<'CoachSuggestionDto'>
 const PENDING_PAGE_SIZE = 100
 
 export function getPendingSuggestions(signal?: AbortSignal): Promise<PagedResult<CoachSuggestion>> {
-  return apiClient.get<PagedResult<CoachSuggestion>>(`/api/coach/suggestions?pagination.pageSize=${PENDING_PAGE_SIZE}`, signal)
+  return apiClient.get<PagedResult<CoachSuggestion>>(
+    `/api/coach/suggestions?pagination.pageSize=${PENDING_PAGE_SIZE}`,
+    signal,
+  )
 }
 
 export function applySuggestion(id: string): Promise<void> {

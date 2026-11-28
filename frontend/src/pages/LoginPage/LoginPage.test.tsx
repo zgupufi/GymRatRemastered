@@ -9,6 +9,7 @@ import { getUserProfile } from '../../api/users'
 import { AuthProvider } from '../../auth/AuthProvider'
 import { givenRestorableSession } from '../../test/sessionFixture'
 import { LoginPage } from './LoginPage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/auth', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../api/auth')>()),
@@ -154,5 +155,12 @@ describe('LoginPage', () => {
     renderLogin()
 
     expect(await screen.findByRole('heading', { name: 'Home page' })).toBeInTheDocument()
+  })
+
+  it('has no accessibility violations', async () => {
+    renderLogin()
+    await screen.findByLabelText('Email')
+
+    await expectNoA11yViolations()
   })
 })

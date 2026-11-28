@@ -5,7 +5,8 @@ import { X } from 'lucide-react'
 import { spring } from '../../lib/motion'
 import './Modal.css'
 
-const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
+const FOCUSABLE =
+  'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
 
 interface ModalProps {
   open: boolean

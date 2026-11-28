@@ -5,12 +5,21 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Exercise } from '../../api/exercises'
 import { WeightUnit } from '../../api/auth'
-import { finishSession, getActiveSession, getLastSession, getTargets, saveExerciseSets, startSession, type ExerciseTarget } from '../../api/sessions'
+import {
+  finishSession,
+  getActiveSession,
+  getLastSession,
+  getTargets,
+  saveExerciseSets,
+  startSession,
+  type ExerciseTarget,
+} from '../../api/sessions'
 import { getSplit } from '../../api/split'
 import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } from '../../api/workouts'
 import { AuthContext, type AuthApi } from '../../auth/AuthContext'
 import { ToastProvider } from '../../components/ui/Toast'
 import { WorkoutExecutionPage } from './WorkoutExecutionPage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/sessions')
 vi.mock('../../api/split')
@@ -19,7 +28,19 @@ vi.mock('../../api/workouts')
 const push: WorkoutSummary = { id: 'w1', name: 'Push day', exerciseCount: 2, mainMuscles: ['Chest'] }
 
 function exercise(id: string, name: string): Exercise {
-  return { id, name, mainMuscle: 'Chest', secondaryMuscles: [], equipment: 'Barbell', difficulty: 'Beginner', movementPattern: 'Push', description: null, setup: 'Set up.', execution: 'Do it.', youtubeLink: null }
+  return {
+    id,
+    name,
+    mainMuscle: 'Chest',
+    secondaryMuscles: [],
+    equipment: 'Barbell',
+    difficulty: 'Beginner',
+    movementPattern: 'Push',
+    description: null,
+    setup: 'Set up.',
+    execution: 'Do it.',
+    youtubeLink: null,
+  }
 }
 
 const workout: Workout = {
@@ -47,7 +68,13 @@ const benchTarget: ExerciseTarget = {
 const authValue: AuthApi = {
   status: 'authenticated',
   sessionExpired: false,
-  user: { firstName: 'Rafael', lastName: null, email: 'r@example.com', weightUnit: WeightUnit.Kilograms, defaultRestTimeSeconds: 60 },
+  user: {
+    firstName: 'Rafael',
+    lastName: null,
+    email: 'r@example.com',
+    weightUnit: WeightUnit.Kilograms,
+    defaultRestTimeSeconds: 60,
+  },
   login: vi.fn(),
   register: vi.fn(),
   logout: vi.fn(),
@@ -88,7 +115,12 @@ describe('WorkoutExecutionPage targets and effort', () => {
     vi.mocked(getSplit).mockResolvedValue(todayDays())
     vi.mocked(getWorkoutSummaries).mockResolvedValue({ items: [push], page: 1, pageSize: 100, totalCount: 1 })
     vi.mocked(getWorkout).mockResolvedValue(workout)
-    vi.mocked(getLastSession).mockResolvedValue({ sessionId: null, startedAt: null, durationSeconds: null, exercises: [] })
+    vi.mocked(getLastSession).mockResolvedValue({
+      sessionId: null,
+      startedAt: null,
+      durationSeconds: null,
+      exercises: [],
+    })
     vi.mocked(getActiveSession).mockResolvedValue({ sessionId: null, workoutId: null, startedAt: null, exercises: [] })
     vi.mocked(getTargets).mockResolvedValue([benchTarget])
     vi.mocked(startSession).mockResolvedValue({ id: 's1' })
@@ -114,7 +146,9 @@ describe('WorkoutExecutionPage targets and effort', () => {
     expect(screen.getByLabelText('Set 2 reps')).toHaveValue(8)
 
     await user.click(screen.getByRole('button', { name: 'Complete set 1' }))
-    await user.click(within(screen.getByRole('group', { name: 'Effort for set 1' })).getByRole('button', { name: 'Hard' }))
+    await user.click(
+      within(screen.getByRole('group', { name: 'Effort for set 1' })).getByRole('button', { name: 'Hard' }),
+    )
     await user.click(screen.getByRole('button', { name: 'Add set' }))
     expect(screen.getByLabelText('Set 3 weight')).toHaveValue('62.5')
     await user.click(screen.getByRole('button', { name: 'Remove last' }))
@@ -157,7 +191,9 @@ describe('WorkoutExecutionPage targets and effort', () => {
 
     await user.type(screen.getByLabelText('Set 1 weight'), '60')
     await user.type(screen.getByLabelText('Set 1 reps'), '8')
-    await user.click(within(screen.getByRole('group', { name: 'Effort for set 1' })).getByRole('button', { name: 'Good' }))
+    await user.click(
+      within(screen.getByRole('group', { name: 'Effort for set 1' })).getByRole('button', { name: 'Good' }),
+    )
     await user.click(screen.getByRole('button', { name: 'Complete set 1' }))
 
     await vi.waitFor(() =>
@@ -168,10 +204,17 @@ describe('WorkoutExecutionPage targets and effort', () => {
       }),
     )
 
-    await user.click(within(screen.getByRole('group', { name: 'Effort for set 1' })).getByRole('button', { name: 'Max' }))
+    await user.click(
+      within(screen.getByRole('group', { name: 'Effort for set 1' })).getByRole('button', { name: 'Max' }),
+    )
 
     await vi.waitFor(() =>
-      expect(saveExerciseSets).toHaveBeenLastCalledWith('s1', 'e1', [{ reps: 8, weightKg: 60, repsInReserve: 0 }], expect.anything()),
+      expect(saveExerciseSets).toHaveBeenLastCalledWith(
+        's1',
+        'e1',
+        [{ reps: 8, weightKg: 60, repsInReserve: 0 }],
+        expect.anything(),
+      ),
     )
   })
 
@@ -184,5 +227,13 @@ describe('WorkoutExecutionPage targets and effort', () => {
 
     expect(screen.queryByRole('region', { name: "Today's target" })).not.toBeInTheDocument()
     expect(screen.getByLabelText('Set 1 weight')).toHaveAttribute('placeholder', '-')
+  })
+
+  it('has no accessibility violations', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await startToday(user)
+
+    await expectNoA11yViolations()
   })
 })
