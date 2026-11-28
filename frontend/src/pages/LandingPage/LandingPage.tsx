@@ -49,7 +49,7 @@ const features: Feature[] = [
     id: 'progress',
     tone: 'emerald',
     icon: TrendingUp,
-    eyebrow: 'Progression',
+    eyebrow: 'Progress',
     title: 'Know what to lift next',
     body: 'Every exercise opens with a target for today and the reason behind it: add a rep, move up in weight, or hold. When a lift stalls, the coach can help. Your estimated one rep max is charted per exercise.',
     points: [

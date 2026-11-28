@@ -3,9 +3,9 @@ const TITLES: Record<string, string> = {
   '/login': 'Log in',
   '/register': 'Create account',
   '/workouts': 'Workouts',
-  '/split': 'Training split',
-  '/progress': 'Progression',
-  '/exercises': 'Exercise library',
+  '/split': 'Split',
+  '/progress': 'Progress',
+  '/exercises': 'Library',
   '/workout-execution': 'Workout',
   '/settings': 'Settings',
 }

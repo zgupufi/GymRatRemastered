@@ -18,6 +18,6 @@ export const guideSteps: GuideStep[] = [
   },
   {
     title: 'Watch your progress',
-    description: 'Progression charts your estimated one-rep max over time. The AI coach can also build and change workouts for you.',
+    description: 'The Progress page charts your estimated one-rep max over time. The AI coach can also build and change workouts for you.',
   },
 ]

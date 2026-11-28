@@ -77,6 +77,34 @@ jobs:
             echo "Total: $(find dist -type f -exec cat {} + | wc -c) B"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  audit:
+    name: audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: Check NuGet packages
+        run: scripts/audit/nuget.sh
+
+      - name: Check frontend npm packages
+        if: ${{ !cancelled() }}
+        working-directory: frontend
+        run: npm audit --audit-level=high
+
+      - name: Check e2e npm packages
+        if: ${{ !cancelled() }}
+        working-directory: e2e
+        run: npm audit --audit-level=high
+
   docker:
     name: docker
     if: github.event_name == 'pull_request'

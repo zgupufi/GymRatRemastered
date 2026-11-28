@@ -97,12 +97,12 @@ describe('AppRoutes', () => {
   })
 
   it.each([
-    ['/exercises', 'Exercise library'],
+    ['/exercises', 'Library'],
     ['/exercises/0199e0a1-7c3e-7b5a-9d2f-3f6f0c1a2b3c', 'Bench Press'],
-    ['/workouts', 'My workouts'],
-    ['/split', 'My split'],
+    ['/workouts', 'Workouts'],
+    ['/split', 'Split'],
     ['/workout-execution', 'Rest day'],
-    ['/progress', 'Progression'],
+    ['/progress', 'Progress'],
     ['/settings', 'Settings'],
     ['/nowhere', 'Page not found'],
   ])('renders %s', async (path, heading) => {
@@ -143,7 +143,7 @@ describe('AppRoutes', () => {
 
   it('scrolls to the top on navigation', async () => {
     renderAt('/exercises')
-    await screen.findByRole('heading', { level: 1, name: 'Exercise library' })
+    await screen.findByRole('heading', { level: 1, name: 'Library' })
 
     expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'instant' })
   })
@@ -153,7 +153,7 @@ describe('AppRoutes', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Back' }))
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Exercise library' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Library' })).toBeInTheDocument()
   })
 
   it('shows the landing page to guests and the dashboard to members', async () => {
@@ -188,7 +188,7 @@ describe('AppRoutes', () => {
     await userEvent.type(screen.getByLabelText('Password'), 'secret-pass')
     await userEvent.click(screen.getByRole('button', { name: 'Log in' }))
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'My split' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Split' })).toBeInTheDocument()
   })
 
   it('explains an expired session on the home page too', async () => {
@@ -210,9 +210,9 @@ describe('AppRoutes', () => {
 
   it('sets the page title from the route', async () => {
     renderAt('/split')
-    await screen.findByRole('heading', { level: 1, name: 'My split' })
+    await screen.findByRole('heading', { level: 1, name: 'Split' })
 
-    expect(document.title).toBe('Training split · GymRat')
+    expect(document.title).toBe('Split · GymRat')
   })
 
   it('returns to the login page with a notice when the server rejects the session', async () => {

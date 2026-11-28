@@ -90,7 +90,7 @@ test('register, plan, train, resume and review progress', async ({ page }, testI
   await expect(page.getByRole('heading', { name: 'Workout finished' })).toBeVisible()
   await expect(page.getByRole('list', { name: 'Best set per exercise' })).toContainText(`${DECIMAL_WEIGHT} kg × 10`)
 
-  await page.getByRole('link', { name: 'View progression' }).click()
+  await page.getByRole('link', { name: 'View progress' }).click()
   await page.getByRole('button', { name: FIRST_EXERCISE, exact: true }).click()
   await expect(page.getByText(`${DECIMAL_WEIGHT} kg × 10`)).toBeVisible()
 
