@@ -52,11 +52,16 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
   const [busy, setBusy] = useState(false)
   const [confirmingEnd, setConfirmingEnd] = useState(false)
   const advanceTimer = useRef<number | undefined>(undefined)
+  const latestDrafts = useRef(drafts)
   const savedExercises = useRef(new Set(resume?.exercises.filter((item) => item.sets.length > 0).map((item) => item.exerciseId)))
   const rest = useRestTimer()
   const elapsed = useStopwatch(true, resume?.startedAt ? Date.parse(resume.startedAt) : undefined)
 
   useEffect(() => () => window.clearTimeout(advanceTimer.current), [])
+
+  useEffect(() => {
+    latestDrafts.current = drafts
+  }, [drafts])
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => event.preventDefault()
@@ -110,8 +115,10 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
     window.clearTimeout(advanceTimer.current)
     setBusy(true)
     try {
-      await saveExercise(index, drafts)
-      await finishSession(sessionId)
+      await enqueueSave(async () => {
+        await sendSets(index, drafts)
+        await finishSession(sessionId)
+      })
       workoutFinishedHaptic()
       rest.skip()
       onFinished(
@@ -171,10 +178,9 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
     const updated = current.map((draft, position) => (position === row ? { ...draft, done: true } : draft))
     persistSets(index, { ...drafts, [exercise.id]: updated })
     if (updated.every((draft) => draft.done) && !isLast) {
-      const nextDrafts = { ...drafts, [exercise.id]: updated }
       advanceTimer.current = window.setTimeout(async () => {
         try {
-          await saveExercise(index, nextDrafts)
+          await saveExercise(index, latestDrafts.current)
           setIndex(index + 1)
         } catch {
           showToast('error', 'Could not save your sets. Try again.')

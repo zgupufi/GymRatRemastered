@@ -17,6 +17,8 @@ export type ExerciseTarget = Schema<'ExerciseTargetDto'>
 
 export type ServedTarget = Schema<'ServedTargetRequest'>
 
+const WRITE_TIMEOUT_MS = 15_000
+
 export function startSession(workoutId: string): Promise<Schema<'StartSessionResponse'>> {
   return apiClient.post<Schema<'StartSessionResponse'>>('/api/sessions', { workoutId } satisfies Schema<'StartSessionRequest'>)
 }
@@ -26,11 +28,15 @@ export function getActiveSession(signal?: AbortSignal): Promise<ActiveSession> {
 }
 
 export function saveExerciseSets(sessionId: string, exerciseId: string, sets: SessionSetEntry[], target?: ServedTarget): Promise<void> {
-  return apiClient.put(`/api/sessions/${sessionId}/exercises/${exerciseId}/sets`, (target ? { sets, target } : { sets }) satisfies Schema<'SaveExerciseSetsRequest'>)
+  return apiClient.put(
+    `/api/sessions/${sessionId}/exercises/${exerciseId}/sets`,
+    (target ? { sets, target } : { sets }) satisfies Schema<'SaveExerciseSetsRequest'>,
+    AbortSignal.timeout(WRITE_TIMEOUT_MS),
+  )
 }
 
 export function finishSession(sessionId: string): Promise<void> {
-  return apiClient.post(`/api/sessions/${sessionId}/finish`, {})
+  return apiClient.post(`/api/sessions/${sessionId}/finish`, {}, AbortSignal.timeout(WRITE_TIMEOUT_MS))
 }
 
 export function getLastSession(workoutId: string, signal?: AbortSignal): Promise<LastSession> {

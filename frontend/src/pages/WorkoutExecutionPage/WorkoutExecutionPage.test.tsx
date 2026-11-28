@@ -493,7 +493,11 @@ describe('WorkoutExecutionPage', () => {
     await fillSet(user, 1, '60', '8')
     first.unmount()
 
+    vi.mocked(getActiveSession).mockClear()
+
     renderPage()
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)))
+    expect(getActiveSession).not.toHaveBeenCalled()
     await act(async () => failSave(new Error('boom')))
 
     expect(await screen.findByRole('button', { name: 'Start workout' })).toBeInTheDocument()
@@ -512,6 +516,12 @@ describe('WorkoutExecutionPage', () => {
     await fillSet(user, 1, '60', '8')
     first.unmount()
     vi.mocked(getActiveSession).mockClear()
+    vi.mocked(getActiveSession).mockResolvedValue({
+      sessionId: 's1',
+      workoutId: 'w1',
+      startedAt: new Date().toISOString(),
+      exercises: [{ exerciseId: 'e1', sets: [{ setNumber: 1, reps: 8, weightKg: 60 }] }],
+    })
     vi.useFakeTimers()
 
     renderPage()
@@ -521,6 +531,55 @@ describe('WorkoutExecutionPage', () => {
     expect(getActiveSession).not.toHaveBeenCalled()
     vi.useRealTimers()
     await act(async () => completeSave())
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+
+    expect(await screen.findByRole('button', { name: 'Undo set 1' })).toBeInTheDocument()
+    expect(getActiveSession).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not reload the session until a finish in progress is done', async () => {
+    let completeFinish!: () => void
+    vi.mocked(finishSession).mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        completeFinish = resolve
+      }),
+    )
+    const user = userEvent.setup()
+    const first = renderPage()
+    await startToday(user)
+    await fillSet(user, 1, '60', '8')
+    await endWorkout(user)
+    await waitFor(() => expect(finishSession).toHaveBeenCalledTimes(1))
+    first.unmount()
+    vi.mocked(getActiveSession).mockClear()
+
+    renderPage()
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)))
+    expect(getActiveSession).not.toHaveBeenCalled()
+    await act(async () => completeFinish())
+
+    expect(await screen.findByRole('button', { name: 'Start workout' })).toBeInTheDocument()
+    expect(getActiveSession).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps an effort rating tapped just before the automatic advance', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    renderPage()
+    await startToday(user)
+    await fillSet(user, 1, '60', '8')
+    await fillSet(user, 2, '60', '7')
+    await user.click(within(screen.getByRole('group', { name: 'Effort for set 2' })).getByRole('button', { name: 'Good' }))
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(600)
+    })
+
+    expect(screen.getByText('Exercise 2 of 2')).toBeInTheDocument()
+    expect(saveExerciseSets).toHaveBeenLastCalledWith('s1', 'e1', [
+      { reps: 8, weightKg: 60 },
+      { reps: 7, weightKg: 60, repsInReserve: 2 },
+    ])
   })
 
   it('sends the save made when changing exercise after the save still in progress', async () => {

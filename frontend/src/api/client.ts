@@ -139,8 +139,8 @@ function withJsonBody(method: string, body: unknown): RequestInit {
 
 export const apiClient = {
   get: <T>(path: string, signal?: AbortSignal) => request<T>(path, { signal }),
-  post: <T = void>(path: string, body: unknown) => request<T>(path, withJsonBody('POST', body)),
-  put: (path: string, body: unknown) => request<void>(path, withJsonBody('PUT', body)),
+  post: <T = void>(path: string, body: unknown, signal?: AbortSignal) => request<T>(path, { ...withJsonBody('POST', body), signal }),
+  put: (path: string, body: unknown, signal?: AbortSignal) => request<void>(path, { ...withJsonBody('PUT', body), signal }),
   patch: (path: string, body: unknown) => request<void>(path, withJsonBody('PATCH', body)),
   delete: (path: string, body?: unknown) =>
     request<void>(path, body === undefined ? { method: 'DELETE' } : withJsonBody('DELETE', body)),
