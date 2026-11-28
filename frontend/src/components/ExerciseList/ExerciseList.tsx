@@ -149,7 +149,7 @@ export function ExerciseList() {
 
       {status === 'error' ? (
         <div className="exercise-list__state" role="alert">
-          <h3>Could not load exercises</h3>
+          <h2>Could not load exercises</h2>
           <p>{errorMessage}</p>
           <Button variant="danger" onClick={() => setReloadKey((key) => key + 1)}>
             Try again
@@ -159,7 +159,7 @@ export function ExerciseList() {
 
       {status === 'ready' && items.length === 0 ? (
         <div className="exercise-list__state">
-          <h3>{term.trim() ? `No exercises match “${term.trim()}”` : 'No exercises found'}</h3>
+          <h2>{term.trim() ? `No exercises match “${term.trim()}”` : 'No exercises found'}</h2>
           {searching ? (
             <Button variant="secondary" onClick={clearSearch}>
               Clear search
@@ -177,10 +177,12 @@ export function ExerciseList() {
             <section key={group.muscle} className="exercise-list__group" aria-label={group.muscle}>
               {muscle === '' ? (
                 <div className="exercise-list__heading">
-                  <h3>{group.muscle}</h3>
+                  <h2>{group.muscle}</h2>
                   <span aria-hidden="true" />
                 </div>
-              ) : null}
+              ) : (
+                <h2 className="visually-hidden">{group.muscle}</h2>
+              )}
               <div className="exercise-list__grid">
                 {group.exercises.map((exercise) => (
                   <ExerciseCard key={exercise.id} exercise={exercise} onAdd={(chosen) => setAddingId(chosen.id)} />

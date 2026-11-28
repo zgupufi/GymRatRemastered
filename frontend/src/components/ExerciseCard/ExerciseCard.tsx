@@ -15,11 +15,11 @@ export function ExerciseCard({ exercise, onAdd }: ExerciseCardProps) {
   return (
     <article className="exercise-card">
       <div className="exercise-card__text">
-        <h4 className="exercise-card__name">
+        <h3 className="exercise-card__name">
           <Link className="exercise-card__link" to={`/exercises/${exercise.id}`}>
             {exercise.name}
           </Link>
-        </h4>
+        </h3>
         <p className="exercise-card__muscles">{muscles}</p>
         <DifficultyChip difficulty={exercise.difficulty} />
       </div>

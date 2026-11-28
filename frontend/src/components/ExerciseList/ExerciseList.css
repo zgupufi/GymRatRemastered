@@ -69,9 +69,10 @@
   margin-bottom: var(--space-4);
 }
 
-.exercise-list__heading h3 {
+.exercise-list__heading h2 {
   font-size: 0.8125rem;
   font-weight: 700;
+  line-height: 1.2;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-2);
@@ -97,6 +98,13 @@
   gap: var(--space-3);
   margin-top: var(--space-8);
   text-align: center;
+}
+
+.exercise-list__state h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .exercise-list__state p,
