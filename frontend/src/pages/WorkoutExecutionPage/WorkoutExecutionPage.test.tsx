@@ -367,6 +367,24 @@ describe('WorkoutExecutionPage', () => {
     localStorage.clear()
   })
 
+  it('vibrates when a set is completed and not when it is undone or other buttons are pressed', async () => {
+    localStorage.clear()
+    const vibrate = vi.fn().mockReturnValue(true)
+    Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true })
+    const user = userEvent.setup()
+    renderPage()
+    await startToday(user)
+    await fillSet(user, 1, '60', '8')
+    expect(vibrate).toHaveBeenCalledExactlyOnceWith(30)
+    vibrate.mockClear()
+
+    await user.click(screen.getByRole('button', { name: 'Rest sound' }))
+    await user.click(screen.getByRole('button', { name: 'Undo set 1' }))
+
+    expect(vibrate).not.toHaveBeenCalled()
+    Reflect.deleteProperty(navigator, 'vibrate')
+  })
+
   it('saves completed sets and moves between exercises', async () => {
     const user = userEvent.setup()
     renderPage()
@@ -545,6 +563,8 @@ describe('WorkoutExecutionPage', () => {
   })
 
   it('finishes the workout from the last exercise', async () => {
+    const vibrate = vi.fn().mockReturnValue(true)
+    Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true })
     const user = userEvent.setup()
     renderPage()
     await startToday(user)
@@ -552,9 +572,13 @@ describe('WorkoutExecutionPage', () => {
     await screen.findByText('Exercise 2 of 2')
     await fillSet(user, 1, '20', '12')
 
+    vibrate.mockClear()
+
     await user.click(screen.getByRole('button', { name: /Finish/ }))
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Workout finished' })).toBeInTheDocument()
+    expect(vibrate).toHaveBeenCalledExactlyOnceWith([100, 80, 100, 80, 300])
+    Reflect.deleteProperty(navigator, 'vibrate')
     expect(screen.getByText('Push day')).toBeInTheDocument()
     expect(screen.getByRole('list', { name: 'Best set per exercise' })).toHaveTextContent('Cable Fly20 kg × 12')
     expect(saveExerciseSets).toHaveBeenCalledWith('s1', 'e2', [{ reps: 12, weightKg: 20 }])
