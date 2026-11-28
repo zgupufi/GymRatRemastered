@@ -53,28 +53,10 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
   const advanceTimer = useRef<number | undefined>(undefined)
   const saveQueue = useRef<Promise<void>>(Promise.resolve())
   const savedExercises = useRef(new Set(resume?.exercises.filter((item) => item.sets.length > 0).map((item) => item.exerciseId)))
-  const finished = useRef(false)
-  const closeTimer = useRef<number | undefined>(undefined)
   const rest = useRestTimer()
   const elapsed = useStopwatch(true, resume?.startedAt ? Date.parse(resume.startedAt) : undefined)
 
   useEffect(() => () => window.clearTimeout(advanceTimer.current), [])
-
-  useEffect(() => {
-    window.clearTimeout(closeTimer.current)
-    const abandon = () => {
-      closeTimer.current = window.setTimeout(() => {
-        if (finished.current) {
-          return
-        }
-        finished.current = true
-        void saveQueue.current
-          .then(() => (savedExercises.current.size > 0 ? finishSession(sessionId) : undefined))
-          .catch(() => undefined)
-      }, 0)
-    }
-    return () => abandon()
-  }, [sessionId])
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => event.preventDefault()
@@ -127,7 +109,6 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
     setBusy(true)
     try {
       await saveExercise(index, drafts)
-      finished.current = true
       await finishSession(sessionId)
       workoutFinishedHaptic()
       rest.skip()
@@ -140,7 +121,6 @@ export function RunningWorkout({ workout, sessionId, last, targets, unit, restSe
         ),
       )
     } catch {
-      finished.current = false
       showToast('error', 'Could not finish the workout. Try again.')
       setBusy(false)
     }
