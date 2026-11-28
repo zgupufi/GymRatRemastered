@@ -32,7 +32,9 @@ export function AppShell() {
     <MotionConfig reducedMotion="user">
       <ToastProvider>
         <ScrollToTop />
-        <div className={`app-shell${pathname === '/register' ? ' app-shell--mirrored' : ''}${showNav ? ' app-shell--nav' : ''}`}>
+        <div
+          className={`app-shell${pathname === '/register' ? ' app-shell--mirrored' : ''}${showNav ? ' app-shell--nav' : ''}`}
+        >
           <div className="app-shell__glow app-shell__glow--blue" aria-hidden="true" />
           <div className="app-shell__glow app-shell__glow--emerald" aria-hidden="true" />
           {showNav ? <AppNav /> : null}

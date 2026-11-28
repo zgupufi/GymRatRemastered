@@ -14,10 +14,7 @@ interface ExercisePickerProps {
 }
 
 type Results =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'error' }
-  | { status: 'loaded'; exercises: Exercise[] }
+  { status: 'idle' } | { status: 'loading' } | { status: 'error' } | { status: 'loaded'; exercises: Exercise[] }
 
 function groupByMuscle(exercises: Exercise[]): [string, Exercise[]][] {
   const groups = new Map<string, Exercise[]>()
@@ -97,7 +94,12 @@ export function ExercisePicker({ selectedIds, onAdd }: ExercisePickerProps) {
         autoComplete="off"
       />
       {term ? (
-        <button type="button" className="exercise-picker__clear" aria-label="Clear search" onClick={() => changeTerm('')}>
+        <button
+          type="button"
+          className="exercise-picker__clear"
+          aria-label="Clear search"
+          onClick={() => changeTerm('')}
+        >
           <X size={16} aria-hidden="true" />
         </button>
       ) : null}
@@ -131,7 +133,11 @@ export function ExercisePicker({ selectedIds, onAdd }: ExercisePickerProps) {
                   >
                     <span>
                       {exercise.name}
-                      <small>{[exercise.mainMuscle, musclesLabel(exercise.secondaryMuscles), exercise.equipment].filter(Boolean).join(' · ')}</small>
+                      <small>
+                        {[exercise.mainMuscle, musclesLabel(exercise.secondaryMuscles), exercise.equipment]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </small>
                     </span>
                     {added ? (
                       <Check size={18} className="exercise-picker__added" aria-hidden="true" />

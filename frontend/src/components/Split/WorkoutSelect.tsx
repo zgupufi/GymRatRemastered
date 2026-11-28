@@ -42,7 +42,7 @@ export function WorkoutSelect({ label, workouts, value, onChange }: WorkoutSelec
     items[Math.max(0, Math.min(items.length - 1, index))]?.focus()
   }
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Escape') {
       setOpen(false)
       rootRef.current?.querySelector<HTMLElement>('button')?.focus()
@@ -76,7 +76,7 @@ export function WorkoutSelect({ label, workouts, value, onChange }: WorkoutSelec
   }
 
   return (
-    <div ref={rootRef} className="workout-select" onKeyDown={handleKeyDown}>
+    <div ref={rootRef} className="workout-select">
       <button
         type="button"
         className="workout-select__button"
@@ -85,6 +85,7 @@ export function WorkoutSelect({ label, workouts, value, onChange }: WorkoutSelec
         aria-expanded={open}
         aria-controls={open ? listId : undefined}
         onClick={() => setOpen((state) => !state)}
+        onKeyDown={handleKeyDown}
       >
         <span className={current ? undefined : 'workout-select__rest'}>{current ? current.name : 'Rest day'}</span>
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={spring} className="workout-select__chevron">
@@ -96,6 +97,8 @@ export function WorkoutSelect({ label, workouts, value, onChange }: WorkoutSelec
           id={listId}
           role="listbox"
           aria-label={label}
+          tabIndex={-1}
+          onKeyDown={handleKeyDown}
           className="workout-select__menu"
           initial={{ opacity: 0, scale: 0.97, y: -4 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}

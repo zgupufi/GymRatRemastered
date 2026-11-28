@@ -12,9 +12,9 @@ export function BackButton({ fallback = '/' }: BackButtonProps) {
 
   const goBack = () => {
     if (location.key === 'default') {
-      navigate(fallback)
+      void navigate(fallback)
     } else {
-      navigate(-1)
+      void navigate(-1)
     }
   }
 

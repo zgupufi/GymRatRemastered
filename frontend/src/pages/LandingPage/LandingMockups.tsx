@@ -226,7 +226,9 @@ export function CoachChatMockup() {
               <s>8–10</s> → <strong>5–8</strong>
             </span>
           </span>
-          <span className="chat__suggestion-why">Lower reps with a fifth set lets you add load without extra fatigue.</span>
+          <span className="chat__suggestion-why">
+            Lower reps with a fifth set lets you add load without extra fatigue.
+          </span>
           <span className="chat__suggestion-actions">
             <span className="chat__suggestion-apply">Apply</span>
             <span>Not now</span>

@@ -13,7 +13,19 @@ vi.mock('../../api/exercises', async (importOriginal) => ({
 }))
 
 function exercise(id: string, name: string, mainMuscle: Exercise['mainMuscle']): Exercise {
-  return { id, name, mainMuscle, secondaryMuscles: ['Triceps'], equipment: 'Barbell', difficulty: 'Intermediate', movementPattern: 'Push', description: null, setup: 'Set up.', execution: 'Do it.', youtubeLink: null }
+  return {
+    id,
+    name,
+    mainMuscle,
+    secondaryMuscles: ['Triceps'],
+    equipment: 'Barbell',
+    difficulty: 'Intermediate',
+    movementPattern: 'Push',
+    description: null,
+    setup: 'Set up.',
+    execution: 'Do it.',
+    youtubeLink: null,
+  }
 }
 
 function page(items: Exercise[], totalCount = items.length, pageNumber = 1): PagedResult<Exercise> {
@@ -86,7 +98,9 @@ describe('ExerciseList', () => {
     await screen.findByText('Bench Press')
     await userEvent.type(screen.getByRole('searchbox', { name: 'Search exercises' }), 'bench')
 
-    await waitFor(() => expect(vi.mocked(searchExercises).mock.calls.at(-1)?.[0]).toMatchObject({ term: 'bench', page: 1 }))
+    await waitFor(() =>
+      expect(vi.mocked(searchExercises).mock.calls.at(-1)?.[0]).toMatchObject({ term: 'bench', page: 1 }),
+    )
   })
 
   it('filters by muscle group', async () => {

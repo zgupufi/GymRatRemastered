@@ -16,9 +16,7 @@ const MAX_WORKOUTS = 100
 type Selection = Record<number, string | null>
 
 type State =
-  | { status: 'loading' }
-  | { status: 'error' }
-  | { status: 'loaded'; workouts: WorkoutSummary[]; saved: Selection }
+  { status: 'loading' } | { status: 'error' } | { status: 'loaded'; workouts: WorkoutSummary[]; saved: Selection }
 
 function todayNumber(): number {
   const jsDay = new Date().getDay()
@@ -39,7 +37,10 @@ export function SplitPage() {
     const controller = new AbortController()
     Promise.all([
       getSplit(controller.signal),
-      getWorkoutSummaries({ sortBy: 'Name', direction: 'Ascending', page: 1, pageSize: MAX_WORKOUTS }, controller.signal),
+      getWorkoutSummaries(
+        { sortBy: 'Name', direction: 'Ascending', page: 1, pageSize: MAX_WORKOUTS },
+        controller.signal,
+      ),
     ])
       .then(([days, workouts]) => {
         const saved: Selection = {}
@@ -70,7 +71,9 @@ export function SplitPage() {
     if (state.status !== 'loaded') {
       return []
     }
-    return DAY_NAMES.map((_, index) => index + 1).filter((day) => (selection[day] ?? null) !== (state.saved[day] ?? null))
+    return DAY_NAMES.map((_, index) => index + 1).filter(
+      (day) => (selection[day] ?? null) !== (state.saved[day] ?? null),
+    )
   }, [state, selection])
 
   const save = async () => {

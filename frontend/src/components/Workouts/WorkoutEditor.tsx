@@ -23,10 +23,7 @@ interface EditItem {
   repsMax: string
 }
 
-type State =
-  | { status: 'loading' }
-  | { status: 'error' }
-  | { status: 'ready'; items: EditItem[] }
+type State = { status: 'loading' } | { status: 'error' } | { status: 'ready'; items: EditItem[] }
 
 interface WorkoutEditorProps {
   workoutId: string
@@ -150,7 +147,12 @@ function ExerciseRow({ item, index, count, onSetsChange, onRangeChange, onRemove
           onValueChange={(repsMax) => onRangeChange({ repsMax })}
         />
       </fieldset>
-      <button type="button" className="icon-button icon-button--danger" aria-label={`Remove ${exercise.name}`} onClick={onRemove}>
+      <button
+        type="button"
+        className="icon-button icon-button--danger"
+        aria-label={`Remove ${exercise.name}`}
+        onClick={onRemove}
+      >
         <Trash2 size={16} aria-hidden="true" />
       </button>
     </Reorder.Item>
@@ -253,7 +255,12 @@ export function WorkoutEditor({ workoutId }: WorkoutEditorProps) {
         onAdd={(exercise) =>
           setItems([
             ...items,
-            { exercise, targetSets: String(DEFAULT_SETS), repsMin: String(DEFAULT_REPS_MIN), repsMax: String(DEFAULT_REPS_MAX) },
+            {
+              exercise,
+              targetSets: String(DEFAULT_SETS),
+              repsMin: String(DEFAULT_REPS_MIN),
+              repsMax: String(DEFAULT_REPS_MAX),
+            },
           ])
         }
       />
@@ -267,8 +274,12 @@ export function WorkoutEditor({ workoutId }: WorkoutEditorProps) {
               item={item}
               index={index}
               count={items.length}
-              onSetsChange={(value) => setItems(items.map((entry, i) => (i === index ? { ...entry, targetSets: value } : entry)))}
-              onRangeChange={(patch) => setItems(items.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)))}
+              onSetsChange={(value) =>
+                setItems(items.map((entry, i) => (i === index ? { ...entry, targetSets: value } : entry)))
+              }
+              onRangeChange={(patch) =>
+                setItems(items.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)))
+              }
               onRemove={() => setItems(items.filter((_, i) => i !== index))}
               onMove={(direction) => move(index, direction)}
             />

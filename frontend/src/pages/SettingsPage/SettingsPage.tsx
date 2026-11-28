@@ -98,7 +98,9 @@ function PreferencesSection({ user }: { user: UserProfile }) {
         </div>
         <div className="settings-page__row">
           <div className="settings-page__text">
-            <span className="settings-page__key">Default rest<span className="settings-page__long"> time</span></span>
+            <span className="settings-page__key">
+              Default rest<span className="settings-page__long"> time</span>
+            </span>
             <span className="settings-page__hint">Between sets</span>
           </div>
           <div className="settings-page__stepper">
@@ -127,7 +129,9 @@ function PreferencesSection({ user }: { user: UserProfile }) {
           <div className="settings-page__text">
             <span className="settings-page__key">Vibration</span>
             <span className="settings-page__hint">
-              <span className="settings-page__long">Completed set, finished workout and end of rest, on phones that support it</span>
+              <span className="settings-page__long">
+                Completed set, finished workout and end of rest, on phones that support it
+              </span>
               <span className="settings-page__short">Sets, finish and rest end</span>
             </span>
           </div>
@@ -168,7 +172,14 @@ function DataSection() {
             <span className="settings-page__key">Export everything</span>
             <span className="settings-page__hint">Profile, workouts, split and every session with its sets (JSON)</span>
           </div>
-          <Button variant="secondary" size="sm" loading={busy === 'json'} aria-label="Download JSON" disabled={busy !== null} onClick={() => download('json')}>
+          <Button
+            variant="secondary"
+            size="sm"
+            loading={busy === 'json'}
+            aria-label="Download JSON"
+            disabled={busy !== null}
+            onClick={() => download('json')}
+          >
             Download<span className="settings-page__long"> JSON</span>
           </Button>
         </div>
@@ -177,7 +188,14 @@ function DataSection() {
             <span className="settings-page__key">Export sets</span>
             <span className="settings-page__hint">One row per logged set, opens in a spreadsheet (CSV)</span>
           </div>
-          <Button variant="secondary" size="sm" loading={busy === 'csv'} aria-label="Download CSV" disabled={busy !== null} onClick={() => download('csv')}>
+          <Button
+            variant="secondary"
+            size="sm"
+            loading={busy === 'csv'}
+            aria-label="Download CSV"
+            disabled={busy !== null}
+            onClick={() => download('csv')}
+          >
             Download<span className="settings-page__long"> CSV</span>
           </Button>
         </div>
@@ -267,7 +285,7 @@ function AccountSection() {
   const passwordChanged = () => {
     logout()
     showToast('success', 'Password changed. Log in again with the new one.')
-    navigate('/login')
+    void navigate('/login')
   }
 
   return (
@@ -281,7 +299,11 @@ function AccountSection() {
           onClick={() => setChanging((open) => !open)}
         >
           <span className="settings-page__key">Change password</span>
-          <ChevronRight size={18} aria-hidden="true" className={changing ? 'settings-page__chevron--open' : undefined} />
+          <ChevronRight
+            size={18}
+            aria-hidden="true"
+            className={changing ? 'settings-page__chevron--open' : undefined}
+          />
         </button>
         {changing ? <PasswordForm onCancel={() => setChanging(false)} onChanged={passwordChanged} /> : null}
         <button type="button" className="settings-page__row settings-page__row--button" onClick={logout}>

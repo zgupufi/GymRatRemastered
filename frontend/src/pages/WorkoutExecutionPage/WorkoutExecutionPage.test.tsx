@@ -5,12 +5,20 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Exercise } from '../../api/exercises'
 import { WeightUnit } from '../../api/auth'
-import { finishSession, getActiveSession, getLastSession, getTargets, saveExerciseSets, startSession } from '../../api/sessions'
+import {
+  finishSession,
+  getActiveSession,
+  getLastSession,
+  getTargets,
+  saveExerciseSets,
+  startSession,
+} from '../../api/sessions'
 import { getSplit } from '../../api/split'
 import { getWorkout, getWorkoutSummaries, type Workout, type WorkoutSummary } from '../../api/workouts'
 import { AuthContext, type AuthApi } from '../../auth/AuthContext'
 import { ToastProvider } from '../../components/ui/Toast'
 import { WorkoutExecutionPage } from './WorkoutExecutionPage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/sessions')
 vi.mock('../../api/split')
@@ -20,7 +28,19 @@ const push: WorkoutSummary = { id: 'w1', name: 'Push day', exerciseCount: 2, mai
 const legs: WorkoutSummary = { id: 'w2', name: 'Leg day', exerciseCount: 1, mainMuscles: ['Quads'] }
 
 function exercise(id: string, name: string): Exercise {
-  return { id, name, mainMuscle: 'Chest', secondaryMuscles: [], equipment: 'Barbell', difficulty: 'Beginner', movementPattern: 'Push', description: null, setup: 'Set up.', execution: 'Do it.', youtubeLink: null }
+  return {
+    id,
+    name,
+    mainMuscle: 'Chest',
+    secondaryMuscles: [],
+    equipment: 'Barbell',
+    difficulty: 'Beginner',
+    movementPattern: 'Push',
+    description: null,
+    setup: 'Set up.',
+    execution: 'Do it.',
+    youtubeLink: null,
+  }
 }
 
 const workout: Workout = {
@@ -113,7 +133,7 @@ describe('WorkoutExecutionPage', () => {
     vi.useRealTimers()
   })
 
-  it('shows today\'s workout from the split', async () => {
+  it("shows today's workout from the split", async () => {
     renderPage()
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Push day' })).toBeInTheDocument()
@@ -215,7 +235,12 @@ describe('WorkoutExecutionPage', () => {
   })
 
   it('shows the error state instead of the start screen when the unfinished session cannot be loaded', async () => {
-    vi.mocked(getActiveSession).mockResolvedValue({ sessionId: 's9', workoutId: 'w1', startedAt: new Date().toISOString(), exercises: [] })
+    vi.mocked(getActiveSession).mockResolvedValue({
+      sessionId: 's9',
+      workoutId: 'w1',
+      startedAt: new Date().toISOString(),
+      exercises: [],
+    })
     vi.mocked(getWorkout).mockRejectedValue(new Error('network'))
     renderPage()
 
@@ -231,7 +256,12 @@ describe('WorkoutExecutionPage', () => {
   })
 
   it('shows the start screen when the unfinished session belongs to a workout without exercises', async () => {
-    vi.mocked(getActiveSession).mockResolvedValue({ sessionId: 's9', workoutId: 'w1', startedAt: new Date().toISOString(), exercises: [] })
+    vi.mocked(getActiveSession).mockResolvedValue({
+      sessionId: 's9',
+      workoutId: 'w1',
+      startedAt: new Date().toISOString(),
+      exercises: [],
+    })
     vi.mocked(getWorkout).mockResolvedValue({ ...workout, exercises: [] })
     renderPage()
 
@@ -681,7 +711,12 @@ describe('WorkoutExecutionPage', () => {
   })
 
   it('works without a previous session', async () => {
-    vi.mocked(getLastSession).mockResolvedValue({ sessionId: null, startedAt: null, durationSeconds: null, exercises: [] })
+    vi.mocked(getLastSession).mockResolvedValue({
+      sessionId: null,
+      startedAt: null,
+      durationSeconds: null,
+      exercises: [],
+    })
     const user = userEvent.setup()
     renderPage()
 
@@ -717,5 +752,12 @@ describe('WorkoutExecutionPage picker', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(screen.getByRole('heading', { level: 1, name: 'Push day' })).toBeInTheDocument()
+  })
+
+  it('has no accessibility violations', async () => {
+    renderPage()
+    await screen.findByRole('heading', { level: 1, name: 'Push day' })
+
+    await expectNoA11yViolations()
   })
 })

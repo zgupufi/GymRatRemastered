@@ -119,11 +119,22 @@ export function ChatWidget() {
                 </p>
               </div>
               {entries.length > 0 ? (
-                <button type="button" className="coach__icon-button" aria-label="Clear chat" onClick={clear} disabled={pending}>
+                <button
+                  type="button"
+                  className="coach__icon-button"
+                  aria-label="Clear chat"
+                  onClick={clear}
+                  disabled={pending}
+                >
                   <Trash2 size={15} aria-hidden="true" />
                 </button>
               ) : null}
-              <button type="button" className="coach__icon-button" aria-label="Close chat" onClick={() => setOpen(false)}>
+              <button
+                type="button"
+                className="coach__icon-button"
+                aria-label="Close chat"
+                onClick={() => setOpen(false)}
+              >
                 <X size={16} aria-hidden="true" />
               </button>
             </header>
@@ -138,7 +149,12 @@ export function ChatWidget() {
                   <p>Ask for a workout, tweak your sets or plan your week. I will update your app as we go.</p>
                   <div className="coach__suggestions">
                     {SUGGESTIONS.map((suggestion) => (
-                      <button key={suggestion} type="button" className="coach__suggestion" onClick={() => ask(suggestion)}>
+                      <button
+                        key={suggestion}
+                        type="button"
+                        className="coach__suggestion"
+                        onClick={() => ask(suggestion)}
+                      >
                         {suggestion}
                       </button>
                     ))}

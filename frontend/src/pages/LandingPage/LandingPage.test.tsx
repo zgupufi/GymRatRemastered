@@ -4,6 +4,7 @@ import { MotionGlobalConfig } from 'motion/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { LandingPage } from './LandingPage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 function renderLanding() {
   return render(
@@ -101,8 +102,12 @@ describe('LandingPage', () => {
   it('shows the current year in the footer', () => {
     renderLanding()
 
-    expect(
-      screen.getByText(`© ${new Date().getFullYear()} GymRat. Engineered for athletes.`),
-    ).toBeInTheDocument()
+    expect(screen.getByText(`© ${new Date().getFullYear()} GymRat. Engineered for athletes.`)).toBeInTheDocument()
+  })
+
+  it('has no accessibility violations', async () => {
+    renderLanding()
+
+    await expectNoA11yViolations()
   })
 })

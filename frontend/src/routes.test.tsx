@@ -36,7 +36,7 @@ function renderAt(path: string) {
 function rejectAfterRestoring() {
   let restored = false
   return vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
-    if (String(input) === '/api/auth/refresh' && !restored) {
+    if ((input as string) === '/api/auth/refresh' && !restored) {
       restored = true
       return Promise.resolve(Response.json({ accessToken: 'token', expiresAt: '2999-01-01T00:00:00Z' }))
     }
@@ -160,7 +160,9 @@ describe('AppRoutes', () => {
     localStorage.clear()
     setAccessToken(null)
     const guest = renderAt('/')
-    expect(await guest.findByRole('heading', { level: 1, name: 'Log workouts. Get stronger. Stay motivated.' })).toBeInTheDocument()
+    expect(
+      await guest.findByRole('heading', { level: 1, name: 'Log workouts. Get stronger. Stay motivated.' }),
+    ).toBeInTheDocument()
     guest.unmount()
 
     givenRestorableSession()

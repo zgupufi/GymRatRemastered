@@ -37,7 +37,9 @@ function changesOf(suggestion: CoachSuggestion): Change[] {
 }
 
 function errorMessage(error: unknown): string {
-  return error instanceof ApiError && error.code && error.status >= 400 && error.status < 500 ? error.message : friendlyErrorMessage(error)
+  return error instanceof ApiError && error.code && error.status >= 400 && error.status < 500
+    ? error.message
+    : friendlyErrorMessage(error)
 }
 
 const RESOLVED_TEXT: Record<Exclude<CoachSuggestion['status'], 'Pending'>, string> = {
@@ -67,7 +69,10 @@ export function SuggestionCard({ suggestion: raw, onResolve }: SuggestionCardPro
   }
 
   return (
-    <section className={`coach__suggestion coach__suggestion--${suggestion.status.toLowerCase()}`} aria-label={`Suggested change for ${title}`}>
+    <section
+      className={`coach__suggestion coach__suggestion--${suggestion.status.toLowerCase()}`}
+      aria-label={`Suggested change for ${title}`}
+    >
       {suggestion.status === 'Pending' ? <p className="coach__suggestion-eyebrow">Suggested change</p> : null}
       <p className="coach__suggestion-title">{title}</p>
       {suggestion.status === 'Pending' ? (
@@ -89,10 +94,20 @@ export function SuggestionCard({ suggestion: raw, onResolve }: SuggestionCardPro
             </p>
           ) : null}
           <div className="coach__suggestion-actions">
-            <button type="button" className="coach__suggestion-apply" disabled={busy !== null} onClick={() => void resolve('apply')}>
+            <button
+              type="button"
+              className="coach__suggestion-apply"
+              disabled={busy !== null}
+              onClick={() => void resolve('apply')}
+            >
               {busy === 'apply' ? 'Applying…' : 'Apply'}
             </button>
-            <button type="button" className="coach__suggestion-dismiss" disabled={busy !== null} onClick={() => void resolve('dismiss')}>
+            <button
+              type="button"
+              className="coach__suggestion-dismiss"
+              disabled={busy !== null}
+              onClick={() => void resolve('dismiss')}
+            >
               Not now
             </button>
           </div>

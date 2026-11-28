@@ -15,15 +15,20 @@ export function ExerciseCard({ exercise, onAdd }: ExerciseCardProps) {
   return (
     <article className="exercise-card">
       <div className="exercise-card__text">
-        <h4 className="exercise-card__name">
+        <h3 className="exercise-card__name">
           <Link className="exercise-card__link" to={`/exercises/${exercise.id}`}>
             {exercise.name}
           </Link>
-        </h4>
+        </h3>
         <p className="exercise-card__muscles">{muscles}</p>
         <DifficultyChip difficulty={exercise.difficulty} />
       </div>
-      <button type="button" className="exercise-card__add" aria-label={`Add ${exercise.name} to a workout`} onClick={() => onAdd(exercise)}>
+      <button
+        type="button"
+        className="exercise-card__add"
+        aria-label={`Add ${exercise.name} to a workout`}
+        onClick={() => onAdd(exercise)}
+      >
         <Plus size={20} aria-hidden="true" />
       </button>
     </article>

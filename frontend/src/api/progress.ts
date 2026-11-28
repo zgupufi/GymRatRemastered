@@ -15,7 +15,11 @@ function localTimeZone(): string | undefined {
 
 export type ProgressRange = 'ThreeMonths' | 'OneYear' | 'All'
 
-export function getExerciseProgress(exerciseId: string, signal?: AbortSignal, range?: ProgressRange): Promise<ProgressPoint[]> {
+export function getExerciseProgress(
+  exerciseId: string,
+  signal?: AbortSignal,
+  range?: ProgressRange,
+): Promise<ProgressPoint[]> {
   const params = new URLSearchParams()
   const timeZone = localTimeZone()
   if (timeZone) params.set('timeZone', timeZone)

@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError } from '../../api/client'
 import { sendChatMessage, type ChatHistoryItem } from '../../api/chat'
-import { applySuggestion, dismissSuggestion, getPendingSuggestions, type CoachSuggestion, type SuggestionStatus } from '../../api/coach'
+import {
+  applySuggestion,
+  dismissSuggestion,
+  getPendingSuggestions,
+  type CoachSuggestion,
+  type SuggestionStatus,
+} from '../../api/coach'
 import { friendlyErrorMessage } from '../../api/errors'
 import { announceWorkoutsChanged } from '../../lib/workoutsChanged'
 import { clearChatEntries, loadChatEntries, saveChatEntries } from './chatStorage'
@@ -27,10 +33,16 @@ export interface ChatEntry {
   suggestions?: CoachSuggestion[]
 }
 
-function withSuggestionStatus(entries: ChatEntry[], statusFor: (suggestion: CoachSuggestion) => SuggestionStatus): ChatEntry[] {
+function withSuggestionStatus(
+  entries: ChatEntry[],
+  statusFor: (suggestion: CoachSuggestion) => SuggestionStatus,
+): ChatEntry[] {
   return entries.map((entry) =>
     entry.suggestions
-      ? { ...entry, suggestions: entry.suggestions.map((suggestion) => ({ ...suggestion, status: statusFor(suggestion) })) }
+      ? {
+          ...entry,
+          suggestions: entry.suggestions.map((suggestion) => ({ ...suggestion, status: statusFor(suggestion) })),
+        }
       : entry,
   )
 }
@@ -101,7 +113,10 @@ export function useChat() {
       try {
         const result = await sendChatMessage(text, history)
         if (isUnusableReply(result.reply)) {
-          commit([...entriesRef.current, { id: nextId.current++, kind: 'error', content: UNUSABLE_REPLY_MESSAGE, retryText: text }])
+          commit([
+            ...entriesRef.current,
+            { id: nextId.current++, kind: 'error', content: UNUSABLE_REPLY_MESSAGE, retryText: text },
+          ])
           return
         }
         commit([
@@ -153,7 +168,11 @@ export function useChat() {
         await dismissSuggestion(suggestionId)
       }
       const status: SuggestionStatus = action === 'apply' ? 'Applied' : 'Dismissed'
-      commit(withSuggestionStatus(entriesRef.current, (suggestion) => (suggestion.id === suggestionId ? status : suggestion.status)))
+      commit(
+        withSuggestionStatus(entriesRef.current, (suggestion) =>
+          suggestion.id === suggestionId ? status : suggestion.status,
+        ),
+      )
       if (action === 'apply') {
         announceWorkoutsChanged()
       }
@@ -163,7 +182,9 @@ export function useChat() {
 
   const refreshSuggestions = useCallback(
     async (signal?: AbortSignal) => {
-      if (!entriesRef.current.some((entry) => entry.suggestions?.some((suggestion) => suggestion.status === 'Pending'))) {
+      if (
+        !entriesRef.current.some((entry) => entry.suggestions?.some((suggestion) => suggestion.status === 'Pending'))
+      ) {
         return
       }
       const pending = await getPendingSuggestions(signal)

@@ -9,6 +9,7 @@ import { getWorkout, type Workout } from '../../api/workouts'
 import { WeightUnit } from '../../api/auth'
 import { AuthContext, type AuthApi } from '../../auth/AuthContext'
 import { ProgressionPage } from './ProgressionPage'
+import { expectNoA11yViolations } from '../../test/a11y'
 
 vi.mock('../../api/exercises')
 vi.mock('../../api/progress')
@@ -74,7 +75,9 @@ function splitWithToday(workoutId: string | null, today = 3) {
   return Array.from({ length: 7 }, (_, index) => ({
     day: index + 1,
     workout:
-      workoutId && index + 1 === today ? { id: workoutId, name: 'Push day', exerciseCount: 2, mainMuscles: ['Chest'] } : null,
+      workoutId && index + 1 === today
+        ? { id: workoutId, name: 'Push day', exerciseCount: 2, mainMuscles: ['Chest'] }
+        : null,
   }))
 }
 
@@ -107,7 +110,7 @@ describe('ProgressionPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Bench Press' }))
 
     expect(getExerciseProgress).toHaveBeenCalledWith('e1', expect.any(AbortSignal))
-    expect(await screen.findByRole('img', { name: /Estimated one rep max of Bench Press/ })).toBeInTheDocument()
+    expect(await screen.findByRole('group', { name: /Estimated one rep max of Bench Press/ })).toBeInTheDocument()
     expect(screen.getByText('108 kg')).toBeInTheDocument()
     expect(screen.getByText('+12 kg')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Bench Press' })).toHaveAttribute('aria-pressed', 'true')
@@ -123,7 +126,7 @@ describe('ProgressionPage', () => {
     expect(getWorkout).not.toHaveBeenCalled()
   })
 
-  it("ignores a failing split lookup", async () => {
+  it('ignores a failing split lookup', async () => {
     vi.mocked(getSplit).mockRejectedValue(new Error('down'))
 
     renderPage()
@@ -141,7 +144,7 @@ describe('ProgressionPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Cable Fly\s*Chest/ }))
 
     expect(screen.getByLabelText('Exercise')).toHaveValue('Cable Fly')
-    expect(await screen.findByRole('img', { name: /Cable Fly/ })).toBeInTheDocument()
+    expect(await screen.findByRole('group', { name: /Cable Fly/ })).toBeInTheDocument()
     expect(screen.queryByRole('list', { name: 'Matching exercises' })).not.toBeInTheDocument()
   })
 
@@ -166,11 +169,11 @@ describe('ProgressionPage', () => {
   it('clears the selection when the search text changes', async () => {
     renderPage()
     await userEvent.click(await screen.findByRole('button', { name: 'Bench Press' }))
-    await screen.findByRole('img', { name: /Bench Press/ })
+    await screen.findByRole('group', { name: /Bench Press/ })
 
     await userEvent.type(screen.getByLabelText('Exercise'), 's')
 
-    expect(screen.queryByRole('img', { name: /Bench Press/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: /Bench Press/ })).not.toBeInTheDocument()
     expect(await screen.findByRole('list', { name: 'Matching exercises' })).toBeInTheDocument()
   })
 
@@ -207,7 +210,7 @@ describe('ProgressionPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Bench Press' }))
 
     expect(await screen.findByText(/Log one more session/)).toBeInTheDocument()
-    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(screen.queryByRole('group')).not.toBeInTheDocument()
   })
 
   it('explains when there is no data', async () => {
@@ -235,7 +238,15 @@ describe('ProgressionPage', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Try again' }))
 
-    expect(await screen.findByRole('img', { name: /Bench Press/ })).toBeInTheDocument()
+    expect(await screen.findByRole('group', { name: /Bench Press/ })).toBeInTheDocument()
     expect(getExerciseProgress).toHaveBeenCalledTimes(2)
+  })
+
+  it('has no accessibility violations', async () => {
+    renderPage()
+    await userEvent.click(await screen.findByRole('button', { name: 'Bench Press' }))
+    await screen.findByRole('group', { name: /Estimated one rep max of Bench Press/ })
+
+    await expectNoA11yViolations()
   })
 })

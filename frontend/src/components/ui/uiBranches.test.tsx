@@ -102,12 +102,7 @@ describe('ui component branches', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('link', { name: 'Go' })).toHaveClass(
-      'button--ghost',
-      'button--sm',
-      'button--full',
-      'extra',
-    )
+    expect(screen.getByRole('link', { name: 'Go' })).toHaveClass('button--ghost', 'button--sm', 'button--full', 'extra')
   })
 
   it('renders an input with a label, icon and hint', () => {

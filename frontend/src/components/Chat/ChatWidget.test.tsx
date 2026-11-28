@@ -21,7 +21,11 @@ async function openChat() {
 
 describe('ChatWidget', () => {
   beforeEach(() => {
-    vi.mocked(sendChatMessage).mockResolvedValue({ reply: 'Done. Created **Leg Day**', workoutsChanged: false, suggestions: [] })
+    vi.mocked(sendChatMessage).mockResolvedValue({
+      reply: 'Done. Created **Leg Day**',
+      workoutsChanged: false,
+      suggestions: [],
+    })
   })
 
   afterEach(() => {
@@ -119,7 +123,9 @@ describe('ChatWidget', () => {
 
   it('shows the server message for a rejected request and retries it', async () => {
     vi.mocked(sendChatMessage)
-      .mockRejectedValueOnce(new ApiError(429, 'You are sending messages too fast.', 'BLException_ChatService_RateLimited'))
+      .mockRejectedValueOnce(
+        new ApiError(429, 'You are sending messages too fast.', 'BLException_ChatService_RateLimited'),
+      )
       .mockResolvedValueOnce({ reply: 'Back again', workoutsChanged: false, suggestions: [] })
     const user = await openChat()
 

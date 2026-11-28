@@ -26,7 +26,11 @@ function ToastBubble({ toast }: { toast: ToastItem | null }) {
           transition={spring}
         >
           <span className="toast__icon" aria-hidden="true">
-            {toast.kind === 'success' ? <Check size={14} strokeWidth={3} /> : <TriangleAlert size={14} strokeWidth={3} />}
+            {toast.kind === 'success' ? (
+              <Check size={14} strokeWidth={3} />
+            ) : (
+              <TriangleAlert size={14} strokeWidth={3} />
+            )}
           </span>
           {toast.message}
         </motion.div>

@@ -82,7 +82,7 @@ export function ProgressChart({ exerciseName, points: rawPoints, unit = WeightUn
       </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        role="img"
+        role="group"
         aria-label={`Estimated one rep max of ${exerciseName} over ${points.length} sessions`}
       >
         <defs>

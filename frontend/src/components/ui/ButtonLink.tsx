@@ -6,7 +6,16 @@ import './Button.css'
 
 const MotionLink = motion.create(Link)
 
-type MotionConflicts = 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onDragOver' | 'onDragEnter' | 'onDragLeave' | 'onDrop' | 'style'
+type MotionConflicts =
+  | 'onAnimationStart'
+  | 'onDrag'
+  | 'onDragStart'
+  | 'onDragEnd'
+  | 'onDragOver'
+  | 'onDragEnter'
+  | 'onDragLeave'
+  | 'onDrop'
+  | 'style'
 
 interface ButtonLinkProps extends Omit<LinkProps, MotionConflicts> {
   variant?: ButtonVariant
@@ -14,7 +23,13 @@ interface ButtonLinkProps extends Omit<LinkProps, MotionConflicts> {
   fullWidth?: boolean
 }
 
-export function ButtonLink({ variant = 'primary', size = 'md', fullWidth = false, className, ...rest }: ButtonLinkProps) {
+export function ButtonLink({
+  variant = 'primary',
+  size = 'md',
+  fullWidth = false,
+  className,
+  ...rest
+}: ButtonLinkProps) {
   const classes = ['button', `button--${variant}`, `button--${size}`, fullWidth ? 'button--full' : '', className]
     .filter(Boolean)
     .join(' ')

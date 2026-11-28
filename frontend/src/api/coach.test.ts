@@ -42,10 +42,17 @@ describe('coach and targets api', () => {
   it('sends the served target with the sets', async () => {
     const fetchMock = stubFetch(new Response(null, { status: 204 }))
 
-    await saveExerciseSets('s1', 'e1', [{ reps: 8, weightKg: 60, repsInReserve: 2 }], { weightKg: 60, reps: 8, reason: 'AddRep' })
+    await saveExerciseSets('s1', 'e1', [{ reps: 8, weightKg: 60, repsInReserve: 2 }], {
+      weightKg: 60,
+      reps: 8,
+      reason: 'AddRep',
+    })
 
     expect(fetchMock.mock.calls[0][1]?.body).toBe(
-      JSON.stringify({ sets: [{ reps: 8, weightKg: 60, repsInReserve: 2 }], target: { weightKg: 60, reps: 8, reason: 'AddRep' } }),
+      JSON.stringify({
+        sets: [{ reps: 8, weightKg: 60, repsInReserve: 2 }],
+        target: { weightKg: 60, reps: 8, reason: 'AddRep' },
+      }),
     )
   })
 })

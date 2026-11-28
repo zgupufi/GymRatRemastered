@@ -23,7 +23,13 @@ describe('workouts api', () => {
     const page = { items: [], page: 1, pageSize: 10, totalCount: 0 }
     const fetchMock = stubFetch(Response.json(page))
 
-    const result = await getWorkoutSummaries({ term: 'push', sortBy: 'CreatedAt', direction: 'Descending', page: 1, pageSize: 10 })
+    const result = await getWorkoutSummaries({
+      term: 'push',
+      sortBy: 'CreatedAt',
+      direction: 'Descending',
+      page: 1,
+      pageSize: 10,
+    })
 
     expect(result).toEqual(page)
     expect(fetchMock.mock.calls[0][0]).toBe(
@@ -63,7 +69,10 @@ describe('workouts api', () => {
     await replaceWorkoutExercises('w1', [{ exerciseId: 'e1', targetSets: 4 }])
 
     expect(fetchMock.mock.calls[0][0]).toBe('/api/workouts/w1/exercises')
-    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'PUT', body: '{"exercises":[{"exerciseId":"e1","targetSets":4}]}' })
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      method: 'PUT',
+      body: '{"exercises":[{"exerciseId":"e1","targetSets":4}]}',
+    })
   })
 
   it('deletes a workout', async () => {

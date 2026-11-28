@@ -4,7 +4,15 @@ import type { Schema } from './schema'
 
 export type Exercise = Schema<'ExerciseDto'>
 
-export const MUSCLE_GROUPS: Schema<'MuscleGroup'>[] = ['Back', 'Biceps', 'Chest', 'Core', 'Legs', 'Shoulders', 'Triceps']
+export const MUSCLE_GROUPS: Schema<'MuscleGroup'>[] = [
+  'Back',
+  'Biceps',
+  'Chest',
+  'Core',
+  'Legs',
+  'Shoulders',
+  'Triceps',
+]
 
 export type ExerciseSortField = 'Name' | 'MainMuscle' | 'Difficulty'
 

@@ -38,7 +38,9 @@ describe('timers', () => {
   })
 
   it('counts elapsed seconds only while running', () => {
-    const { result, rerender } = renderHook(({ running }) => useStopwatch(running), { initialProps: { running: false } })
+    const { result, rerender } = renderHook(({ running }) => useStopwatch(running), {
+      initialProps: { running: false },
+    })
     act(() => {
       vi.advanceTimersByTime(3000)
     })

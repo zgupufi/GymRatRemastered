@@ -138,7 +138,12 @@ function ExerciseDetails({ id }: { id: string }) {
         </div>
       </div>
 
-      <AddToWorkoutModal open={chooserOpen} exerciseId={exercise.id} exerciseName={exercise.name} onClose={() => setChooserOpen(false)} />
+      <AddToWorkoutModal
+        open={chooserOpen}
+        exerciseId={exercise.id}
+        exerciseName={exercise.name}
+        onClose={() => setChooserOpen(false)}
+      />
     </main>
   )
 }

@@ -47,7 +47,11 @@ async function askCoach() {
 
 describe('Coach suggestions in the chat', () => {
   beforeEach(() => {
-    vi.mocked(sendChatMessage).mockResolvedValue({ reply: 'You stalled.', workoutsChanged: false, suggestions: [suggestion] })
+    vi.mocked(sendChatMessage).mockResolvedValue({
+      reply: 'You stalled.',
+      workoutsChanged: false,
+      suggestions: [suggestion],
+    })
     vi.mocked(getPendingSuggestions).mockResolvedValue({ items: [suggestion], page: 1, pageSize: 100, totalCount: 1 })
     vi.mocked(applySuggestion).mockResolvedValue(undefined)
     vi.mocked(dismissSuggestion).mockResolvedValue(undefined)
@@ -97,12 +101,20 @@ describe('Coach suggestions in the chat', () => {
   })
 
   it('shows the server message when applying fails and keeps the buttons', async () => {
-    vi.mocked(applySuggestion).mockRejectedValue(new ApiError(400, 'The workout changed after suggestion c1 was made.', 'BLException_CoachService_SuggestionStale'))
+    vi.mocked(applySuggestion).mockRejectedValue(
+      new ApiError(
+        400,
+        'The workout changed after suggestion c1 was made.',
+        'BLException_CoachService_SuggestionStale',
+      ),
+    )
     const { user, card } = await askCoach()
 
     await user.click(within(card).getByRole('button', { name: 'Apply' }))
 
-    expect(await within(card).findByRole('alert')).toHaveTextContent('The workout changed after suggestion c1 was made.')
+    expect(await within(card).findByRole('alert')).toHaveTextContent(
+      'The workout changed after suggestion c1 was made.',
+    )
     expect(within(card).getByRole('button', { name: 'Apply' })).toBeEnabled()
   })
 
