@@ -1,19 +1,19 @@
+import { lazy } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { SESSION_EXPIRED_NOTICE } from '../auth/RequireAuth'
-import { Spinner } from '../components/ui/Spinner'
-import { DashboardPage } from './DashboardPage/DashboardPage'
+import { PageLoading } from '../components/layout/PageLoading'
 import { LandingPage } from './LandingPage/LandingPage'
+
+const DashboardPage = lazy(async () => ({
+  default: (await import('./DashboardPage/DashboardPage')).DashboardPage,
+}))
 
 export function HomePage() {
   const { status, sessionExpired } = useAuth()
 
   if (status === 'loading') {
-    return (
-      <main className="page" aria-busy="true">
-        <Spinner />
-      </main>
-    )
+    return <PageLoading />
   }
   if (status === 'anonymous' && sessionExpired) {
     return <Navigate to="/login" replace state={{ notice: SESSION_EXPIRED_NOTICE, from: '/' }} />

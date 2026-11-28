@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 import type { WorkoutSummary } from '../../api/workouts'
 import { WorkoutSelect } from './WorkoutSelect'
+import '../ui/Chip.css'
 
 export const FULL_BODY_THRESHOLD = 6
 

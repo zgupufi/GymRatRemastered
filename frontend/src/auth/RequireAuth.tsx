@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { Spinner } from '../components/ui/Spinner'
+import { PageLoading } from '../components/layout/PageLoading'
 import { useAuth } from './AuthContext'
 
 export const SESSION_EXPIRED_NOTICE = 'Your session expired. Log in again to continue.'
@@ -15,11 +15,7 @@ export function RequireAuth() {
   }
 
   if (status === 'loading') {
-    return (
-      <main className="page" aria-busy="true">
-        <Spinner />
-      </main>
-    )
+    return <PageLoading />
   }
   if (status === 'anonymous') {
     const choseToLeave = wasAuthenticated && !sessionExpired

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AuthContext, type AuthApi, type AuthStatus } from '../../auth/AuthContext'
@@ -28,20 +28,22 @@ describe('AppShell chat widget', () => {
     sessionStorage.clear()
   })
 
-  it('shows the chat when logged in', () => {
+  it('shows the chat when logged in', async () => {
     renderShell('/workouts', 'authenticated')
 
-    expect(screen.getByText('chat widget')).toBeInTheDocument()
+    expect(await screen.findByText('chat widget')).toBeInTheDocument()
   })
 
-  it('hides the chat on the workout execution page', () => {
+  it('hides the chat on the workout execution page', async () => {
     renderShell('/workout-execution', 'authenticated')
+    await act(() => vi.dynamicImportSettled())
 
     expect(screen.queryByText('chat widget')).not.toBeInTheDocument()
   })
 
-  it.each<AuthStatus>(['anonymous', 'loading'])('hides the chat while %s', (status) => {
+  it.each<AuthStatus>(['anonymous', 'loading'])('hides the chat while %s', async (status) => {
     renderShell('/', status)
+    await act(() => vi.dynamicImportSettled())
 
     expect(screen.queryByText('chat widget')).not.toBeInTheDocument()
   })

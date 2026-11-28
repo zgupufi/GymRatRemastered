@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { MotionConfig } from 'motion/react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
@@ -6,11 +6,14 @@ import { installHaptics } from '../../lib/haptics'
 import { pageTitle } from '../../lib/pageTitle'
 import { clearChatEntries } from '../Chat/chatStorage'
 import { ChatErrorBoundary } from '../Chat/ChatErrorBoundary'
-import { ChatWidget } from '../Chat/ChatWidget'
 import { ToastProvider } from '../ui/Toast'
 import { AppNav } from './AppNav'
+import { PageErrorBoundary } from './PageErrorBoundary'
+import { PageLoading } from './PageLoading'
 import { ScrollToTop } from './ScrollToTop'
 import './AppShell.css'
+
+const ChatWidget = lazy(async () => ({ default: (await import('../Chat/ChatWidget')).ChatWidget }))
 
 export function AppShell() {
   const { pathname } = useLocation()
@@ -35,10 +38,16 @@ export function AppShell() {
           <div className="app-shell__glow app-shell__glow--blue" aria-hidden="true" />
           <div className="app-shell__glow app-shell__glow--emerald" aria-hidden="true" />
           {showNav ? <AppNav /> : null}
-          <Outlet />
+          <PageErrorBoundary resetKey={pathname}>
+            <Suspense fallback={<PageLoading />}>
+              <Outlet />
+            </Suspense>
+          </PageErrorBoundary>
           {status === 'authenticated' && pathname !== '/workout-execution' && pathname !== '/settings' ? (
             <ChatErrorBoundary>
-              <ChatWidget />
+              <Suspense fallback={null}>
+                <ChatWidget />
+              </Suspense>
             </ChatErrorBoundary>
           ) : null}
         </div>
