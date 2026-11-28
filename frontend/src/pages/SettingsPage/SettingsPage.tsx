@@ -129,7 +129,9 @@ function PreferencesSection({ user }: { user: UserProfile }) {
           <div className="settings-page__text">
             <span className="settings-page__key">Vibration</span>
             <span className="settings-page__hint">
-              <span className="settings-page__long">Completed set, finished workout and end of rest, on phones that support it</span>
+              <span className="settings-page__long">
+                Completed set, finished workout and end of rest, on phones that support it
+              </span>
               <span className="settings-page__short">Sets, finish and rest end</span>
             </span>
           </div>
