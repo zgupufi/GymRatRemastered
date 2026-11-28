@@ -31,7 +31,7 @@ jobs:
           gpg --batch --yes --pinentry-mode loopback --passphrase-env BACKUP_PASSPHRASE --symmetric --cipher-algo AES256 --output "gymrat-$(date -u +%Y%m%d).dump.gpg" gymrat.dump
           rm gymrat.dump
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: gymrat-backup
           path: gymrat-*.dump.gpg
