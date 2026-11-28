@@ -2,5 +2,45 @@
 set -euo pipefail
 
 root="$(git rev-parse --show-toplevel)"
+cd "$root"
 
-"$root/scripts/coverage/check.sh" all
+remote="${1:-origin}"
+backend=false
+frontend=false
+
+while read -r _ local_sha _ remote_sha; do
+  if [[ "$local_sha" =~ ^0+$ ]]; then
+    continue
+  fi
+
+  base=""
+  if [[ ! "$remote_sha" =~ ^0+$ ]] && git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
+    base="$remote_sha"
+  else
+    base="$(git merge-base "$local_sha" "refs/remotes/$remote/main" 2>/dev/null || true)"
+  fi
+
+  if [[ -z "$base" ]]; then
+    backend=true
+    frontend=true
+    continue
+  fi
+
+  if ! git diff --quiet --no-renames "$base" "$local_sha" -- backend database; then
+    backend=true
+  fi
+
+  if ! git diff --quiet --no-renames "$base" "$local_sha" -- frontend; then
+    frontend=true
+  fi
+done
+
+if [[ "$backend" == true ]]; then
+  echo "pre-push: running backend tests"
+  dotnet test backend/GymRatService.sln </dev/null
+fi
+
+if [[ "$frontend" == true ]]; then
+  echo "pre-push: running frontend tests"
+  (cd frontend && npm test </dev/null)
+fi
