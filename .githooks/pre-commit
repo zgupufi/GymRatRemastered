@@ -23,7 +23,7 @@ if (( ${#backend[@]} + ${#formatted[@]} == 0 )); then
 fi
 
 checkout_staged() {
-  printf '%s\0' "$@" | git checkout-index --prefix="$snapshot/" -z --stdin
+  printf '%s\0' "$@" | git checkout-index --force --prefix="$snapshot/" -z --stdin
 }
 
 snapshot="$(mktemp -d)"
