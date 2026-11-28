@@ -48,6 +48,30 @@ describe('sessions api', () => {
     expect(fetchMock.mock.calls[0][1]?.method).toBe('POST')
   })
 
+  it.each([
+    ['a set save', () => saveExerciseSets('s1', 'e1', [{ reps: 8, weightKg: 60 }])],
+    ['finishing', () => finishSession('s1')],
+  ])('gives up on %s that gets no answer', async (_, call) => {
+    const controller = new AbortController()
+    const timeout = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(controller.signal)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(
+        (_input, init) =>
+          new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => reject(new DOMException('timed out', 'TimeoutError')))
+          }),
+      ),
+    )
+
+    const request = call()
+    controller.abort()
+
+    await expect(request).rejects.toMatchObject({ status: 0 })
+    expect(timeout).toHaveBeenCalledExactlyOnceWith(15_000)
+    timeout.mockRestore()
+  })
+
   it('loads the last session of a workout', async () => {
     const last = { sessionId: null, startedAt: null, durationSeconds: null, exercises: [] }
     const fetchMock = stubFetch(Response.json(last))

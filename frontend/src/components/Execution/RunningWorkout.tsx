@@ -19,6 +19,7 @@ import { Button } from '../ui/Button'
 import { Modal } from '../ui/Modal'
 import { useToast } from '../ui/ToastContext'
 import { RestTimerPill } from './RestTimerPill'
+import { enqueueSave } from './saveQueue'
 import {
   addDraft,
   applyTarget,
@@ -80,7 +81,7 @@ export function RunningWorkout({
   const [busy, setBusy] = useState(false)
   const [confirmingEnd, setConfirmingEnd] = useState(false)
   const advanceTimer = useRef<number | undefined>(undefined)
-  const saveQueue = useRef<Promise<void>>(Promise.resolve())
+  const latestDrafts = useRef(drafts)
   const savedExercises = useRef(
     new Set(resume?.exercises.filter((item) => item.sets.length > 0).map((item) => item.exerciseId)),
   )
@@ -88,6 +89,10 @@ export function RunningWorkout({
   const elapsed = useStopwatch(true, resume?.startedAt ? Date.parse(resume.startedAt) : undefined)
 
   useEffect(() => () => window.clearTimeout(advanceTimer.current), [])
+
+  useEffect(() => {
+    latestDrafts.current = drafts
+  }, [drafts])
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => event.preventDefault()
@@ -104,7 +109,7 @@ export function RunningWorkout({
   const detail = [exercise.mainMuscle, exercise.equipment].filter(Boolean).join(' · ')
   const target = targets.find((item) => item.order === index + 1)
 
-  const saveExercise = async (position: number, current: Record<string, SetDraft[]>) => {
+  const sendSets = async (position: number, current: Record<string, SetDraft[]>) => {
     const exerciseId = workout.exercises[position].exercise.id
     const entries = toEntries(current[exerciseId], unit)
     if (entries.length > 0 || savedExercises.current.has(exerciseId)) {
@@ -126,6 +131,9 @@ export function RunningWorkout({
     }
   }
 
+  const saveExercise = (position: number, current: Record<string, SetDraft[]>) =>
+    enqueueSave(() => sendSets(position, current))
+
   const move = async (target: number) => {
     window.clearTimeout(advanceTimer.current)
     setBusy(true)
@@ -143,8 +151,10 @@ export function RunningWorkout({
     window.clearTimeout(advanceTimer.current)
     setBusy(true)
     try {
-      await saveExercise(index, drafts)
-      await finishSession(sessionId)
+      await enqueueSave(async () => {
+        await sendSets(index, drafts)
+        await finishSession(sessionId)
+      })
       workoutFinishedHaptic()
       rest.skip()
       onFinished(
@@ -162,9 +172,7 @@ export function RunningWorkout({
   }
 
   const persistSets = (position: number, current: Record<string, SetDraft[]>) => {
-    saveQueue.current = saveQueue.current
-      .then(() => saveExercise(position, current))
-      .catch(() => showToast('error', 'Could not save your sets. Try again.'))
+    saveExercise(position, current).catch(() => showToast('error', 'Could not save your sets. Try again.'))
   }
 
   const updateDrafts = (change: (current: SetDraft[]) => SetDraft[]) => {
@@ -206,10 +214,9 @@ export function RunningWorkout({
     const updated = current.map((draft, position) => (position === row ? { ...draft, done: true } : draft))
     persistSets(index, { ...drafts, [exercise.id]: updated })
     if (updated.every((draft) => draft.done) && !isLast) {
-      const nextDrafts = { ...drafts, [exercise.id]: updated }
       advanceTimer.current = window.setTimeout(async () => {
         try {
-          await saveExercise(index, nextDrafts)
+          await saveExercise(index, latestDrafts.current)
           setIndex(index + 1)
         } catch {
           showToast('error', 'Could not save your sets. Try again.')
