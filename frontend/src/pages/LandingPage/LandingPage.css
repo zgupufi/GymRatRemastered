@@ -354,7 +354,7 @@
 
 .phone__row--next .phone__cell,
 .phone__cell--focus {
-  color: var(--text-4);
+  color: var(--text-3);
 }
 
 .phone__cell--focus {
@@ -371,7 +371,7 @@
   height: 2.25rem;
   border-radius: 50%;
   background: var(--surface-3);
-  color: var(--text-4);
+  color: var(--text-3);
 }
 
 .phone__row--head .phone__check {
@@ -771,7 +771,7 @@
   justify-content: space-between;
   font-size: 0.6875rem;
   font-weight: 500;
-  color: var(--text-4);
+  color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
 
